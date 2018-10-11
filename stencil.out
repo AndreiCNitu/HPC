@@ -1,0 +1,8 @@
+Running on host node31-032
+Time is Thu Oct 11 12:11:49 BST 2018
+Directory is /panfs/panasas01/cosc/an16228/work/hpc_cw1
+PBS job ID is 7509897.master.cm.cluster
+------------------------------------
+ runtime: 8.200138 s
+------------------------------------
+Warning: Permanently added 'node31-032,10.131.0.224' (RSA) to the list of known hosts.
