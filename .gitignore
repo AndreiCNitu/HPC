@@ -3,3 +3,4 @@ stencil.pgm
 .DS_Store
 stencil
 *.pgm
+*.pages

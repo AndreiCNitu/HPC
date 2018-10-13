@@ -5,7 +5,7 @@
 #PBS -m a
 #PBS -qteaching
 #PBS -lnodes=1:ppn=16
-#PBS -lwalltime=00:10:00
+#PBS -lwalltime=00:02:00
 
 cd $PBS_O_WORKDIR
 
@@ -15,4 +15,3 @@ echo Directory is `pwd`
 echo PBS job ID is $PBS_JOBID
 
 ./stencil 1024 1024 100
-
