@@ -9,6 +9,7 @@
  * - change the timed forloop to go to 2 * niters and use tmp_row
  * - change stencil function to use tmp_row, also save current cell and reset it
  *   in tmp_row to use for the next cell to the right
+ * v4 :
 */
 #include <stdio.h>
 #include <stdlib.h>

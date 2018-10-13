@@ -3,6 +3,7 @@
  * v1 : Changed from column major to row major order in stencil function
  * v2 : Replaced arithmetic divisions( 3.0/5.0, 0.5/5.0 ) with
  * double values( 0.6, 0.1 )
+ * v2.1 : Use compiler flags( gcc/icc O1, O2 ,O3 ,Ofast ... )
 */
 #include <stdio.h>
 #include <stdlib.h>
