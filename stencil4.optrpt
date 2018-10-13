@@ -1,0 +1,242 @@
+
+Begin optimization report for: main(int, char **)
+
+    Report from: Vector optimizations [vec]
+
+
+LOOP BEGIN at stencil4.c(81,3) inlined into stencil4.c(44,3)
+   remark #25460: No loop optimizations reported
+
+   LOOP BEGIN at stencil4.c(82,5) inlined into stencil4.c(44,3)
+   <Multiversioned v1>
+   LOOP END
+
+   LOOP BEGIN at stencil4.c(82,5) inlined into stencil4.c(44,3)
+   <Multiversioned v2>
+      remark #15300: LOOP WAS VECTORIZED
+   LOOP END
+
+   LOOP BEGIN at stencil4.c(82,5) inlined into stencil4.c(44,3)
+   <Remainder, Multiversioned v2>
+   LOOP END
+LOOP END
+
+LOOP BEGIN at stencil4.c(88,3) inlined into stencil4.c(44,3)
+   remark #25460: No loop optimizations reported
+
+   LOOP BEGIN at stencil4.c(88,3) inlined into stencil4.c(44,3)
+   <Peeled>
+   LOOP END
+
+   LOOP BEGIN at stencil4.c(88,3) inlined into stencil4.c(44,3)
+      remark #15300: LOOP WAS VECTORIZED
+   LOOP END
+
+   LOOP BEGIN at stencil4.c(88,3) inlined into stencil4.c(44,3)
+   <Remainder>
+   LOOP END
+LOOP END
+
+LOOP BEGIN at stencil4.c(92,3) inlined into stencil4.c(44,3)
+   remark #25460: No loop optimizations reported
+
+   LOOP BEGIN at stencil4.c(93,5) inlined into stencil4.c(44,3)
+      remark #25460: No loop optimizations reported
+
+      LOOP BEGIN at stencil4.c(94,7) inlined into stencil4.c(44,3)
+         remark #25460: No loop optimizations reported
+
+         LOOP BEGIN at stencil4.c(95,9) inlined into stencil4.c(44,3)
+            remark #15300: LOOP WAS VECTORIZED
+         LOOP END
+
+         LOOP BEGIN at stencil4.c(95,9) inlined into stencil4.c(44,3)
+         <Remainder>
+            remark #15301: REMAINDER LOOP WAS VECTORIZED
+         LOOP END
+
+         LOOP BEGIN at stencil4.c(95,9) inlined into stencil4.c(44,3)
+         <Remainder>
+         LOOP END
+      LOOP END
+   LOOP END
+LOOP END
+
+LOOP BEGIN at stencil4.c(48,3)
+   remark #25460: No loop optimizations reported
+
+   LOOP BEGIN at stencil4.c(65,3) inlined into stencil4.c(49,5)
+      remark #25460: No loop optimizations reported
+
+      LOOP BEGIN at stencil4.c(66,5) inlined into stencil4.c(49,5)
+         remark #25460: No loop optimizations reported
+      LOOP END
+
+      LOOP BEGIN at stencil4.c(66,5) inlined into stencil4.c(49,5)
+         remark #25460: No loop optimizations reported
+      LOOP END
+
+      LOOP BEGIN at stencil4.c(66,5) inlined into stencil4.c(49,5)
+         remark #25460: No loop optimizations reported
+      LOOP END
+
+      LOOP BEGIN at stencil4.c(66,5) inlined into stencil4.c(49,5)
+         remark #25460: No loop optimizations reported
+      LOOP END
+   LOOP END
+LOOP END
+
+LOOP BEGIN at stencil4.c(122,5) inlined into stencil4.c(59,3)
+   remark #25460: No loop optimizations reported
+
+   LOOP BEGIN at stencil4.c(121,3) inlined into stencil4.c(59,3)
+   <Peeled>
+   LOOP END
+
+   LOOP BEGIN at stencil4.c(121,3) inlined into stencil4.c(59,3)
+      remark #15301: PERMUTED LOOP WAS VECTORIZED
+   LOOP END
+
+   LOOP BEGIN at stencil4.c(121,3) inlined into stencil4.c(59,3)
+   <Remainder>
+      remark #15301: REMAINDER LOOP WAS VECTORIZED
+   LOOP END
+
+   LOOP BEGIN at stencil4.c(121,3) inlined into stencil4.c(59,3)
+   <Remainder>
+   LOOP END
+LOOP END
+
+LOOP BEGIN at stencil4.c(129,3) inlined into stencil4.c(59,3)
+   remark #25460: No loop optimizations reported
+
+   LOOP BEGIN at stencil4.c(130,5) inlined into stencil4.c(59,3)
+      remark #25460: No loop optimizations reported
+   LOOP END
+LOOP END
+===========================================================================
+
+Begin optimization report for: stencil(const int, const int, double *__restrict__, double *__restrict__)
+
+    Report from: Vector optimizations [vec]
+
+
+LOOP BEGIN at stencil4.c(65,3)
+   remark #25460: No loop optimizations reported
+
+   LOOP BEGIN at stencil4.c(66,5)
+      remark #25460: No loop optimizations reported
+   LOOP END
+
+   LOOP BEGIN at stencil4.c(66,5)
+      remark #25460: No loop optimizations reported
+   LOOP END
+
+   LOOP BEGIN at stencil4.c(66,5)
+      remark #25460: No loop optimizations reported
+   LOOP END
+
+   LOOP BEGIN at stencil4.c(66,5)
+      remark #25460: No loop optimizations reported
+   LOOP END
+LOOP END
+===========================================================================
+
+Begin optimization report for: output_image(const char *, const int, const int, double *)
+
+    Report from: Vector optimizations [vec]
+
+
+LOOP BEGIN at stencil4.c(122,5)
+   remark #25460: No loop optimizations reported
+
+   LOOP BEGIN at stencil4.c(121,3)
+   <Peeled>
+   LOOP END
+
+   LOOP BEGIN at stencil4.c(121,3)
+      remark #15301: PERMUTED LOOP WAS VECTORIZED
+   LOOP END
+
+   LOOP BEGIN at stencil4.c(121,3)
+   <Remainder>
+      remark #15301: REMAINDER LOOP WAS VECTORIZED
+   LOOP END
+
+   LOOP BEGIN at stencil4.c(121,3)
+   <Remainder>
+   LOOP END
+LOOP END
+
+LOOP BEGIN at stencil4.c(129,3)
+   remark #25460: No loop optimizations reported
+
+   LOOP BEGIN at stencil4.c(130,5)
+      remark #25460: No loop optimizations reported
+   LOOP END
+LOOP END
+===========================================================================
+
+Begin optimization report for: init_image(const int, const int, double *, double *)
+
+    Report from: Vector optimizations [vec]
+
+
+LOOP BEGIN at stencil4.c(81,3)
+   remark #25460: No loop optimizations reported
+
+   LOOP BEGIN at stencil4.c(82,5)
+   <Multiversioned v1>
+   LOOP END
+
+   LOOP BEGIN at stencil4.c(82,5)
+   <Multiversioned v2>
+      remark #15300: LOOP WAS VECTORIZED
+   LOOP END
+
+   LOOP BEGIN at stencil4.c(82,5)
+   <Remainder, Multiversioned v2>
+   LOOP END
+LOOP END
+
+LOOP BEGIN at stencil4.c(88,3)
+   remark #25460: No loop optimizations reported
+
+   LOOP BEGIN at stencil4.c(88,3)
+   <Peeled>
+   LOOP END
+
+   LOOP BEGIN at stencil4.c(88,3)
+      remark #15300: LOOP WAS VECTORIZED
+   LOOP END
+
+   LOOP BEGIN at stencil4.c(88,3)
+   <Remainder>
+   LOOP END
+LOOP END
+
+LOOP BEGIN at stencil4.c(92,3)
+   remark #25460: No loop optimizations reported
+
+   LOOP BEGIN at stencil4.c(93,5)
+      remark #25460: No loop optimizations reported
+
+      LOOP BEGIN at stencil4.c(94,7)
+         remark #25460: No loop optimizations reported
+
+         LOOP BEGIN at stencil4.c(95,9)
+            remark #15300: LOOP WAS VECTORIZED
+         LOOP END
+
+         LOOP BEGIN at stencil4.c(95,9)
+         <Remainder>
+            remark #15301: REMAINDER LOOP WAS VECTORIZED
+         LOOP END
+
+         LOOP BEGIN at stencil4.c(95,9)
+         <Remainder>
+         LOOP END
+      LOOP END
+   LOOP END
+LOOP END
+===========================================================================
