@@ -14,4 +14,11 @@ echo Time is `date`
 echo Directory is `pwd`
 echo PBS job ID is $PBS_JOBID
 
+<<<<<<< HEAD
 ./stencil 1024 1024 100
+=======
+perf stat -e cycles,instructions,cache-references,cache-misses,branch-misses ./stencil 1024 1024 100
+perf stat -e cycles,instructions,cache-references,cache-misses,branch-misses ./stencil 4096 4096 100
+perf stat -e cycles,instructions,cache-references,cache-misses,branch-misses ./stencil 8000 8000 100
+
+>>>>>>> 7b97e2a3b2c23fdfbd76ca3df959c22800a9a0d8
