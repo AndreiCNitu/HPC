@@ -39,8 +39,8 @@ int main(int argc, char *argv[]) {
   int niters = atoi(argv[3]);
 
   // Allocate the image
-  double *image = malloc(sizeof(double)*(nx+2)*(ny+2));
-  double *tmp_image = malloc(sizeof(double)*(nx+2));
+  double *image     = malloc(sizeof(double)*(nx+2)*(ny+2));
+  double *tmp_image = malloc(sizeof(double)*(nx+2)*(ny+2));
 
   // Set the input image
   init_image(nx+2, ny+2, image, tmp_image);
@@ -64,8 +64,8 @@ int main(int argc, char *argv[]) {
 }
 
 void stencil(const int nx, const int ny, double * restrict image, double * restrict tmp_image) {
-  for( int i = 1; i < nx-1; i++ ) { 
-    for( int j = 1; j < ny-1; j++ ) { 
+  for( int i = 1; i < nx-1; i++ ) {
+    for( int j = 1; j < ny-1; j++ ) {
       tmp_image[ j + i * ny ]  = image[ j +i * ny ] * 0.6;
       tmp_image[ j + i * ny ] += image[ j + (i - 1) * ny ] * 0.1;
       tmp_image[ j + i * ny ] += image[ j + (i + 1) * ny ] * 0.1;
@@ -86,7 +86,7 @@ void init_image(const int nx, const int ny, double * image, double * tmp_image) 
 
   // Initialize temporary image with 0s
   for (int i = 0; i < ny; ++i)
-    for (int j = 0; i < nx; ++j)
+    for (int j = 0; j < nx; ++j)
       tmp_image[j+i*ny] = 0.0;
 
   // Checkerboard --- margins = 0
