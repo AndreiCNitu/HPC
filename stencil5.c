@@ -20,8 +20,8 @@
 // Define output file name
 #define OUTPUT_FILE "stencil.pgm"
 
-void stencil(const int nx, const int ny, double * restrict image, double * restrict tmp_row);
-void init_image(const int nx, const int ny, double *  image, double *  rmp_row);
+void stencil(const int nx, const int ny, double * restrict image, double * restrict tmp_image);
+void init_image(const int nx, const int ny, double * image, double * tmp_image);
 void output_image(const char * file_name, const int nx, const int ny, double *image);
 double wtime(void);
 
@@ -40,15 +40,16 @@ int main(int argc, char *argv[]) {
 
   // Allocate the image
   double *image = malloc(sizeof(double)*(nx+2)*(ny+2));
-  double *tmp_row = malloc(sizeof(double)*(nx+2));
+  double *tmp_image = malloc(sizeof(double)*(nx+2));
 
   // Set the input image
-  init_image(nx+2, ny+2, image, tmp_row);
+  init_image(nx+2, ny+2, image, tmp_image);
 
   // Call the stencil kernel
   double tic = wtime();
-  for (int t = 0; t < 2 * niters; ++t) {
-    stencil(nx+2, ny+2, image, tmp_row);
+  for (int t = 0; t < niters; ++t) {
+    stencil(nx+2, ny+2, image, tmp_image);
+    stencil(nx+2, ny+2, tmp_image, image);
   }
   double toc = wtime();
 
@@ -62,27 +63,20 @@ int main(int argc, char *argv[]) {
   free(image);
 }
 
-void stencil(const int nx, const int ny, double * restrict image, double * restrict tmp_row) {
-  double current_cell;
-  for( int i = 1; i < nx-1; i++ ) {
-# pragma unroll(ny)
+void stencil(const int nx, const int ny, double * restrict image, double * restrict tmp_image) {
+  for( int i = 1; i < nx-1; i++ ) { 
     for( int j = 1; j < ny-1; j++ ) { 
-      current_cell = image[ j + i * ny ];
-      image[ j + i * ny ] *= 0.6;
-      image[ j + i * ny ] += tmp_row[ j ] * 0.1;
-      image[ j + i * ny ] += image[ j + (i + 1) * ny ] * 0.1;
-      image[ j + i * ny ] += tmp_row[ j - 1  ] * 0.1;
-      image[ j + i * ny ] += image[ j + 1 + i * ny ] * 0.1;
-      tmp_row[ j ] = current_cell;
+      tmp_image[ j + i * ny ]  = image[ j +i * ny ] * 0.6;
+      tmp_image[ j + i * ny ] += image[ j + (i - 1) * ny ] * 0.1;
+      tmp_image[ j + i * ny ] += image[ j + (i + 1) * ny ] * 0.1;
+      tmp_image[ j + i * ny ] += image[ j - 1 + i * ny ]   * 0.1;
+      tmp_image[ j + i * ny ] += image[ j + 1 + i * ny ]   * 0.1;
     }
   }
-  // Reset temporary row to 0s
-  for (int i = 0; i < ny; ++i)
-    tmp_row[i] = 0.0;
 }
 
 // Create the input image
-void init_image(const int nx, const int ny, double * image, double * tmp_row) {
+void init_image(const int nx, const int ny, double * image, double * tmp_image) {
   // Zero everything
   for (int j = 0; j < ny; ++j) {
     for (int i = 0; i < nx; ++i) {
@@ -90,9 +84,10 @@ void init_image(const int nx, const int ny, double * image, double * tmp_row) {
     }
   }
 
-  // Initialize temporary row with 0s
+  // Initialize temporary image with 0s
   for (int i = 0; i < ny; ++i)
-    tmp_row[i] = 0.0;
+    for (int j = 0; i < nx; ++j)
+      tmp_image[j+i*ny] = 0.0;
 
   // Checkerboard --- margins = 0
   for (int j = 0; j < 8; ++j) {
