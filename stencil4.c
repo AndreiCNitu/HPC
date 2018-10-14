@@ -9,6 +9,8 @@
  * - change the timed forloop to go to 2 * niters and use tmp_row
  * - change stencil function to use tmp_row, also save current cell and reset it
  *   in tmp_row to use for the next cell to the right
+ * v4: Removed branches in stencil, by padding the matrix with 0s
+ * - need to reset tmp_row to 0s at the end of each stencil iteration 
 */
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,7 +19,7 @@
 // Define output file name
 #define OUTPUT_FILE "stencil.pgm"
 
-void stencil(const int nx, const int ny, double *  image, double *  tmp_row);
+void stencil(const int nx, const int ny, double * image, double * tmp_row);
 void init_image(const int nx, const int ny, double *  image, double *  rmp_row);
 void output_image(const char * file_name, const int nx, const int ny, double *image);
 double wtime(void);
@@ -59,7 +61,7 @@ int main(int argc, char *argv[]) {
   free(image);
 }
 
-void stencil(const int nx, const int ny, double *  image, double *  tmp_row) {
+void stencil(const int nx, const int ny, double * image, double * tmp_row) {
   double current_cell;
   for( int i = 1; i < nx-1; i++ ) {
     for( int j = 1; j < ny-1; j++ ) {
@@ -119,8 +121,7 @@ void output_image(const char * file_name, const int nx, const int ny, double *im
 
   // Calculate maximum value of image
   // This is used to rescale the values
-  // to a range of 0-255 for output
-  double maximum = 0.0;
+  // to a range of 0-255 for output double maximum = 0.0;
   for (int j = 1; j < ny-1; ++j) {
     for (int i = 1; i < nx-1; ++i) {
       if (image[j+i*ny] > maximum)
