@@ -5,7 +5,7 @@
 #PBS -m a
 #PBS -qteaching
 #PBS -lnodes=1:ppn=16
-#PBS -lwalltime=00:04:00
+#PBS -lwalltime=00:02:30
 
 cd $PBS_O_WORKDIR
 
@@ -13,7 +13,10 @@ echo Running on host `hostname`
 echo Time is `date`
 echo Directory is `pwd`
 echo PBS job ID is $PBS_JOBID
-
+echo
+echo 1024 x 1024
 perf stat -e cycles,instructions,cache-references,cache-misses,branch-misses ./stencil 1024 1024 100
+echo 4096 x 4096
 perf stat -e cycles,instructions,cache-references,cache-misses,branch-misses ./stencil 4096 4096 100
+echo 8000 x 8000
 perf stat -e cycles,instructions,cache-references,cache-misses,branch-misses ./stencil 8000 8000 100
