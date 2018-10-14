@@ -11,7 +11,7 @@
  *   in tmp_row to use for the next cell to the right
  * v4: Removed branches in stencil, by padding the matrix with 0s
  * - need to reset tmp_row to 0s at the end of each stencil iteration
- * v5: Vectorize ...
+ * v5: Vectorize. Remove the temporary row and use 2 matrices again. Use restrict. 
 */
 #include <stdio.h>
 #include <stdlib.h>
