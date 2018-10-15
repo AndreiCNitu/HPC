@@ -40,8 +40,8 @@ int main(int argc, char *argv[]) {
   int niters = atoi(argv[3]);
 
   // Allocate the image
-  float *image     = malloc(sizeof(float)*(nx+2)*(ny+2));
-  float *tmp_image = malloc(sizeof(float)*(nx+2)*(ny+2));
+  float *image     = _mm_malloc(sizeof(float)*(nx+2)*(ny+2), 32);
+  float *tmp_image = _mm_malloc(sizeof(float)*(nx+2)*(ny+2), 32);
 
   // Set the input image
   init_image(nx+2, ny+2, image, tmp_image);
@@ -61,20 +61,20 @@ int main(int argc, char *argv[]) {
   printf("------------------------------------\n");
 
   output_image(OUTPUT_FILE, nx+2, ny+2, image);
-  free(image);
+  _mm_free(image);
 }
 
 void stencil(const int nx, const int ny, float * restrict image, float * restrict tmp_image) {
   for( int i = 1; i < nx-1; i++ ) {
-   // __assume_aligned(tmp_image, 64);
-   // __assume( (i * ny) % 32 == 0 );
-    // #pragma unroll (16)
+    __assume_aligned(tmp_image, 32);
+    __assume_aligned(    image, 32);
+    #pragma simd
     for( int j = 1; j < ny-1; j++ ) {
-      tmp_image[ j + i * ny ]  = image[ j +i * ny ] * 0.6  +
+      tmp_image[ j + i * ny ]  = image[ j +i * ny ] * 0.6f  +
                                ( image[ j + (i - 1) * ny ] +
                                  image[ j + (i + 1) * ny ] +
                                  image[ j - 1 + i * ny ]   +
-                                 image[ j + 1 + i * ny ] ) * 0.1;
+                                 image[ j + 1 + i * ny ] ) * 0.1f;
     }
   }
 }
