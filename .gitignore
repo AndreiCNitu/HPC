@@ -3,6 +3,7 @@ stencil.out
 stencil.pgm
 .DS_Store
 stencil
+stream
 *.pgm
 *.pages
 *.optrpt
