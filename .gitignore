@@ -4,6 +4,7 @@ stencil.pgm
 .DS_Store
 stencil
 stream
+stream_*
 *.pgm
 *.pages
 *.optrpt
