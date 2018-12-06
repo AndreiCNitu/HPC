@@ -1,0 +1,24 @@
+#!/bin/bash
+#PBS -N stencil
+#PBS -o stencil.out
+#PBS -joe
+#PBS -m a
+#PBS -qteaching
+#PBS -lnodes=1:ppn=16
+#PBS -lwalltime=00:10:00
+
+cd $PBS_O_WORKDIR
+
+echo Running on host `hostname`
+echo Time is `date`
+echo Directory is `pwd`
+echo PBS job ID is $PBS_JOBID
+echo
+echo
+echo 1024 x 1024
+./stencil 1024 1024 100
+echo 4096 x 4096
+./stencil 4096 4096 100
+echo 8000 x 8000
+./stencil 8000 8000 100
+
