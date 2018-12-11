@@ -1,0 +1,7 @@
+/cm/local/apps/torque/4.2.4.1/spool/mom_priv/jobs/7820163.master.cm.cluster.SC: line 15: small: command not found
+/cm/local/apps/torque/4.2.4.1/spool/mom_priv/jobs/7820163.master.cm.cluster.SC: line 16: medium: command not found
+/cm/local/apps/torque/4.2.4.1/spool/mom_priv/jobs/7820163.master.cm.cluster.SC: line 17: large: command not found
+Usage: ./stencil nx ny niters
+Usage: ./stencil nx ny niters
+Usage: ./stencil nx ny niters
+Usage: ./stencil nx ny niters

@@ -84,15 +84,16 @@ int main(int argc, char *argv[]) {
   printf(" memory bandwidth: %lf GB/s\n", (4 * 6 * (nx / 1024) * (ny / 1024) * 2 * niters) / ((toc - tic) * 1024) );
   printf("----------------------------------------\n");
 
-  float *out_image = _mm_malloc(sizeof(float) * (nx + 2) * (ny + 2), 64); 
-  if(rank == 0) {
-    for(int pid = 1; pid < size; pid++) {
-      MPI_Recv((float*) out_image + ny * (pid * p_height + 1), (nx+2) * (p_height-2), MPI_FLOAT, pid, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    }
-  } else {
-    MPI_Send((float*) proc_image + ny, (nx+2) * (p_height-2), MPI_FLOAT, 0, 42, MPI_COMM_WORLD);
-  }
-  output_image(OUTPUT_FILE, nx+2, ny+2, out_image);
+  //float *out_image = _mm_malloc(sizeof(float) * (nx + 2) * (ny + 2), 64); 
+  //if(rank == 0) {
+    //for(int pid = 1; pid < size; pid++) {
+      //MPI_Recv((float*) out_image + ny * (pid * p_height + 1), (nx+2) * (p_height-2), MPI_FLOAT, pid, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    //}
+  //} else {
+    //MPI_Send((float*) proc_image + ny, (nx+2) * (p_height-2), MPI_FLOAT, 0, 42, MPI_COMM_WORLD);
+  //}
+    if(rank == 2)
+  output_image(OUTPUT_FILE, p_height, ny+2, proc_image);
   _mm_free(image);
 
   MPI_Finalize();
