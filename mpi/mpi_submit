@@ -1,0 +1,38 @@
+#!/bin/bash
+
+#PBS -N MPI
+#PBS -o OUT
+#PBS -q teaching
+#PBS -l nodes=1:ppn=4,walltime=00:05:00
+
+#! Mail to user if job aborts
+#PBS -m a
+
+#! application name
+application="./stencil"
+
+#! Run options for the application
+small  = "1024 1024 100"
+medium = "4096 4096 100"
+large  = "8000 8000 100"
+
+cd $PBS_O_WORKDIR
+
+echo Running on host `hostname`
+echo Time is `date`
+echo Directory is `pwd`
+echo PBS job ID is $PBS_JOBID
+echo This jobs runs on the following machines:
+echo `cat $PBS_NODEFILE | uniq`
+
+#! Create a machine file for MPI
+cat $PBS_NODEFILE > machine.file.$PBS_JOBID
+
+numnodes=`wc $PBS_NODEFILE | awk '{ print $1 }'`
+
+module add intel-mpi/64/4.1.0/024
+
+#! Run the parallel MPI executable (nodes*ppn)
+mpirun -np $numnodes -machinefile machine.file.$PBS_JOBID $application $small
+
+
