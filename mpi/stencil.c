@@ -92,8 +92,10 @@ int main(int argc, char *argv[]) {
   //} else {
     //MPI_Send((float*) proc_image + ny, (nx+2) * (p_height-2), MPI_FLOAT, 0, 42, MPI_COMM_WORLD);
   //}
-    if(rank == 2)
-  output_image(OUTPUT_FILE, p_height, ny+2, proc_image);
+    if(rank == 0) {
+      output_image("original.pgm",  nx+2, ny+2, image);
+      output_image(OUTPUT_FILE, p_height, ny+2, proc_image);
+    }
   _mm_free(image);
 
   MPI_Finalize();
