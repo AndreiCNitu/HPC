@@ -97,7 +97,7 @@ int main(int argc, char *argv[]) {
     }
     stencilMargins( p_height, ny+2, tmp_proc_image, proc_image);
     comm_neighbours(p_height, ny+2, proc_image, rank, size, send_requests, recv_requests);
-    stencilMiddle(  p_height, ny+2, proc_image, tmp_proc_image);
+    stencilMiddle(  p_height, ny+2, tmp_proc_image, proc_image);
   }
   MPI_Barrier(MPI_COMM_WORLD);
   double toc = wtime();
