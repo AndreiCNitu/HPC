@@ -92,11 +92,11 @@ int main(int argc, char *argv[]) {
       }
     }
     for(int pid = 1; pid < size; pid++) {
-      MPI_Recv((float*) out_image + ny * (pid * (p_height-2) + 1), (nx+2) * (p_height-2), MPI_FLOAT, pid, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      MPI_Recv((float*) out_image + (ny + 2) * (pid * (p_height-2) + 1), (ny+2) * (p_height-2), MPI_FLOAT, pid, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
       printf("Received from P%d\n", pid);
     }
   } else {
-    MPI_Ssend((float*) proc_image + ny, (nx+2) * (p_height-2), MPI_FLOAT, 0, 42, MPI_COMM_WORLD);
+    MPI_Ssend((float*) proc_image + ny + 2, (ny+2) * (p_height-2), MPI_FLOAT, 0, 42, MPI_COMM_WORLD);
   }
     if(rank == 0) {
       output_image(OUTPUT_FILE, nx+2, ny+2, out_image);

@@ -1,20 +1,20 @@
 Running on host node46-017
-Time is Wed Dec 12 00:15:44 GMT 2018
+Time is Wed Dec 12 00:26:41 GMT 2018
 Directory is /panfs/panasas01/cosc/an16228/myfiles/HPC/mpi
-PBS job ID is 7820244.master.cm.cluster
+PBS job ID is 7820265.master.cm.cluster
 This jobs runs on the following machines:
 node46-017
 ----------------------------------------
+ runtime:          0.000001 s
+ memory bandwidth: 4915200.000000 GB/s
+----------------------------------------
+----------------------------------------
  runtime:          0.000000 s
  memory bandwidth: inf GB/s
 ----------------------------------------
 ----------------------------------------
-----------------------------------------
- runtime:          0.000000 s
- memory bandwidth: inf GB/s
-----------------------------------------
- runtime:          0.000000 s
- memory bandwidth: inf GB/s
+ runtime:          0.000001 s
+ memory bandwidth: 4915200.000000 GB/s
 ----------------------------------------
 ----------------------------------------
  runtime:          0.000000 s
