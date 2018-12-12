@@ -91,6 +91,13 @@ int main(int argc, char *argv[]) {
         out_image[j + i * (ny + 2)] = 0.0; 
       }
     }
+
+    for (int i = 1; i < nx + 1; ++i) {
+      for (int j = 0; j < ny + 2; ++j) {
+        image[j+i*(ny+2)] = proc_image[j+i*(ny+2)];
+      }
+    }
+
     for(int pid = 1; pid < size; pid++) {
       MPI_Recv((float*) out_image + (ny + 2) * (pid * (p_height-2) + 1), (ny+2) * (p_height-2), MPI_FLOAT, pid, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
       printf("Received from P%d\n", pid);
