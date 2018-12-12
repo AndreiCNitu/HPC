@@ -1,94 +1,16 @@
 Running on host node31-033
-Time is Wed Dec 12 23:12:33 GMT 2018
+Time is Wed Dec 12 23:18:05 GMT 2018
 Directory is /panfs/panasas01/cosc/an16228/myfiles/HPC/mpi
-PBS job ID is 7828132.master.cm.cluster
+PBS job ID is 7828163.master.cm.cluster
 This jobs runs on the following machines:
 node31-033
-
-
-2 CORES
-########################################
-1024 x 1024
-----------------------------------------
- MAX thread runtime:  0.058234 s
- MIN thread runtime:  0.057781 s
- memory bandwidth:    80.494246 GB/s
-----------------------------------------
-4096 x 4096
-----------------------------------------
- MAX thread runtime:  1.211616 s
- MIN thread runtime:  1.211443 s
- memory bandwidth:    61.900798 GB/s
-----------------------------------------
-8000 x 8000
-----------------------------------------
- MAX thread runtime:  4.430728 s
- MIN thread runtime:  4.429192 s
- memory bandwidth:    51.839673 GB/s
-----------------------------------------
 
 
 4 CORES
 ########################################
 1024 x 1024
 ----------------------------------------
- MAX thread runtime:  0.031088 s
+ MAX thread runtime:  0.031221 s
  MIN thread runtime:  0.030985 s
- memory bandwidth:    150.782257 GB/s
-----------------------------------------
-4096 x 4096
-----------------------------------------
- MAX thread runtime:  0.667045 s
- MIN thread runtime:  0.665906 s
- memory bandwidth:    112.436173 GB/s
-----------------------------------------
-8000 x 8000
-----------------------------------------
- MAX thread runtime:  2.413017 s
- MIN thread runtime:  2.411175 s
- memory bandwidth:    95.186863 GB/s
-----------------------------------------
-
-
-8 CORES
-########################################
-1024 x 1024
-----------------------------------------
- MAX thread runtime:  0.017118 s
- MIN thread runtime:  0.016939 s
- memory bandwidth:    273.834926 GB/s
-----------------------------------------
-4096 x 4096
-----------------------------------------
- MAX thread runtime:  0.523846 s
- MIN thread runtime:  0.522501 s
- memory bandwidth:    143.171873 GB/s
-----------------------------------------
-8000 x 8000
-----------------------------------------
- MAX thread runtime:  1.930766 s
- MIN thread runtime:  1.928854 s
- memory bandwidth:    118.961846 GB/s
-----------------------------------------
-
-
-16 CORES
-########################################
-1024 x 1024
-----------------------------------------
- MAX thread runtime:  0.010290 s
- MIN thread runtime:  0.009905 s
- memory bandwidth:    455.543456 GB/s
-----------------------------------------
-4096 x 4096
-----------------------------------------
- MAX thread runtime:  0.545504 s
- MIN thread runtime:  0.528226 s
- memory bandwidth:    137.487511 GB/s
-----------------------------------------
-8000 x 8000
-----------------------------------------
- MAX thread runtime:  1.954634 s
- MIN thread runtime:  1.942715 s
- memory bandwidth:    117.509214 GB/s
+ memory bandwidth:    150.139748 GB/s
 ----------------------------------------
