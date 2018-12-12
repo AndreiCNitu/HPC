@@ -94,7 +94,7 @@ int main(int argc, char *argv[]) {
 
     for (int i = 1; i < nx + 1; ++i) {
       for (int j = 0; j < ny + 2; ++j) {
-        image[j+i*(ny+2)] = proc_image[j+i*(ny+2)];
+        out_image[j+i*(ny+2)] = proc_image[j+i*(ny+2)];
       }
     }
 
