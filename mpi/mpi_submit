@@ -28,10 +28,9 @@ echo `cat $PBS_NODEFILE | uniq`
 #! Create a machine file for MPI
 cat $PBS_NODEFILE > machine.file.$PBS_JOBID
 
-module add intel-mpi/64/4.1.0/024
+module add languages/intel-compiler-16-u2
 
-
-for cores in 4
+for cores in 2 3 4 8 15
 do
   echo
   echo

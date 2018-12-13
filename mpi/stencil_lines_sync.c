@@ -14,7 +14,7 @@ void stencil( const int nx, const int ny, float * restrict image, float * restri
 void init_images( const int nx, const int ny, float * image, float * tmp_image );
 void init_proc_images( const int nx, const int ny, float *image, float *proc_image, float *tmp_proc_image, int p_start, int p_end, int rank );
 void comm_neighbours( int nx, int ny, float *image, int rank, int size );
-void construct_result(int nx, int ny, int p_height, int std_height, int size, float *out_image, float *proc_image);
+void construct_result(int nx, int ny, int p_height, int size, float *out_image, float *proc_image);
 void output_image( const char * file_name, const int nx, const int ny, float *image );
 double wtime(void);
 
@@ -62,23 +62,9 @@ int main(int argc, char *argv[]) {
   init_images(nx + 2, ny + 2, image, tmp_image);
     
   // Initialise process matrix = ny / size + 2 rows
-  
-  int p_height;
-  int std_height = nx / size;
-      std_height += 2;
-  if(rank != 0) {
-    p_height = std_height;
-  } else {
-    p_height = std_height + (nx % size);  
-  }
-  int p_start; // First row (inclusive)
-  int p_end;   // Last row  (inclusive)
-  if(rank != 0) {  
-    p_start = rank * (std_height - 2) + (nx % size);
-  } else {
-    p_start = 0;
-  }
-  p_end  = p_start + p_height - 1;
+  int p_height = (nx / size) + 2;        // Number of rows process holds 
+  int p_start  = rank * (p_height - 2);  // First row (inclusive)
+  int p_end    = p_start + p_height - 1; // Last  row (inclusive)
 
   float *proc_image     = _mm_malloc(sizeof(float) * (nx + 2) * p_height, 64);
   float *tmp_proc_image = _mm_malloc(sizeof(float) * (nx + 2) * p_height, 64);
@@ -113,9 +99,9 @@ int main(int argc, char *argv[]) {
   // Reassemble the full image
   float *out_image = _mm_malloc(sizeof(float) * (nx+2) * (ny+2), 64);
   if(rank == 0) {
-    construct_result(nx+2, ny+2, p_height, std_height, size, out_image, proc_image);
+    construct_result(nx+2, ny+2, p_height, size, out_image, proc_image);
   } else {
-    MPI_Send((float*) proc_image + ny + 2, (ny+2) * (p_height-2), MPI_FLOAT, 0, 42, MPI_COMM_WORLD);
+    MPI_Ssend((float*) proc_image + ny + 2, (ny+2) * (p_height-2), MPI_FLOAT, 0, 42, MPI_COMM_WORLD);
   }
 
   if(rank == 0) {
@@ -133,19 +119,19 @@ void comm_neighbours( int nx, int ny, float *image, int rank, int size ) {
   
   if       (rank == 0) {
     // Send row nx-2 DOWN
-    MPI_Send((float*) image + ny * (nx-2), ny, MPI_FLOAT, rank+1, 42, MPI_COMM_WORLD);
+    MPI_Ssend((float*) image + ny * (nx-2), ny, MPI_FLOAT, rank+1, 42, MPI_COMM_WORLD);
     // Recv row nx-1 DOWN
     MPI_Recv((float*) image + ny * (nx-1), ny, MPI_FLOAT, rank+1, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
   } else if(rank == size-1) {
     // Send row 1 UP
-    MPI_Send((float*) image + ny,          ny, MPI_FLOAT, rank-1, 42, MPI_COMM_WORLD);
+    MPI_Ssend((float*) image + ny,          ny, MPI_FLOAT, rank-1, 42, MPI_COMM_WORLD);
     // Recv row 0 UP
     MPI_Recv((float*) image,               ny, MPI_FLOAT, rank-1, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
   } else { // middle
     if(rank % 2 == 0) {
       // Send row 1 UP, row nx-2 DOWN
-      MPI_Send((float*) image + ny,          ny, MPI_FLOAT, rank-1, 42, MPI_COMM_WORLD);
-      MPI_Send((float*) image + ny * (nx-2), ny, MPI_FLOAT, rank+1, 42, MPI_COMM_WORLD);
+      MPI_Ssend((float*) image + ny,          ny, MPI_FLOAT, rank-1, 42, MPI_COMM_WORLD);
+      MPI_Ssend((float*) image + ny * (nx-2), ny, MPI_FLOAT, rank+1, 42, MPI_COMM_WORLD);
       // Recv row 0 UP, row nx-1 DOWN
       MPI_Recv((float*) image,               ny, MPI_FLOAT, rank-1, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
       MPI_Recv((float*) image + ny * (nx-1), ny, MPI_FLOAT, rank+1, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
@@ -154,8 +140,8 @@ void comm_neighbours( int nx, int ny, float *image, int rank, int size ) {
       MPI_Recv((float*) image,               ny, MPI_FLOAT, rank-1, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
       MPI_Recv((float*) image + ny * (nx-1), ny, MPI_FLOAT, rank+1, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
       // Send row 1 UP, row nx-2 DOWN
-      MPI_Send((float*) image + ny,          ny, MPI_FLOAT, rank-1, 42, MPI_COMM_WORLD);
-      MPI_Send((float*) image + ny * (nx-2), ny, MPI_FLOAT, rank+1, 42, MPI_COMM_WORLD);
+      MPI_Ssend((float*) image + ny,          ny, MPI_FLOAT, rank-1, 42, MPI_COMM_WORLD);
+      MPI_Ssend((float*) image + ny * (nx-2), ny, MPI_FLOAT, rank+1, 42, MPI_COMM_WORLD);
     }
   }
 }
@@ -226,7 +212,7 @@ void init_proc_images( const int nx, const int ny, float *image, float *proc_ima
 
 }
 
-void construct_result(int nx, int ny, int p_height, int std_height, int size, float *out_image, float *proc_image) {
+void construct_result(int nx, int ny, int p_height, int size, float *out_image, float *proc_image) {
 
   for(int i = 0; i < nx; i++) {
     for(int j = 0; j < ny; j++) {
@@ -234,14 +220,14 @@ void construct_result(int nx, int ny, int p_height, int std_height, int size, fl
     }
   }
 
-  for (int i = 1; i < p_height-1; ++i) {
+  for (int i = 1; i < nx - 1; ++i) {
     for (int j = 0; j < ny; ++j) {
       out_image[j+i*ny] = proc_image[j+i*ny];
     }
   }
 
   for(int pid = 1; pid < size; pid++) {
-    MPI_Recv((float*) out_image + ny * (pid * (std_height-2) + 1), ny * (std_height-2), MPI_FLOAT, pid, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Recv((float*) out_image + ny * (pid * (p_height-2) + 1), ny * (p_height-2), MPI_FLOAT, pid, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
   }
 }
 

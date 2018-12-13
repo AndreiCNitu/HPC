@@ -1,7 +1,6 @@
-/* Split matrix into lines
- * Blocking calls using Send and Recv
+/* Non-blocking calls
+ * Modify stencil to compute inner matrix first
  */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
@@ -10,11 +9,12 @@
 // Define output file name
 #define OUTPUT_FILE "stencil.pgm"
 
-void stencil( const int nx, const int ny, float * restrict image, float * restrict tmp_image );
+void stencilMargins( const int nx, const int ny, float * restrict image, float * restrict tmp_image );
+void stencilMiddle(  const int nx, const int ny, float * restrict image, float * restrict tmp_image );
 void init_images( const int nx, const int ny, float * image, float * tmp_image );
 void init_proc_images( const int nx, const int ny, float *image, float *proc_image, float *tmp_proc_image, int p_start, int p_end, int rank );
-void comm_neighbours( int nx, int ny, float *image, int rank, int size );
-void construct_result(int nx, int ny, int p_height, int size, float *out_image, float *proc_image);
+void comm_neighbours( int nx, int ny, float *image, int rank, int size, MPI_Request *send_requests, MPI_Request *recv_request );
+void construct_result( int nx, int ny, int p_height, int size, float *out_image, float *proc_image );
 void output_image( const char * file_name, const int nx, const int ny, float *image );
 double wtime(void);
 
@@ -71,14 +71,32 @@ int main(int argc, char *argv[]) {
   
   init_proc_images(nx+2, ny+2, image, proc_image, tmp_proc_image, p_start, p_end, rank);
 
+  MPI_Status  statuses[2];
+  MPI_Request send_requests[2];
+  MPI_Request recv_requests[2];
+
   // Call the stencil kernel
   double tic = wtime();
   for (int t = 0; t < niters; ++t) {   
-    stencil(p_height, ny+2, proc_image, tmp_proc_image);
-    comm_neighbours(p_height, ny+2, tmp_proc_image, rank, size);
-   
-    stencil(p_height, ny+2, tmp_proc_image, proc_image);
-    comm_neighbours(p_height, ny+2, proc_image, rank, size);
+    stencilMargins( p_height, ny+2, proc_image, tmp_proc_image);
+    comm_neighbours(p_height, ny+2, tmp_proc_image, rank, size, send_requests, recv_requests);
+    stencilMiddle(  p_height, ny+2, proc_image, tmp_proc_image);
+    
+    if(rank == 0 || rank == size-1) {
+      MPI_Waitall(1, recv_requests, statuses);
+    } else {
+      MPI_Waitall(2, recv_requests, statuses);
+    }
+
+    stencilMargins( p_height, ny+2, tmp_proc_image, proc_image);
+    comm_neighbours(p_height, ny+2, proc_image, rank, size, send_requests, recv_requests);
+    stencilMiddle(  p_height, ny+2, tmp_proc_image, proc_image);
+  
+    if(rank == 0 || rank == size-1) {
+      MPI_Waitall(1, recv_requests, statuses);
+    } else {
+      MPI_Waitall(2, recv_requests, statuses);
+    } 
   }
   MPI_Barrier(MPI_COMM_WORLD);
   double toc = wtime();
@@ -96,6 +114,7 @@ int main(int argc, char *argv[]) {
     printf(" memory bandwidth:    %lf GB/s\n", (4 * 6 * (nx / 1024) * (ny / 1024) * 2 * niters) / (max_time * 1024) );
     printf("----------------------------------------\n");
   }
+
   // Reassemble the full image
   float *out_image = _mm_malloc(sizeof(float) * (nx+2) * (ny+2), 64);
   if(rank == 0) {
@@ -113,41 +132,41 @@ int main(int argc, char *argv[]) {
   return EXIT_SUCCESS;
 }
 
-void comm_neighbours( int nx, int ny, float *image, int rank, int size ) {
+void comm_neighbours( int nx, int ny, float *image, int rank, int size, MPI_Request *send_requests, MPI_Request *recv_requests ) {
   // even -> send, recv
   // odd  -> recv, send
   
   if       (rank == 0) {
     // Send row nx-2 DOWN
-    MPI_Send((float*) image + ny * (nx-2), ny, MPI_FLOAT, rank+1, 42, MPI_COMM_WORLD);
+    MPI_Isend((float*) image + ny * (nx-2), ny, MPI_FLOAT, rank+1, 42, MPI_COMM_WORLD, &send_requests[0]);
     // Recv row nx-1 DOWN
-    MPI_Recv((float*) image + ny * (nx-1), ny, MPI_FLOAT, rank+1, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Irecv((float*) image + ny * (nx-1), ny, MPI_FLOAT, rank+1, 42, MPI_COMM_WORLD, &recv_requests[0]);
   } else if(rank == size-1) {
     // Send row 1 UP
-    MPI_Send((float*) image + ny,          ny, MPI_FLOAT, rank-1, 42, MPI_COMM_WORLD);
+    MPI_Isend((float*) image + ny,          ny, MPI_FLOAT, rank-1, 42, MPI_COMM_WORLD, &send_requests[0]);
     // Recv row 0 UP
-    MPI_Recv((float*) image,               ny, MPI_FLOAT, rank-1, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Irecv((float*) image,               ny, MPI_FLOAT, rank-1, 42, MPI_COMM_WORLD, &recv_requests[0]);
   } else { // middle
     if(rank % 2 == 0) {
       // Send row 1 UP, row nx-2 DOWN
-      MPI_Send((float*) image + ny,          ny, MPI_FLOAT, rank-1, 42, MPI_COMM_WORLD);
-      MPI_Send((float*) image + ny * (nx-2), ny, MPI_FLOAT, rank+1, 42, MPI_COMM_WORLD);
+      MPI_Isend((float*) image + ny,          ny, MPI_FLOAT, rank-1, 42, MPI_COMM_WORLD, &send_requests[0]);
+      MPI_Isend((float*) image + ny * (nx-2), ny, MPI_FLOAT, rank+1, 42, MPI_COMM_WORLD, &send_requests[1]);
       // Recv row 0 UP, row nx-1 DOWN
-      MPI_Recv((float*) image,               ny, MPI_FLOAT, rank-1, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-      MPI_Recv((float*) image + ny * (nx-1), ny, MPI_FLOAT, rank+1, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      MPI_Irecv((float*) image,               ny, MPI_FLOAT, rank-1, 42, MPI_COMM_WORLD, &recv_requests[0]);
+      MPI_Irecv((float*) image + ny * (nx-1), ny, MPI_FLOAT, rank+1, 42, MPI_COMM_WORLD, &recv_requests[1]);
     } else {
       // Recv row 0 UP, row nx-1 DOWN
-      MPI_Recv((float*) image,               ny, MPI_FLOAT, rank-1, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-      MPI_Recv((float*) image + ny * (nx-1), ny, MPI_FLOAT, rank+1, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      MPI_Irecv((float*) image,               ny, MPI_FLOAT, rank-1, 42, MPI_COMM_WORLD, &recv_requests[0]);
+      MPI_Irecv((float*) image + ny * (nx-1), ny, MPI_FLOAT, rank+1, 42, MPI_COMM_WORLD, &recv_requests[1]);
       // Send row 1 UP, row nx-2 DOWN
-      MPI_Send((float*) image + ny,          ny, MPI_FLOAT, rank-1, 42, MPI_COMM_WORLD);
-      MPI_Send((float*) image + ny * (nx-2), ny, MPI_FLOAT, rank+1, 42, MPI_COMM_WORLD);
+      MPI_Isend((float*) image + ny,          ny, MPI_FLOAT, rank-1, 42, MPI_COMM_WORLD, &send_requests[0]);
+      MPI_Isend((float*) image + ny * (nx-2), ny, MPI_FLOAT, rank+1, 42, MPI_COMM_WORLD, &send_requests[1]);
     }
   }
 }
 
-void stencil(const int nx, const int ny, float * restrict image, float * restrict tmp_image) {
-  for( int i = 1; i < nx-1; i++ ) {
+void stencilMiddle(const int nx, const int ny, float * restrict image, float * restrict tmp_image) {
+  for( int i = 2; i < nx-2; i++ ) {
     __assume_aligned(tmp_image, 64);
     __assume_aligned(    image, 64);
     __assume( ((i - 1) * ny) % 16 == 0 );
@@ -164,6 +183,31 @@ void stencil(const int nx, const int ny, float * restrict image, float * restric
                                  image[ j + (i - 1) * ny ]  +
                                  image[ j + (i + 1) * ny ] ) * 0.1f;
     }
+  }
+}
+
+void stencilMargins(const int nx, const int ny, float * restrict image, float * restrict tmp_image) {
+  int i;
+  i = 1;
+  #pragma simd
+  #pragma unroll (4)
+  for( int j = 1; j < ny-1; j++ ) {
+    tmp_image[ j + i * ny ]  = image[ j + i * ny ] * 0.6f +
+                             ( image[ j - 1 + i * ny ]    +
+                               image[ j + 1 + i * ny ]    +
+                               image[ j + (i - 1) * ny ]  +
+                               image[ j + (i + 1) * ny ] ) * 0.1f;
+  }
+
+  i = nx-2;
+  #pragma simd
+  #pragma unroll (4)
+  for( int j = 1; j < ny-1; j++ ) {
+    tmp_image[ j + i * ny ]  = image[ j + i * ny ] * 0.6f +
+                             ( image[ j - 1 + i * ny ]    +
+                               image[ j + 1 + i * ny ]    +
+                               image[ j + (i - 1) * ny ]  +
+                               image[ j + (i + 1) * ny ] ) * 0.1f;
   }
 }
 
