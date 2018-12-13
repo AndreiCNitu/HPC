@@ -88,7 +88,7 @@ int main(int argc, char *argv[]) {
 
   // Call the stencil kernel
   double tic = wtime();
-  for (int t = 0; t < niters; ++t) {   
+/*  for (int t = 0; t < niters; ++t) {   
     stencil(p_height, ny+2, proc_image, tmp_proc_image);
     comm_neighbours(p_height, ny+2, tmp_proc_image, rank, size);
    
@@ -96,7 +96,9 @@ int main(int argc, char *argv[]) {
     comm_neighbours(p_height, ny+2, proc_image, rank, size);
   }
   MPI_Barrier(MPI_COMM_WORLD);
+*/
   double toc = wtime();
+
 
   double local_time = toc - tic;
   double max_time, min_time;
