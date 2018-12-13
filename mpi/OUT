@@ -1,16 +1,22 @@
-Running on host node31-029
-Time is Thu Dec 13 16:55:21 GMT 2018
+Running on host node43-037
+Time is Thu Dec 13 17:19:11 GMT 2018
 Directory is /panfs/panasas01/cosc/an16228/myfiles/HPC/mpi
-PBS job ID is 7836794.master.cm.cluster
+PBS job ID is 7837033.master.cm.cluster
 This jobs runs on the following machines:
-node31-029
+node43-037
 
 
 6 CORES
 ########################################
 1024 x 1024
+PROCES 0 --- START: 0, END: 8
+PROCES 1 --- START: 7, END: 13
+PROCES 2 --- START: 12, END: 18
+PROCES 3 --- START: 17, END: 23
+PROCES 4 --- START: 22, END: 28
+PROCES 5 --- START: 27, END: 33
 ----------------------------------------
- MAX thread runtime:  0.000000 s
+ MAX thread runtime:  0.000001 s
  MIN thread runtime:  0.000000 s
- memory bandwidth:    inf GB/s
+ memory bandwidth:    0.000000 GB/s
 ----------------------------------------

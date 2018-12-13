@@ -12,7 +12,7 @@
 application="./stencil"
 
 #! Run options for the application
-small="1024 1024 100"
+small="32 32 100"
 medium="4096 4096 100"
 large="8000 8000 100"
 

@@ -83,7 +83,9 @@ int main(int argc, char *argv[]) {
 
   float *proc_image     = _mm_malloc(sizeof(float) * (nx + 2) * p_height, 64);
   float *tmp_proc_image = _mm_malloc(sizeof(float) * (nx + 2) * p_height, 64);
-  
+ 
+  printf("PROCES %d --- START: %d, END: %d\n", rank, p_start, p_end);
+     
   init_proc_images(nx+2, ny+2, image, proc_image, tmp_proc_image, p_start, p_end, rank);
 
   // Call the stencil kernel
