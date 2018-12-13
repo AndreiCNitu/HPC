@@ -246,7 +246,7 @@ void construct_result(int nx, int ny, int p_height, int std_height, int size, fl
   }
 
   for(int pid = 1; pid < size; pid++) {
-    MPI_Recv((float*) out_image + ny * (pid * (std_height-2) + 1), ny * (std_height-2), MPI_FLOAT, pid, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Recv((float*) out_image + ny * (pid * (std_height-2) + (nx-2) % size + 1), ny * (std_height-2), MPI_FLOAT, pid, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
   }
 }
 
