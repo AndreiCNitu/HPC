@@ -26,13 +26,13 @@ int main(int argc, char *argv[]) {
     exit(EXIT_FAILURE);
   }
 
-  int rank; // Rank of process among its cohort 
+  int rank; // Rank of process among its cohort
   int size; // Size of cohort (Number of processes)
   int flag; // For checking whether MPI_Init() has been called
   int strlen;
   enum bool {FALSE, TRUE};
   char hostname[MPI_MAX_PROCESSOR_NAME];
- 
+
   // Initialise MPI environment
   MPI_Init( &argc, &argv );
 
@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
 
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank); 
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
   // Initiliase problem dimensions from command line arguments
   int nx = atoi(argv[1]); // ROWS
@@ -60,21 +60,21 @@ int main(int argc, char *argv[]) {
 
   // Set the input image
   init_images(nx + 2, ny + 2, image, tmp_image);
-    
+
   // Initialise process matrix = ny / size + 2 rows
-  
+
   int p_height;
   int std_height = nx / size;
       std_height += 2;
   if(rank != 0) {
     p_height = std_height;
   } else {
-    p_height = std_height + (nx % size);  
+    p_height = std_height + (nx % size);
   }
 
   int p_start; // First row (inclusive)
   int p_end;   // Last row  (inclusive)
-  if(rank != 0) {  
+  if(rank != 0) {
     p_start = rank * (std_height - 2) + (nx % size);
   } else {
     p_start = 0;
@@ -83,20 +83,22 @@ int main(int argc, char *argv[]) {
 
   float *proc_image     = _mm_malloc(sizeof(float) * (nx + 2) * p_height, 64);
   float *tmp_proc_image = _mm_malloc(sizeof(float) * (nx + 2) * p_height, 64);
-  
+
   init_proc_images(nx+2, ny+2, image, proc_image, tmp_proc_image, p_start, p_end, rank);
 
   // Call the stencil kernel
   double tic = wtime();
-  for (int t = 0; t < niters; ++t) {   
+  for (int t = 0; t < niters; ++t) {
     stencil(p_height, ny+2, proc_image, tmp_proc_image);
     comm_neighbours(p_height, ny+2, tmp_proc_image, rank, size);
-   
+
     stencil(p_height, ny+2, tmp_proc_image, proc_image);
     comm_neighbours(p_height, ny+2, proc_image, rank, size);
   }
   MPI_Barrier(MPI_COMM_WORLD);
+
   double toc = wtime();
+
 
   double local_time = toc - tic;
   double max_time, min_time;
@@ -131,7 +133,7 @@ int main(int argc, char *argv[]) {
 void comm_neighbours( int nx, int ny, float *image, int rank, int size ) {
   // even -> send, recv
   // odd  -> recv, send
-  
+
   if       (rank == 0) {
     // Send row nx-2 DOWN
     MPI_Send((float*) image + ny * (nx-2), ny, MPI_FLOAT, rank+1, 42, MPI_COMM_WORLD);
@@ -170,7 +172,7 @@ void stencil(const int nx, const int ny, float * restrict image, float * restric
     __assume( (-1 + i * ny)  % 16 == 0 );
     __assume( ( 1 + i * ny)  % 16 == 0 );
     #pragma simd
-    
+
     #pragma unroll (4)
     for( int j = 1; j < ny-1; j++ ) {
       tmp_image[ j + i * ny ]  = image[ j + i * ny ] * 0.6f +
@@ -221,7 +223,7 @@ void init_proc_images( const int nx, const int ny, float *image, float *proc_ima
   // Copy image section
   for (int i = p_start; i <= p_end; ++i) {
     for (int j = 0; j < ny; ++j) {
-      proc_image[j+(i-p_start)*ny] = image[j+i*ny];   
+      proc_image[j+(i-p_start)*ny] = image[j+i*ny];
     }
   }
 
@@ -242,7 +244,7 @@ void construct_result(int nx, int ny, int p_height, int std_height, int size, fl
   }
 
   for(int pid = 1; pid < size; pid++) {
-    MPI_Recv((float*) out_image + ny * (pid * (std_height-2) + 1), ny * (std_height-2), MPI_FLOAT, pid, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Recv((float*) out_image + ny * (pid * (std_height-2) + (nx-2) % size + 1), ny * (std_height-2), MPI_FLOAT, pid, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
   }
 }
 
@@ -258,7 +260,7 @@ void output_image(const char * file_name, const int nx, const int ny, float *ima
 
   // Ouptut image header
   fprintf(fp, "P5 %d %d 255\n", nx-2, ny-2);
-  
+
   // Calculate maximum value of image
   // This is used to rescale the values
   // to a range of 0-255 for output
