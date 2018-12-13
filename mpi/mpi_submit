@@ -30,7 +30,7 @@ cat $PBS_NODEFILE > machine.file.$PBS_JOBID
 
 module add languages/intel-compiler-16-u2
 
-for cores in 2 3 4 8 15
+for cores in 6
 do
   echo
   echo

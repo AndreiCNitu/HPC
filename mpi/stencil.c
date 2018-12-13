@@ -71,6 +71,7 @@ int main(int argc, char *argv[]) {
   } else {
     p_height = std_height + (nx % size);  
   }
+
   int p_start; // First row (inclusive)
   int p_end;   // Last row  (inclusive)
   if(rank != 0) {  
