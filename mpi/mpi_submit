@@ -30,7 +30,7 @@ cat $PBS_NODEFILE > machine.file.$PBS_JOBID
 
 module add languages/intel-compiler-16-u2
 
-for cores in 4
+for cores in {2..16}
 do
   echo
   echo
@@ -38,9 +38,9 @@ do
   echo "########################################"
   echo 1024 x 1024  
   mpirun -np $cores -machinefile machine.file.$PBS_JOBID $application $small
-  #echo 4096 x 4096
-  #mpirun -np $cores -machinefile machine.file.$PBS_JOBID $application $medium
-  #echo 8000 x 8000
-  #mpirun -np $cores -machinefile machine.file.$PBS_JOBID $application $large
+  echo 4096 x 4096
+  mpirun -np $cores -machinefile machine.file.$PBS_JOBID $application $medium
+  echo 8000 x 8000
+  mpirun -np $cores -machinefile machine.file.$PBS_JOBID $application $large
 done
 
