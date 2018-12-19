@@ -1,9 +1,106 @@
+<<<<<<< HEAD
 Running on host node31-032
 Time is Thu Dec 13 17:23:07 GMT 2018
 Directory is /panfs/panasas01/cosc/an16228/myfiles/HPC/mpi
 PBS job ID is 7837085.master.cm.cluster
 This jobs runs on the following machines:
 node31-032
+=======
+Running on host node31-031
+Time is Fri Dec 14 15:12:43 GMT 2018
+Directory is /panfs/panasas01/cosc/an16228/myfiles/HPC/mpi
+PBS job ID is 7851431.master.cm.cluster
+This jobs runs on the following machines:
+node31-031
+
+
+2 CORES
+########################################
+1024 x 1024
+----------------------------------------
+ MAX thread runtime:  0.057279 s
+ MIN thread runtime:  0.057065 s
+ memory bandwidth:    81.836118 GB/s
+----------------------------------------
+4096 x 4096
+----------------------------------------
+ MAX thread runtime:  1.218575 s
+ MIN thread runtime:  1.218142 s
+ memory bandwidth:    61.547299 GB/s
+----------------------------------------
+8000 x 8000
+----------------------------------------
+ MAX thread runtime:  4.396323 s
+ MIN thread runtime:  4.393765 s
+ memory bandwidth:    52.245365 GB/s
+----------------------------------------
+
+
+3 CORES
+########################################
+1024 x 1024
+----------------------------------------
+ MAX thread runtime:  0.040699 s
+ MIN thread runtime:  0.040574 s
+ memory bandwidth:    115.174806 GB/s
+----------------------------------------
+4096 x 4096
+----------------------------------------
+ MAX thread runtime:  0.895970 s
+ MIN thread runtime:  0.891806 s
+ memory bandwidth:    83.708172 GB/s
+----------------------------------------
+8000 x 8000
+----------------------------------------
+ MAX thread runtime:  3.243926 s
+ MIN thread runtime:  3.235074 s
+ memory bandwidth:    70.805406 GB/s
+----------------------------------------
+
+
+4 CORES
+########################################
+1024 x 1024
+----------------------------------------
+ MAX thread runtime:  0.030613 s
+ MIN thread runtime:  0.030548 s
+ memory bandwidth:    153.120303 GB/s
+----------------------------------------
+4096 x 4096
+----------------------------------------
+ MAX thread runtime:  0.665516 s
+ MIN thread runtime:  0.665205 s
+ memory bandwidth:    112.694528 GB/s
+----------------------------------------
+8000 x 8000
+----------------------------------------
+ MAX thread runtime:  2.421920 s
+ MIN thread runtime:  2.420534 s
+ memory bandwidth:    94.836954 GB/s
+----------------------------------------
+
+
+5 CORES
+########################################
+1024 x 1024
+----------------------------------------
+ MAX thread runtime:  0.025687 s
+ MIN thread runtime:  0.024506 s
+ memory bandwidth:    182.485451 GB/s
+----------------------------------------
+4096 x 4096
+----------------------------------------
+ MAX thread runtime:  0.655009 s
+ MIN thread runtime:  0.650700 s
+ memory bandwidth:    114.502238 GB/s
+----------------------------------------
+8000 x 8000
+----------------------------------------
+ MAX thread runtime:  2.460917 s
+ MIN thread runtime:  2.447185 s
+ memory bandwidth:    93.334111 GB/s
+----------------------------------------
+>>>>>>> experiments
 
 
 6 CORES
@@ -16,7 +113,245 @@ PROCES 3 --- START: 17, END: 23
 PROCES 4 --- START: 22, END: 28
 PROCES 5 --- START: 27, END: 33
 ----------------------------------------
+<<<<<<< HEAD
  MAX thread runtime:  0.000000 s
  MIN thread runtime:  0.000000 s
  memory bandwidth:    -nan GB/s
+=======
+ MAX thread runtime:  0.023758 s
+ MIN thread runtime:  0.020753 s
+ memory bandwidth:    197.302505 GB/s
+----------------------------------------
+4096 x 4096
+----------------------------------------
+ MAX thread runtime:  0.697645 s
+ MIN thread runtime:  0.690165 s
+ memory bandwidth:    107.504504 GB/s
+----------------------------------------
+8000 x 8000
+----------------------------------------
+ MAX thread runtime:  2.598823 s
+ MIN thread runtime:  2.576015 s
+ memory bandwidth:    88.381353 GB/s
+----------------------------------------
+
+
+7 CORES
+########################################
+1024 x 1024
+----------------------------------------
+ MAX thread runtime:  0.019840 s
+ MIN thread runtime:  0.018178 s
+ memory bandwidth:    236.265096 GB/s
+----------------------------------------
+4096 x 4096
+----------------------------------------
+ MAX thread runtime:  0.588392 s
+ MIN thread runtime:  0.585156 s
+ memory bandwidth:    127.466039 GB/s
+----------------------------------------
+8000 x 8000
+----------------------------------------
+ MAX thread runtime:  2.253242 s
+ MIN thread runtime:  2.235774 s
+ memory bandwidth:    101.936454 GB/s
+----------------------------------------
+
+
+8 CORES
+########################################
+1024 x 1024
+----------------------------------------
+ MAX thread runtime:  0.016490 s
+ MIN thread runtime:  0.016404 s
+ memory bandwidth:    284.263490 GB/s
+----------------------------------------
+4096 x 4096
+----------------------------------------
+ MAX thread runtime:  0.514462 s
+ MIN thread runtime:  0.512692 s
+ memory bandwidth:    145.783364 GB/s
+----------------------------------------
+8000 x 8000
+----------------------------------------
+ MAX thread runtime:  1.954363 s
+ MIN thread runtime:  1.950883 s
+ memory bandwidth:    117.525514 GB/s
+----------------------------------------
+
+
+9 CORES
+########################################
+1024 x 1024
+----------------------------------------
+ MAX thread runtime:  0.015990 s
+ MIN thread runtime:  0.014854 s
+ memory bandwidth:    293.151624 GB/s
+----------------------------------------
+4096 x 4096
+----------------------------------------
+ MAX thread runtime:  0.574786 s
+ MIN thread runtime:  0.568555 s
+ memory bandwidth:    130.483357 GB/s
+----------------------------------------
+8000 x 8000
+----------------------------------------
+ MAX thread runtime:  2.173160 s
+ MIN thread runtime:  2.153335 s
+ memory bandwidth:    105.692870 GB/s
+----------------------------------------
+
+
+10 CORES
+########################################
+1024 x 1024
+----------------------------------------
+ MAX thread runtime:  0.013537 s
+ MIN thread runtime:  0.013331 s
+ memory bandwidth:    346.268867 GB/s
+----------------------------------------
+4096 x 4096
+----------------------------------------
+ MAX thread runtime:  0.530630 s
+ MIN thread runtime:  0.529500 s
+ memory bandwidth:    141.341458 GB/s
+----------------------------------------
+8000 x 8000
+----------------------------------------
+ MAX thread runtime:  1.925682 s
+ MIN thread runtime:  1.923764 s
+ memory bandwidth:    119.275920 GB/s
+----------------------------------------
+
+
+11 CORES
+########################################
+1024 x 1024
+----------------------------------------
+ MAX thread runtime:  0.013606 s
+ MIN thread runtime:  0.012709 s
+ memory bandwidth:    344.515315 GB/s
+----------------------------------------
+4096 x 4096
+----------------------------------------
+ MAX thread runtime:  0.565944 s
+ MIN thread runtime:  0.562218 s
+ memory bandwidth:    132.521900 GB/s
+----------------------------------------
+8000 x 8000
+----------------------------------------
+ MAX thread runtime:  2.116286 s
+ MIN thread runtime:  2.102706 s
+ memory bandwidth:    108.533296 GB/s
+----------------------------------------
+
+
+12 CORES
+########################################
+1024 x 1024
+----------------------------------------
+ MAX thread runtime:  0.011765 s
+ MIN thread runtime:  0.011565 s
+ memory bandwidth:    398.427431 GB/s
+----------------------------------------
+4096 x 4096
+----------------------------------------
+ MAX thread runtime:  0.517663 s
+ MIN thread runtime:  0.515263 s
+ memory bandwidth:    144.881901 GB/s
+----------------------------------------
+8000 x 8000
+----------------------------------------
+ MAX thread runtime:  1.935202 s
+ MIN thread runtime:  1.931717 s
+ memory bandwidth:    118.689153 GB/s
+----------------------------------------
+
+
+13 CORES
+########################################
+1024 x 1024
+----------------------------------------
+ MAX thread runtime:  0.012441 s
+ MIN thread runtime:  0.011380 s
+ memory bandwidth:    376.780821 GB/s
+----------------------------------------
+4096 x 4096
+----------------------------------------
+ MAX thread runtime:  0.557972 s
+ MIN thread runtime:  0.549138 s
+ memory bandwidth:    134.415358 GB/s
+----------------------------------------
+8000 x 8000
+----------------------------------------
+ MAX thread runtime:  2.121743 s
+ MIN thread runtime:  2.084978 s
+ memory bandwidth:    108.254159 GB/s
+----------------------------------------
+
+
+14 CORES
+########################################
+1024 x 1024
+----------------------------------------
+ MAX thread runtime:  0.010464 s
+ MIN thread runtime:  0.010252 s
+ memory bandwidth:    447.956254 GB/s
+----------------------------------------
+4096 x 4096
+----------------------------------------
+ MAX thread runtime:  0.520667 s
+ MIN thread runtime:  0.515802 s
+ memory bandwidth:    144.045981 GB/s
+----------------------------------------
+8000 x 8000
+----------------------------------------
+ MAX thread runtime:  1.939626 s
+ MIN thread runtime:  1.931143 s
+ memory bandwidth:    118.418449 GB/s
+----------------------------------------
+
+
+15 CORES
+########################################
+1024 x 1024
+----------------------------------------
+ MAX thread runtime:  0.010492 s
+ MIN thread runtime:  0.009650 s
+ memory bandwidth:    446.765287 GB/s
+----------------------------------------
+4096 x 4096
+----------------------------------------
+ MAX thread runtime:  0.558521 s
+ MIN thread runtime:  0.549966 s
+ memory bandwidth:    134.283215 GB/s
+----------------------------------------
+8000 x 8000
+----------------------------------------
+ MAX thread runtime:  2.130572 s
+ MIN thread runtime:  2.098344 s
+ memory bandwidth:    107.805552 GB/s
+----------------------------------------
+
+
+16 CORES
+########################################
+1024 x 1024
+----------------------------------------
+ MAX thread runtime:  0.009698 s
+ MIN thread runtime:  0.009403 s
+ memory bandwidth:    483.339479 GB/s
+----------------------------------------
+4096 x 4096
+----------------------------------------
+ MAX thread runtime:  0.529789 s
+ MIN thread runtime:  0.526578 s
+ memory bandwidth:    141.565801 GB/s
+----------------------------------------
+8000 x 8000
+----------------------------------------
+ MAX thread runtime:  1.977363 s
+ MIN thread runtime:  1.962038 s
+ memory bandwidth:    116.158483 GB/s
+>>>>>>> experiments
 ----------------------------------------
