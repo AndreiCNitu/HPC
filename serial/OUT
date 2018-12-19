@@ -1,0 +1,21 @@
+Running on host node31-030
+Time is Wed Dec 19 19:42:49 GMT 2018
+Directory is /panfs/panasas01/cosc/an16228/myfiles/HPC/serial
+PBS job ID is 7892243.master.cm.cluster
+
+
+1024 x 1024
+----------------------------------------
+ runtime:          0.111929 s
+ memory bandwidth: 41.879250 GB/s
+----------------------------------------
+4096 x 4096
+----------------------------------------
+ runtime:          2.385956 s
+ memory bandwidth: 31.433940 GB/s
+----------------------------------------
+8000 x 8000
+----------------------------------------
+ runtime:          8.678139 s
+ memory bandwidth: 26.467368 GB/s
+----------------------------------------
