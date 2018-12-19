@@ -1,3 +1,6 @@
+/* Non-blocking calls
+ * Modify stencil to compute inner matrix first
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
@@ -79,9 +82,7 @@ int main(int argc, char *argv[]) {
 
   float *proc_image     = _mm_malloc(sizeof(float) * (nx + 2) * p_height, 64);
   float *tmp_proc_image = _mm_malloc(sizeof(float) * (nx + 2) * p_height, 64);
- 
-  printf("PROCES %d --- START: %d, END: %d\n", rank, p_start, p_end);
-     
+  
   init_proc_images(nx+2, ny+2, image, proc_image, tmp_proc_image, p_start, p_end, rank);
 
   MPI_Status  statuses[2];
@@ -90,14 +91,6 @@ int main(int argc, char *argv[]) {
 
   // Call the stencil kernel
   double tic = wtime();
-<<<<<<< HEAD
-/*  for (int t = 0; t < niters; ++t) {   
-    stencil(p_height, ny+2, proc_image, tmp_proc_image);
-    comm_neighbours(p_height, ny+2, tmp_proc_image, rank, size);
-   
-    stencil(p_height, ny+2, tmp_proc_image, proc_image);
-    comm_neighbours(p_height, ny+2, proc_image, rank, size);
-=======
   for (int t = 0; t < niters; ++t) {   
     stencilMargins( p_height, ny+2, proc_image, tmp_proc_image);
     comm_neighbours(p_height, ny+2, tmp_proc_image, rank, size, send_requests, recv_requests);
@@ -118,12 +111,9 @@ int main(int argc, char *argv[]) {
     } else {
       MPI_Waitall(2, recv_requests, statuses);
     } 
->>>>>>> experiments
   }
   MPI_Barrier(MPI_COMM_WORLD);
-*/
   double toc = wtime();
-
 
   double local_time = toc - tic;
   double max_time, min_time;
