@@ -1,6 +1,6 @@
 # Makefile
 
-EXE=d2q9-bgk
+EXE=lbm
 
 CC=gcc
 CFLAGS= -std=c99 -Wall -O3
@@ -23,3 +23,4 @@ check:
 
 clean:
 	rm -f $(EXE)
+	rm -f $(EXE).out

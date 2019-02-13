@@ -1,0 +1,27 @@
+#!/bin/bash
+
+#PBS -N lbm
+#PBS -j oe
+#PBS -o lbm.out
+#PBS -q teaching
+#PBS -l nodes=1:ppn=16,walltime=10:10:00
+
+# Change the working directory (default is home directory)
+cd "$PBS_O_WORKDIR"
+
+echo "Running on host: $(hostname)"
+echo "Time is: $(date)"
+echo "Directory is: $(pwd)"
+echo "PBS job ID is: $PBS_JOBID"
+echo "This jobs runs on the following machines: $(cat "$PBS_NODEFILE" | uniq)"
+echo
+
+# Run the executable
+echo "128 x 128"
+./lbm input_128x128.params obstacles_128x128.dat
+echo
+echo "256 x 256"
+./lbm input_256x256.params obstacles_256x256.dat
+echo
+echo "1024 x 1024"
+./lbm input_1024x1024.params obstacles_1024x1024.dat

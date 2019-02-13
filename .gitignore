@@ -1,6 +1,7 @@
 gmon.out
 .DS_Store
 stencil
+lbm
 stream
 stream_*
 *.pages
