@@ -148,12 +148,20 @@ int main(int argc, char* argv[]) {
   gettimeofday(&timstr, NULL);
   tic = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
 
-  for (int tt = 0; tt < params.maxIters; tt++) {
+  for (int tt = 0; tt < params.maxIters / 2; tt = tt + 2) {
     timestep(params, cells, tmp_cells, obstacles);
-    av_vels[tt] = av_velocity(params, cells, obstacles);
+    av_vels[tt] = av_velocity(params, tmp_cells, obstacles);
 #ifdef DEBUG
     printf("==timestep: %d==\n", tt);
     printf("av velocity: %.12E\n", av_vels[tt]);
+    printf("tot density: %.12E\n", total_density(params, cells));
+#endif
+  
+    timestep(params, tmp_cells, cells, obstacles);
+    av_vels[tt + 1] = av_velocity(params, cells, obstacles);
+#ifdef DEBUG
+    printf("==timestep: %d==\n", tt + 1);
+    printf("av velocity: %.12E\n", av_vels[tt + 1]);
     printf("tot density: %.12E\n", total_density(params, cells));
 #endif
   }
@@ -256,14 +264,14 @@ int rebound_collision(const t_param params, t_speed* cells, t_speed* tmp_cells, 
         // REBOUND STEP:
         /* called after propagate, so taking values from scratch space
         ** mirroring, and writing into main grid */
-        cells[ii + jj*params.nx].speeds[1] = tmp_cells[ii + jj*params.nx].speeds[3];
-        cells[ii + jj*params.nx].speeds[2] = tmp_cells[ii + jj*params.nx].speeds[4];
-        cells[ii + jj*params.nx].speeds[3] = tmp_cells[ii + jj*params.nx].speeds[1];
-        cells[ii + jj*params.nx].speeds[4] = tmp_cells[ii + jj*params.nx].speeds[2];
-        cells[ii + jj*params.nx].speeds[5] = tmp_cells[ii + jj*params.nx].speeds[7];
-        cells[ii + jj*params.nx].speeds[6] = tmp_cells[ii + jj*params.nx].speeds[8];
-        cells[ii + jj*params.nx].speeds[7] = tmp_cells[ii + jj*params.nx].speeds[5];
-        cells[ii + jj*params.nx].speeds[8] = tmp_cells[ii + jj*params.nx].speeds[6];
+        tmp_cells[ii + jj*params.nx].speeds[1] = tmp_cells[ii + jj*params.nx].speeds[3];
+        tmp_cells[ii + jj*params.nx].speeds[2] = tmp_cells[ii + jj*params.nx].speeds[4];
+        tmp_cells[ii + jj*params.nx].speeds[3] = tmp_cells[ii + jj*params.nx].speeds[1];
+        tmp_cells[ii + jj*params.nx].speeds[4] = tmp_cells[ii + jj*params.nx].speeds[2];
+        tmp_cells[ii + jj*params.nx].speeds[5] = tmp_cells[ii + jj*params.nx].speeds[7];
+        tmp_cells[ii + jj*params.nx].speeds[6] = tmp_cells[ii + jj*params.nx].speeds[8];
+        tmp_cells[ii + jj*params.nx].speeds[7] = tmp_cells[ii + jj*params.nx].speeds[5];
+        tmp_cells[ii + jj*params.nx].speeds[8] = tmp_cells[ii + jj*params.nx].speeds[6];
       } else {
         // COLLISION STEP:
         /* compute local density total */
@@ -338,7 +346,7 @@ int rebound_collision(const t_param params, t_speed* cells, t_speed* tmp_cells, 
 
         /* relaxation step */
         for (int kk = 0; kk < NSPEEDS; kk++) {
-          cells[ii + jj*params.nx].speeds[kk] = tmp_cells[ii + jj*params.nx].speeds[kk]
+          tmp_cells[ii + jj*params.nx].speeds[kk] = tmp_cells[ii + jj*params.nx].speeds[kk]
                                                   + params.omega
                                                   * (d_equ[kk] - tmp_cells[ii + jj*params.nx].speeds[kk]);
         }        
@@ -350,11 +358,8 @@ int rebound_collision(const t_param params, t_speed* cells, t_speed* tmp_cells, 
 }
 
 float av_velocity(const t_param params, t_speed* cells, int* obstacles) {
-  int    tot_cells = 0;  /* no. of cells used in calculation */
-  float tot_u;          /* accumulated magnitudes of velocity for each cell */
-
-  /* initialise */
-  tot_u = 0.f;
+  int   tot_cells = 0;   /* no. of cells used in calculation */
+  float tot_u     = 0.f; /* accumulated magnitudes of velocity for each cell */
 
   /* loop over all non-blocked cells */
   for (int jj = 0; jj < params.ny; jj++) {
