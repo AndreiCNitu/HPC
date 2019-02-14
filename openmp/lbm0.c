@@ -94,7 +94,8 @@ int initialise(const char* paramfile, const char* obstaclefile,
 int timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles);
 int accelerate_flow(const t_param params, t_speed* cells, int* obstacles);
 int propagate(const t_param params, t_speed* cells, t_speed* tmp_cells);
-int rebound_collision(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles);
+int rebound(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles);
+int collision(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles);
 int write_values(const t_param params, t_speed* cells, int* obstacles, float* av_vels);
 
 /* finalise, including freeing up allocated memory */
@@ -181,7 +182,8 @@ int main(int argc, char* argv[]) {
 int timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles) {
   accelerate_flow(params, cells, obstacles);
   propagate(params, cells, tmp_cells);
-  rebound_collision(params, cells, tmp_cells, obstacles);
+  rebound(params, cells, tmp_cells, obstacles);
+  collision(params, cells, tmp_cells, obstacles);
   return EXIT_SUCCESS;
 }
 
@@ -242,18 +244,12 @@ int propagate(const t_param params, t_speed* cells, t_speed* tmp_cells) {
   return EXIT_SUCCESS;
 }
 
-int rebound_collision(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles) {
-  const float c_sq = 1.f / 3.f;  /* square of speed of sound */
-  const float w0   = 4.f / 9.f;  /* weighting factor */
-  const float w1   = 1.f / 9.f;  /* weighting factor */
-  const float w2   = 1.f / 36.f; /* weighting factor */
- 
+int rebound(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles) {
   /* loop over the cells in the grid */
   for (int jj = 0; jj < params.ny; jj++) {
     for (int ii = 0; ii < params.nx; ii++) {
       /* if the cell contains an obstacle */
       if (obstacles[jj*params.nx + ii]) {
-        // REBOUND STEP:
         /* called after propagate, so taking values from scratch space
         ** mirroring, and writing into main grid */
         cells[ii + jj*params.nx].speeds[1] = tmp_cells[ii + jj*params.nx].speeds[3];
@@ -264,8 +260,27 @@ int rebound_collision(const t_param params, t_speed* cells, t_speed* tmp_cells, 
         cells[ii + jj*params.nx].speeds[6] = tmp_cells[ii + jj*params.nx].speeds[8];
         cells[ii + jj*params.nx].speeds[7] = tmp_cells[ii + jj*params.nx].speeds[5];
         cells[ii + jj*params.nx].speeds[8] = tmp_cells[ii + jj*params.nx].speeds[6];
-      } else {
-        // COLLISION STEP:
+      }
+    }
+  }
+
+  return EXIT_SUCCESS;
+}
+
+int collision(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles) {
+  const float c_sq = 1.f / 3.f; /* square of speed of sound */
+  const float w0 = 4.f / 9.f;  /* weighting factor */
+  const float w1 = 1.f / 9.f;  /* weighting factor */
+  const float w2 = 1.f / 36.f; /* weighting factor */
+
+  /* loop over the cells in the grid
+  ** NB the collision step is called after
+  ** the propagate step and so values of interest
+  ** are in the scratch-space grid */
+  for (int jj = 0; jj < params.ny; jj++) {
+    for (int ii = 0; ii < params.nx; ii++) {
+      /* don't consider occupied cells */
+      if (!obstacles[ii + jj*params.nx]) {
         /* compute local density total */
         float local_density = 0.f;
 
@@ -341,7 +356,7 @@ int rebound_collision(const t_param params, t_speed* cells, t_speed* tmp_cells, 
           cells[ii + jj*params.nx].speeds[kk] = tmp_cells[ii + jj*params.nx].speeds[kk]
                                                   + params.omega
                                                   * (d_equ[kk] - tmp_cells[ii + jj*params.nx].speeds[kk]);
-        }        
+        }
       }
     }
   }
