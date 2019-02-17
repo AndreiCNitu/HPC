@@ -1,54 +1,6 @@
 /*
-** Code to implement a d2q9-bgk lattice boltzmann scheme.
-** 'd2' inidates a 2-dimensional grid, and
-** 'q9' indicates 9 velocities per grid cell.
-** 'bgk' refers to the Bhatnagar-Gross-Krook collision step.
-**
-** The 'speeds' in each cell are numbered as follows:
-**
-** 6 2 5
-**  \|/
-** 3-0-1
-**  /|\
-** 7 4 8
-**
-** A 2D grid:
-**
-**           cols
-**       --- --- ---
-**      | D | E | F |
-** rows  --- --- ---
-**      | A | B | C |
-**       --- --- ---
-**
-** 'unwrapped' in row major order to give a 1D array:
-**
-**  --- --- --- --- --- ---
-** | A | B | C | D | E | F |
-**  --- --- --- --- --- ---
-**
-** Grid indicies are:
-**
-**          ny
-**          ^       cols(ii)
-**          |  ----- ----- -----
-**          | | ... | ... | etc |
-**          |  ----- ----- -----
-** rows(jj) | | 1,0 | 1,1 | 1,2 |
-**          |  ----- ----- -----
-**          | | 0,0 | 0,1 | 0,2 |
-**          |  ----- ----- -----
-**          ----------------------> nx
-**
-** Note the names of the input parameter and obstacle files
-** are passed on the command line, e.g.:
-**
-**   ./d2q9-bgk input.params obstacles.dat
-**
-** Be sure to adjust the grid dimensions in the parameter file
-** if you choose a different obstacle file.
+** v1: Merged rebound and collision
 */
-
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -247,7 +199,7 @@ int rebound_collision(const t_param params, t_speed* cells, t_speed* tmp_cells, 
   const float w0   = 4.f / 9.f;  /* weighting factor */
   const float w1   = 1.f / 9.f;  /* weighting factor */
   const float w2   = 1.f / 36.f; /* weighting factor */
- 
+
   /* loop over the cells in the grid */
   for (int jj = 0; jj < params.ny; jj++) {
     for (int ii = 0; ii < params.nx; ii++) {
@@ -341,7 +293,7 @@ int rebound_collision(const t_param params, t_speed* cells, t_speed* tmp_cells, 
           cells[ii + jj*params.nx].speeds[kk] = tmp_cells[ii + jj*params.nx].speeds[kk]
                                                   + params.omega
                                                   * (d_equ[kk] - tmp_cells[ii + jj*params.nx].speeds[kk]);
-        }        
+        }
       }
     }
   }

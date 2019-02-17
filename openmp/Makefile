@@ -1,4 +1,5 @@
 
+SRC=lbm
 EXE=lbm
 
 CC=icc
@@ -13,11 +14,8 @@ STATE_MEDIUM=check/256x256.final_state.dat
 VELS_MEDIUM=check/256x256.av_vels.dat
 STATE_LARGE=check/1024x1024.final_state.dat
 VELS_LARGE=check/1024x1024.av_vels.dat
-	
-						 						    
-all: $(EXE)
 
-$(EXE): $(EXE).c
+$(EXE): $(SRC).c
 	$(CC) $(CFLAGS) $^ $(LIBS) -o $@
 								
 check-small:
