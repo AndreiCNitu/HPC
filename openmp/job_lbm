@@ -21,7 +21,7 @@ source ~/intel/vtune_amplifier_2019.2.0.588069/amplxe-vars.sh
 # Run the executable
 echo "128 x 128"
 echo "----------------------------------"
-#amplxe-cl -quiet -collect hotspots -result-dir s01-128 ./lbm input_128x128.params obstacles_128x128.dat
+#amplxe-cl -quiet -collect hotspots -result-dir rx ./lbm input_128x128.params obstacles_128x128.dat
 ./lbm input_128x128.params obstacles_128x128.dat
 echo "----------------------------------"
 echo
