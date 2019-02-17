@@ -25,18 +25,18 @@ echo "----------------------------------"
 ./lbm input_128x128.params obstacles_128x128.dat
 echo "----------------------------------"
 echo
-make check-small
+#make check-small
 echo
 echo "256 x 256"
 echo "----------------------------------"
-#./lbm input_256x256.params obstacles_256x256.dat
+./lbm input_256x256.params obstacles_256x256.dat
 echo "----------------------------------"
 echo
 #make check-medium
 echo
 echo "1024 x 1024"
 echo "----------------------------------"
-#./lbm input_1024x1024.params obstacles_1024x1024.dat
+./lbm input_1024x1024.params obstacles_1024x1024.dat
 echo "----------------------------------"
 echo
 #make check-large
