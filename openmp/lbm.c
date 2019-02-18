@@ -161,7 +161,6 @@ int accelerate_flow(const t_param params, t_soa* restrict cells, int* restrict o
   __assume_aligned(cells->speed_6, 64);
   __assume_aligned(cells->speed_7, 64);
   __assume_aligned(cells->speed_8, 64);
-  __assume((jj*params.nx) % 16 == 0);
   #pragma omp simd
   for (int ii = 0; ii < params.nx; ii++) {
     /* if the cell is not occupied and
@@ -193,7 +192,7 @@ float prop_rebound_collision_avels(const t_param params, t_soa* restrict cells, 
   float tot_u      = 0.f; /* accumulated magnitudes of velocity for each cell */
 
   /* loop over the cells in the grid */
-  #pragma omp parallel for
+  #pragma omp parallel for reduction(+:tot_u), reduction(+:tot_cells)
   for (int jj = 0; jj < params.ny; jj++) {
     __assume_aligned(cells->speed_0, 64);
     __assume_aligned(cells->speed_1, 64);
@@ -213,12 +212,13 @@ float prop_rebound_collision_avels(const t_param params, t_soa* restrict cells, 
     __assume_aligned(tmp_cells->speed_6, 64);
     __assume_aligned(tmp_cells->speed_7, 64);
     __assume_aligned(tmp_cells->speed_8, 64);
+    #pragma omp simd
     for (int ii = 0; ii < params.nx; ii++) {
       // PROPAGATION STEP:
       /* determine indices of axis-direction neighbours
       ** respecting periodic boundary conditions (wrap around) */
       const int y_n = (jj + 1) % params.ny;
-      const int x_e = (ii + 1) % params.nx;  
+      const int x_e = (ii + 1) % params.nx;
       const int y_s = (jj == 0) ? (jj + params.ny - 1) : (jj - 1);
       const int x_w = (ii == 0) ? (ii + params.nx - 1) : (ii - 1);
 
@@ -315,7 +315,7 @@ float prop_rebound_collision_avels(const t_param params, t_soa* restrict cells, 
         tot_u += (obstacles[jj*params.nx + ii] != 0) ? 0 : sqrtf((u_x_v * u_x_v) + (u_y_v * u_y_v));
         /* increase counter of inspected cells */
         tot_cells += (obstacles[jj*params.nx + ii] != 0) ? 0 : 1;
-        
+
         tmp_cells->speed_0[ii + jj*params.nx] = t0;
         tmp_cells->speed_1[ii + jj*params.nx] = t1;
         tmp_cells->speed_2[ii + jj*params.nx] = t2;
