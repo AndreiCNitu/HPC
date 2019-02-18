@@ -3,7 +3,7 @@ SRC=lbm
 EXE=lbm
 
 CC=icc
-CFLAGS= -g -std=c99 -Wall -Ofast -xAVX -ansi-alias -qopenmp -qopt-report=5
+CFLAGS= -g -std=c99 -Wall -Ofast -xAVX -restrict -ansi-alias -qopenmp -qopt-report=5
 LIBS = -lm
 
 STATE=./final_state.dat
