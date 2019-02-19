@@ -161,7 +161,7 @@ int accelerate_flow(const t_param params, t_soa* restrict cells, int* restrict o
   __assume_aligned(cells->speed_6, 64);
   __assume_aligned(cells->speed_7, 64);
   __assume_aligned(cells->speed_8, 64);
-  #pragma omp simd
+  #pragma omp parallel for simd
   for (int ii = 0; ii < params.nx; ii++) {
     /* if the cell is not occupied and
     ** we don't send a negative density */
@@ -489,6 +489,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
   float w1 = params->density      / 9.f;
   float w2 = params->density      / 36.f;
 
+  #pragma omp parallel for
   for (int jj = 0; jj < params->ny; jj++) {
     for (int ii = 0; ii < params->nx; ii++) {
       /* centre */
@@ -507,6 +508,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
   }
 
   /* first set all cells in obstacle array to zero */
+  #pragma omp parallel for
   for (int jj = 0; jj < params->ny; jj++) {
     for (int ii = 0; ii < params->nx; ii++) {
       (*obstacles_ptr)[ii + jj*params->nx] = 0;

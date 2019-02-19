@@ -18,7 +18,10 @@ module load languages/intel-compiler-16-u2
 module load languages/python-2.7.6
 source ~/intel/vtune_amplifier_2019.2.0.588069/amplxe-vars.sh
 
-OMP_NUM_THREADS=1
+export OMP_NUM_THREADS=16
+export OMP_PROC_BIND=true
+export OMP_PLACES=cores
+
 # Run the executable
 echo "128 x 128"
 echo "----------------------------------"
@@ -26,18 +29,18 @@ echo "----------------------------------"
 ./lbm input_128x128.params obstacles_128x128.dat
 echo "----------------------------------"
 echo
-make check-small
+#make check-small
 echo
 echo "256 x 256"
 echo "----------------------------------"
-#./lbm input_256x256.params obstacles_256x256.dat
+./lbm input_256x256.params obstacles_256x256.dat
 echo "----------------------------------"
 echo
 #make check-medium
 echo
 echo "1024 x 1024"
 echo "----------------------------------"
-#./lbm input_1024x1024.params obstacles_1024x1024.dat
+./lbm input_1024x1024.params obstacles_1024x1024.dat
 echo "----------------------------------"
 echo
 #make check-large
