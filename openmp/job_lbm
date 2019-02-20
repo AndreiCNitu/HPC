@@ -3,7 +3,7 @@
 #PBS -j oe 
 #PBS -o lbm.out
 #PBS -q teaching
-#PBS -l nodes=1:ppn=16,walltime=00:15:00
+#PBS -l nodes=1:ppn=16,walltime=00:45:00
 
 # Change the working directory (default is home directory)
 cd "$PBS_O_WORKDIR"
@@ -16,32 +16,23 @@ echo "This jobs runs on the following machines: $(cat "$PBS_NODEFILE" | uniq)"
 echo
 module load languages/intel-compiler-16-u2
 module load languages/python-2.7.6
-source ~/intel/vtune_amplifier_2019.2.0.588069/amplxe-vars.sh
 
-export OMP_NUM_THREADS=16
+export OMP_NUM_THREADS=1
 export OMP_PROC_BIND=true
 export OMP_PLACES=cores
 
-# Run the executable
-echo "128 x 128"
-echo "----------------------------------"
-#amplxe-cl -quiet -collect hotspots -result-dir rx ./lbm input_128x128.params obstacles_128x128.dat
-./lbm input_128x128.params obstacles_128x128.dat
-echo "----------------------------------"
-echo
-#make check-small
-echo
-echo "256 x 256"
-echo "----------------------------------"
-./lbm input_256x256.params obstacles_256x256.dat
-echo "----------------------------------"
-echo
-#make check-medium
-echo
-echo "1024 x 1024"
-echo "----------------------------------"
-./lbm input_1024x1024.params obstacles_1024x1024.dat
-echo "----------------------------------"
-echo
-#make check-large
-echo
+for cores in {1..16}
+do
+  echo
+  echo
+  OMP_NUM_THREADS=$cores
+  echo $cores CORES
+  echo "########################################"
+  echo 128 x 128
+  ./lbm input_128x128.params obstacles_128x128.dat  
+  echo 256 x 256
+  ./lbm input_256x256.params obstacles_256x256.dat
+  echo 1024 x 1024
+  ./lbm input_1024x1024.params obstacles_1024x1024.dat
+done
+
