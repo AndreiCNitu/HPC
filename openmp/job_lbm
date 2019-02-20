@@ -3,7 +3,7 @@
 #PBS -j oe 
 #PBS -o lbm.out
 #PBS -q teaching
-#PBS -l nodes=1:ppn=16,walltime=00:45:00
+#PBS -l nodes=1:ppn=16,walltime=01:45:00
 
 # Change the working directory (default is home directory)
 cd "$PBS_O_WORKDIR"
@@ -21,7 +21,7 @@ export OMP_NUM_THREADS=1
 export OMP_PROC_BIND=true
 export OMP_PLACES=cores
 
-for cores in {1..16}
+for cores in {1..1}
 do
   echo
   echo
