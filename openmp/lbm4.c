@@ -1,7 +1,7 @@
 /*
 ** v1: - Merged rebound and collision
 ** v2: - Merge propagate, rebound, collision, average vels
-**     Pointer swap
+**     - Pointer swap
 ** v4: - AoS -> SoA, restrict, consts, aligned data access
 */
 

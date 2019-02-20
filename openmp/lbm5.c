@@ -1,10 +1,9 @@
 /*
 ** v1: - Merged rebound and collision
 ** v2: - Merge propagate, rebound, collision, average vels
-**     Pointer swap
+**     - Pointer swap
 ** v4: - AoS -> SoA, restrict, consts, aligned data access
-** v5: - Write relaxation results in consts
-**     - openmp parallelism, reductions, NUMA
+** v5: - openmp parallelism, reductions, NUMA
 */
 
 #include <stdio.h>
