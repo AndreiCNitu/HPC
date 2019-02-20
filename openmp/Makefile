@@ -1,5 +1,5 @@
 
-SRC=lbm
+SRC=lbm2
 EXE=lbm
 
 CC=icc
@@ -29,5 +29,5 @@ check-large:
 
 clean:
 	rm -f $(EXE)
-	rm -f $(EXE).out
-	rm -f $(EXE).optrpt
+	rm -f *.out
+	rm -f *.optrpt
