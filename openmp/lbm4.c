@@ -1,10 +1,9 @@
 /*
-** v1: Merged rebound and collision
-** v2: Merge propagate, rebound, collision, average vels
+** v1: - Merged rebound and collision
+** v2: - Merge propagate, rebound, collision, average vels
 **     Pointer swap
-** v3: AoS -> SoA, restrict, consts, aligned et all
+** v4: - AoS -> SoA, restrict, consts, aligned data access
 */
-
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -193,8 +192,6 @@ float prop_rebound_collision_avels(const t_param params, t_soa* restrict cells, 
 
   /* loop over the cells in the grid */
   for (int jj = 0; jj < params.ny; jj++) {
-    const int y_n = (jj + 1) % params.ny;
-    const int y_s = (jj == 0) ? (jj + params.ny - 1) : (jj - 1);
     __assume_aligned(cells->speed_0, 64);
     __assume_aligned(cells->speed_1, 64);
     __assume_aligned(cells->speed_2, 64);
@@ -218,6 +215,8 @@ float prop_rebound_collision_avels(const t_param params, t_soa* restrict cells, 
       // PROPAGATION STEP:
       /* determine indices of axis-direction neighbours
       ** respecting periodic boundary conditions (wrap around) */
+      const int y_n = (jj + 1) % params.ny;
+      const int y_s = (jj == 0) ? (jj + params.ny - 1) : (jj - 1);
       const int x_e = (ii + 1) % params.nx;
       const int x_w = (ii == 0) ? (ii + params.nx - 1) : (ii - 1);
 

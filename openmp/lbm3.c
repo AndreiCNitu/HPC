@@ -1,6 +1,7 @@
 /*
-** v1: Merged rebound and collision
-** v3: AoS -> SoA, aligned, (some) consts
+** v1: - Merged rebound and collision
+** v3: - AoS -> SoA, aligned, (some) consts
+**     - Not all loops are merged!
 */
 
 #include <stdio.h>

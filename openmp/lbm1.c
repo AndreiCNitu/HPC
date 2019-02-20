@@ -1,5 +1,5 @@
 /*
-** v1: Merged rebound and collision
+** v1: - Merged rebound and collision
 */
 
 #include <stdio.h>
