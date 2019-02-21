@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- <!DOCTYPE IntelParallelAdvisorSummaryCollection SYSTEM  "IntelParallelAdvisorSummaryCollection.dtd"> -->
+
+<IntelParallelAdvisorSummary version="" 
+                             kind="DATAKIND_SURVEY_EX" >
+  <hotspot filename="/panfs/panasas01/cosc/an16228/myfiles/HPC/openmp/lbm0.c"
+           line_no="222"
+           routine="propagate"
+           is_vectorized="1"
+           self_time="3.009948E+00"
+           total_time="4.098927E+00"
+           trip_counts=""
+           func_instance="38"
+           priority="0">
+           <recommendation id="rec_registers_pressure_split_loop_c" title="Split loop into smaller loops" confidence="3" gain="-1"/>
+  </hotspot>
+</IntelParallelAdvisorSummary >

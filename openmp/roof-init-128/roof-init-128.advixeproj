@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+ <rdmgr>
+  <timestamp type="u64_t">1550751749</timestamp>
+  <hostname type="string">node44-010</hostname>
+  <os type="string">linux</os>
+  <product type="string">Intel® Advisor 2019 Update 2</product>
+  <buildNumber type="s32_t">588361</buildNumber>
+  <logicalCPUCount type="s32_t">16</logicalCPUCount>
+  <physicalCoreCount type="s32_t">16</physicalCoreCount>
+  <CPUFrequency type="s64_t">2600000000</CPUFrequency>
+  <CPUFamily type="s32_t">6</CPUFamily>
+  <CPUModel type="s32_t">45</CPUModel>
+  <CPUStepping type="s32_t">7</CPUStepping>
+  <CPUBrandName type="string">Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz</CPUBrandName>
+  <isa type="string">avx</isa>
+ </rdmgr>
+ <All_Configurations-All_Platforms>
+  <target_settings>
+   <workloads>
+    <localhost>
+     <release type="pointer" type_id="dasID_cctrl2::ApplicationWorkload" ptr_type="dasID_cctrl2::IWorkload">
+      <workload>
+       <targetName type="string">release</targetName>
+       <launch_app.app_to_launch type="string">./lbm</launch_app.app_to_launch>
+       <launch_app.app_parameters type="string">input_128x128.params obstacles_128x128.dat</launch_app.app_parameters>
+       <context>
+        <contextValue>
+         <id type="string">auto_finalize</id>
+         <value type="bool">true</value>
+        </contextValue>
+        <contextValue>
+         <id type="string">dataLimit</id>
+         <value type="s32_t">500</value>
+        </contextValue>
+        <contextValue>
+         <id type="string">interval</id>
+         <value type="s32_t">10</value>
+        </contextValue>
+        <contextValue>
+         <id type="string">mklUserMode</id>
+         <value type="bool">true</value>
+        </contextValue>
+        <contextValue>
+         <id type="string">modules_switch</id>
+         <value type="string">knob.modules_switch.exclude</value>
+        </contextValue>
+        <contextValue>
+         <id type="string">mrte_mode</id>
+         <value type="string">auto</value>
+        </contextValue>
+        <contextValue>
+         <id type="string">process_for_analysis</id>
+         <value type="string"></value>
+        </contextValue>
+        <contextValue>
+         <id type="string">profilePython</id>
+         <value type="bool">false</value>
+        </contextValue>
+        <contextValue>
+         <id type="string">spillAnalysis</id>
+         <value type="bool">false</value>
+        </contextValue>
+        <contextValue>
+         <id type="string">stackStitching</id>
+         <value type="bool">true</value>
+        </contextValue>
+        <contextValue>
+         <id type="string">stackwalk</id>
+         <value type="string">offline</value>
+        </contextValue>
+        <contextValue>
+         <id type="string">static_instruction_mix</id>
+         <value type="bool">false</value>
+        </contextValue>
+        <contextValue>
+         <id type="string">support_multi_isa_binaries</id>
+         <value type="bool">false</value>
+        </contextValue>
+        <contextValue>
+         <id type="string">targetType</id>
+         <value type="string">release</value>
+        </contextValue>
+       </context>
+      </workload>
+     </release>
+    </localhost>
+   </workloads>
+  </target_settings>
+ </All_Configurations-All_Platforms>
+</root>

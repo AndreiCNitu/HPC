@@ -2,8 +2,8 @@
 
 #PBS -j oe 
 #PBS -o lbm.out
-#PBS -q teaching
-#PBS -l nodes=1:ppn=16,walltime=01:45:00
+#PBS -q veryshort
+#PBS -l nodes=1:ppn=16,walltime=00:45:00
 
 # Change the working directory (default is home directory)
 cd "$PBS_O_WORKDIR"
@@ -16,12 +16,15 @@ echo "This jobs runs on the following machines: $(cat "$PBS_NODEFILE" | uniq)"
 echo
 module load languages/intel-compiler-16-u2
 module load languages/python-2.7.6
+source ~/intel/vtune_amplifier_2019.2.0.588069/amplxe-vars.sh
+source ~/intel/advisor_2019.2.0.588361/advixe-vars.sh
 
 export OMP_NUM_THREADS=1
 export OMP_PROC_BIND=true
 export OMP_PLACES=cores
+#export OMP_DISPLAY_ENV=true
 
-for cores in {1..1}
+for cores in {1..16}
 do
   echo
   echo

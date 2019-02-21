@@ -1,0 +1,10 @@
+
+=== Start: [2019/02/21 13:29:29] === 
+Peak bandwidth measurement started...
+Peak bandwidth measurement finished.
+Analysis started...
+Result file: /panfs/panasas01/cosc/an16228/myfiles/HPC/openmp/roof-16-256/e000/trc000/trc000.advixe 
+Application exit code: 0 
+Result file: /panfs/panasas01/cosc/an16228/myfiles/HPC/openmp/roof-16-256/e000/trc000/trc000.advixe 
+Analysis completed
+=== End: [2019/02/21 13:29:48] === 

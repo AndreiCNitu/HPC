@@ -1,0 +1,144 @@
+16 [1455634160] TRACE perfrun.launcher <> - ENTER: int main(int, char **)
+17 [1455634160] INFO perfrun.launcher <> - Launcher main begin
+24 [1455634160] INFO perfrun.launcher <> - MessageCatalogInit finished
+24 [1455634160] INFO perfrun.launcher <> - Launcher instance created
+24 [1455634160] TRACE perfrun.launcher <> - ENTER: Start the collection
+24 [1455634160] INFO perfrun.launcher <> - argc = 6; cmdline = /panfs/panasas01/cosc/an16228/intel/advisor_2019.2.0.588361/bin32/advixe-runss -dump-vdso -r /tmp/advixe-tmp-an16228/advixe-res-88078-112337210937555471 --tmp-dir /tmp/advixe-tmp-an16228 
+24 [1455634160] TRACE perfrun.launcher <> - ENTER: Initialize the launcher
+33 [1455634160] TRACE perfrun.launcher <> - ENTER: void runtool::CmdLineParser::declareOptions()
+44 [1455634160] TRACE perfrun.launcher <> - EXIT:  void runtool::CmdLineParser::declareOptions()
+44 [1455634160] INFO perfrun.launcher <> - plugin remoteplug has been added successfully
+44 [1455634160] TRACE perfrun.system <> - ENTER: static runtool::system::IController *runtool::system::IController::create()
+44 [1455634160] TRACE perfrun.system <> - ENTER: runtool::system::Controller::Controller()
+44 [1455634160] TRACE perfrun.system <> - EXIT:  runtool::system::Controller::Controller()
+44 [1455634160] TRACE perfrun.system <> - EXIT:  static runtool::system::IController *runtool::system::IController::create()
+44 [1455634160] INFO perfrun.launcher <> - plugin system has been added successfully
+44 [1455634160] INFO perfrun.launcher <> - plugin  has been added successfully
+44 [1455634160] INFO perfrun.launcher <> - plugin  has been added successfully
+44 [1455634160] INFO perfrun.launcher <> - plugin  has been added successfully
+44 [1455634160] INFO perfrun.launcher <> - plugin  has been added successfully
+44 [1455634160] INFO perfrun.launcher <> - plugin  has been added successfully
+44 [1455634160] INFO perfrun.launcher <> - plugin  has been added successfully
+44 [1455634160] INFO perfrun.launcher <> - plugin mrte has been added successfully
+44 [1455634160] INFO perfrun.launcher <> - plugin  has been added successfully
+44 [1455634160] INFO perfrun.launcher <> - plugin  has been added successfully
+44 [1455634160] INFO perfrun.launcher <> - plugin  has been added successfully
+46 [1455634160] INFO perfrun.launcher <> - plugin  has been added successfully
+46 [1455634160] INFO perfrun.launcher <> - plugin  has been added successfully
+46 [1455634160] INFO perfrun.launcher <> - plugin  has been added successfully
+46 [1455634160] TRACE perfrun.tpss <> - ENTER: static runtool::sdk::IController *runtool::tpss::IController::create()
+46 [1455634160] TRACE perfrun.tpss <> - ENTER: create tpss controller
+46 [1455634160] TRACE perfrun.tpss <> - EXIT:  create tpss controller
+46 [1455634160] TRACE perfrun.tpss <> - EXIT:  static runtool::sdk::IController *runtool::tpss::IController::create()
+46 [1455634160] INFO perfrun.launcher <> - plugin tpss has been added successfully
+46 [1455634160] INFO perfrun.launcher <> - plugin  has been added successfully
+46 [1455634160] INFO perfrun.launcher <> - plugin  has been added successfully
+46 [1455634160] INFO perfrun.launcher <> - plugin  has been added successfully
+46 [1455634160] INFO perfrun.launcher <> - plugin  has been added successfully
+46 [1455634160] INFO perfrun.launcher <> - plugin  has been added successfully
+46 [1455634160] INFO perfrun.launcher <> - the option was added --interval: Specify an interval of data collection (for example, sampling) in milliseconds.
+46 [1455634160] INFO perfrun.launcher <> - the option was added --follow-child: Profile process with or without children.
+47 [1455634160] INFO perfrun.launcher <> - the option was added --gelding: BADMSG: perfrun1.launcher.plugin_manager::gelding
+47 [1455634160] INFO perfrun.launcher <> - the option was added --time-source: Specify time source for measurement. Possible values: sys - wall clock time; tsc - time stamp counter; ext - time from an external source; auto - auto select accurate time source.
+47 [1455634160] INFO perfrun.launcher <> - the option was added --stack: Enable or disable collection of stacks.
+47 [1455634160] INFO perfrun.launcher <> - the option was added --stack-stitching: Enable or disable the stack stitching algorithm for Intel TBB-based applications.
+47 [1455634160] INFO perfrun.launcher <> - the option was added --type: Specify type of data to be collected. For example, --type cpu:counters,waiting:nostack,io.
+47 [1455634160] INFO perfrun.launcher <> - the option was added --mrte-mode: Specify Java/.NET/other managed runtime collection mode. Possible values: native - collect information only for native code; managed - collect information only for managed code; mixed - collect information for both managed and native code; auto - choose the mode based on binary type.
+47 [1455634160] INFO perfrun.launcher <> - the option was added --mrte-mode-list: List supported Java/.NET/other managed runtime collection modes.
+47 [1455634160] INFO perfrun.launcher <> - the option was added --mrte-type: Specify which managed runtimes to collect. Possible values: java - collect information for Java; dotnet - collect information for .NET; python - collect information for CPython. You can specify several values separated by comma.
+48 [1455634160] INFO perfrun.launcher <> - the option was added --mrte-type-list: List supported Java/.NET/other managed runtime types.
+48 [1455634160] INFO perfrun.launcher <> - the option was added --trace-strategy: Specify how to profile a process tree. <string> can be "<process>:trace:notrace" - profile the process but do not profile its children. Shorthand parameters: t - trace, nt - notrace. For example, "vtunedemo.exe:t:t".
+48 [1455634160] INFO perfrun.launcher <> - the option was added --collector: BADMSG: perfrun1.launcher.plugin_manager::collector
+48 [1455634160] INFO perfrun.launcher <> - the option was added --system-wide: Enable system-wide profiling. This mode may require additional permissions.
+48 [1455634160] INFO perfrun.launcher <> - the option was added --kvm-guest: Enable KVM guest OS profiling.
+48 [1455634160] INFO perfrun.launcher <> - the option was added --kvm-guest-kallsyms: Specify a local path to the /proc/kallsyms file copied from the guest OS for proper symbol resolution.
+48 [1455634160] INFO perfrun.launcher <> - the option was added --kvm-guest-modules: Specify a local path to the /proc/modules file copied from the guest OS for proper symbol resolution.
+48 [1455634160] INFO perfrun.launcher <> - the option was added --dump-vdso: Dump [vdso] to result directory
+48 [1455634160] INFO perfrun.launcher <> - the option was added --bandwidth-limits: Measure bandwidth limits
+48 [1455634160] INFO perfrun.launcher <> - the option was added --bandwidth-strategy: Bandwidth limits determination specific properties (example: --bandwidth-strategy array-size=0,duration=500).
+48 [1455634160] INFO perfrun.launcher <> - the option was added --bandwidth-config: List of benchmarks to run.
+48 [1455634160] INFO perfrun.launcher <> - the option was added --system-collector-config: Specify subcollectors. Possible values: all, vdso, container, device-info, none.
+48 [1455634160] INFO perfrun.launcher <> - the option was added --stackwalk: Specify stack unwinding method. Possible values: online - unwind stacks during collection; offline - unwind stacks after collection is finished.
+48 [1455634160] INFO perfrun.launcher <> - the option was added --filter-include: Filter data during collection. Possible values: contended=<on|off> - filter out uncontended events; contended_nostack=<time> - filter out stacks for contended events that take less than <time> microseconds; wait=<time> - ignore transitions and blocks with wait time less than <time> microseconds; wait_nostack=<time> - filter out stacks for waits that take less than <time> microseconds.
+48 [1455634160] INFO perfrun.launcher <> - the option was added --debug-pin: Debug PIN tool and runtime.
+48 [1455634160] INFO perfrun.launcher <> - the option was added --debug-exception: Disallow the application to set own abnormal termination handler.
+48 [1455634160] INFO perfrun.launcher <> - the option was added --trace-type: Specify the trace file granularity. Possible values: per-thread - per-thread trace file generation; per-process - per-process trace file generation.
+48 [1455634160] INFO perfrun.launcher <> - the option was added --instrumentation-type: Specify type of instrumentation.
+48 [1455634160] INFO perfrun.launcher <> - the option was added --altstack: Enable or disable usage of altstacks for profiling signal handlers.
+48 [1455634160] INFO perfrun.launcher <> - the option was added --profiling-signal: Alternate profiling signal.
+48 [1455634160] INFO perfrun.launcher <> - the option was added --memory-strategy: Specify a minimal memory object size to be traced and a hash table size for faster objects search; for example: --memory-strategy obj-size-min=1024,hash-table-size=4096.
+48 [1455634160] TRACE perfrun.launcher <> - Update configuration: tmp directory = /tmp/advixe-tmp-an16228
+48 [1455634160] TRACE perfrun.launcher <> - EXIT:  Initialize the launcher
+49 [1455634160] INFO perfrun.launcher <> - create msngr2::ICliToolContext
+49 [1455634160] TRACE perfrun.launcher <> - ENTER: void runtool::CmdLineParser::validateParseResult() const
+49 [1455634160] TRACE perfrun.launcher <> - EXIT:  void runtool::CmdLineParser::validateParseResult() const
+49 [1455634160] TRACE perfrun.launcher <> - ENTER: void runtool::CmdLineParser::populate(runtool::IConfiguration *) const
+49 [1455634160] WARN perfrun.launcher <> - action #14 cannot be translated to string and will be unknown, at file: vcs/perfrun1/launcher/src/configuration.cpp:103
+49 [1455634160] TRACE perfrun.launcher <> - Update configuration: action = unknown
+49 [1455634160] TRACE perfrun.launcher <> - Update configuration: collection type = system-wide
+49 [1455634160] TRACE perfrun.launcher <> - Update configuration: compression level = 2
+49 [1455634160] TRACE perfrun.launcher <> - Update configuration: duration = 0 sec
+49 [1455634160] TRACE perfrun.launcher <> - Update configuration: host ports = 4000,
+49 [1455634160] TRACE perfrun.launcher <> - Update configuration: target ports = 4001,9321,
+49 [1455634160] TRACE perfrun.launcher <> - Update configuration: data limit = 0 bytes
+49 [1455634160] TRACE perfrun.launcher <> - Update configuration: disc space limit = 0 bytes
+49 [1455634160] TRACE perfrun.launcher <> - Update configuration: return-app-exitcode = false
+49 [1455634160] TRACE perfrun.launcher <> - Update configuration: tmp directory = /tmp/advixe-tmp-an16228
+49 [1455634160] TRACE perfrun.launcher <> - Update configuration: result directory = /tmp/advixe-tmp-an16228/advixe-res-88078-112337210937555471
+50 [1455634160] TRACE perfrun.launcher <> - [IN] option = follow-child; value = true !bool
+50 [1455634160] TRACE perfrun.launcher <> - [IN] option = gelding; value = false !bool
+50 [1455634160] TRACE perfrun.launcher <> - [IN] option = time-source; value = auto !ustring
+50 [1455634160] TRACE perfrun.launcher <> - [IN] option = stack; value = true !bool
+50 [1455634160] TRACE perfrun.launcher <> - [IN] option = stack-stitching; value = false !bool
+50 [1455634160] TRACE perfrun.launcher <> - [IN] option = mrte-mode; value = native !ustring
+50 [1455634160] TRACE perfrun.launcher <> - [IN] option = collector; value = sep !ustring
+50 [1455634160] TRACE perfrun.launcher <> - [IN] option = system-wide; value = false !bool
+50 [1455634160] TRACE perfrun.launcher <> - [IN] option = kvm-guest; value = false !bool
+50 [1455634160] TRACE perfrun.launcher <> - [IN] option = dump-vdso; value = null
+50 [1455634160] TRACE perfrun.launcher <> - [IN] option = bandwidth-limits; value = false !bool
+50 [1455634160] TRACE perfrun.launcher <> - [IN] option = system-collector-config; value = all !ustring
+50 [1455634160] TRACE perfrun.launcher <> - [IN] option = trace-type; value = per-thread !ustring
+50 [1455634160] TRACE perfrun.launcher <> - [IN] option = instrumentation-type; value = pin !ustring
+50 [1455634160] TRACE perfrun.launcher <> - [IN] option = altstack; value = true !bool
+50 [1455634160] TRACE perfrun.launcher <> - EXIT:  void runtool::CmdLineParser::populate(runtool::IConfiguration *) const
+50 [1460472688] TRACE perfrun.tpss <> - ENTER: void runtool::tpss::Controller::setMessageChannel(runtool::sdk::IMessageChannel *)
+50 [1460472688] TRACE perfrun.tpss <> - EXIT:  void runtool::tpss::Controller::setMessageChannel(runtool::sdk::IMessageChannel *)
+50 [1455634160] INFO perfrun.launcher <> - create file finder object
+50 [1460472688] TRACE perfrun.tpss <> - ENTER: void runtool::tpss::Controller::setRequestHandler(runtool::sdk::IRequestHandler *)
+50 [1460472688] TRACE perfrun.tpss <> - EXIT:  void runtool::tpss::Controller::setRequestHandler(runtool::sdk::IRequestHandler *)
+50 [1455634160] TRACE perfrun.launcher <> - Handle the user request: action = 14
+50 [1455634160] TRACE perfrun.launcher <> - Do external action
+50 [1460472688] TRACE perfrun.launcher <> - Update configuration: follow child = 1
+51 [1460472688] TRACE perfrun.launcher <> - Update configuration: time source = 0
+51 [1460472688] TRACE perfrun.launcher <> - Update configuration: stack = 1
+51 [1460472688] TRACE perfrun.launcher <> - Update configuration: gelding = 0
+51 [1460472688] TRACE perfrun.launcher <> - Update configuration: stack stitching = 0
+51 [1460472688] INFO perfrun.launcher <> - plugin [remoteplug] was disabled because it doesn't support the given collection type.
+51 [1460472688] INFO perfrun.system <> - dumping [vdso] pseudomodule
+52 [1460472688] INFO perfrun.launcher <> - plugin [] was disabled because it doesn't support the given collection type.
+52 [1460472688] INFO perfrun.launcher <> - plugin [] was disabled because it doesn't support the given collection type.
+52 [1460472688] INFO perfrun.launcher <> - plugin [] was disabled because it doesn't support the given collection type.
+52 [1460472688] INFO perfrun.launcher <> - plugin [] was disabled because it doesn't support the given collection type.
+52 [1460472688] INFO perfrun.launcher <> - plugin [] was disabled because it doesn't support the given collection type.
+52 [1460472688] INFO perfrun.launcher <> - plugin [] was disabled because it doesn't support the given collection type.
+52 [1460472688] INFO perfrun.launcher <> - plugin [mrte] was disabled because it doesn't support the given collection type.
+52 [1460472688] INFO perfrun.launcher <> - plugin [] was disabled because it doesn't support the given collection type.
+52 [1460472688] INFO perfrun.launcher <> - plugin [] was disabled because it doesn't support the given collection type.
+52 [1460472688] INFO perfrun.launcher <> - plugin [] was disabled because it doesn't support the given collection type.
+52 [1460472688] INFO perfrun.launcher <> - plugin [] was disabled because it doesn't support the given collection type.
+52 [1460472688] INFO perfrun.launcher <> - plugin [] was disabled because it doesn't support the given collection type.
+52 [1460472688] INFO perfrun.launcher <> - plugin [] was disabled because it doesn't support the given collection type.
+52 [1460472688] INFO perfrun.launcher <> - plugin [tpss] was disabled because it doesn't support the given collection type.
+52 [1460472688] INFO perfrun.launcher <> - plugin [] was disabled because it doesn't support the given collection type.
+52 [1460472688] INFO perfrun.launcher <> - plugin [] was disabled because it doesn't support the given collection type.
+52 [1460472688] INFO perfrun.launcher <> - plugin [] was disabled because it doesn't support the given collection type.
+52 [1460472688] INFO perfrun.launcher <> - plugin [] was disabled because it doesn't support the given collection type.
+52 [1460472688] INFO perfrun.launcher <> - plugin [] was disabled because it doesn't support the given collection type.
+53 [1455634160] TRACE perfrun.launcher <> - IMessenger: send collection state with state = 3
+53 [1455634160] INFO perfrun.launcher <> - Application exit code: 0
+53 [1455634160] INFO perfrun.launcher <> - Exit code: 0
+53 [1455634160] TRACE perfrun.launcher <> - EXIT:  Start the collection
+53 [1455634160] TRACE perfrun.launcher <> - ENTER: Destroy the launcher...
+53 [1455634160] TRACE perfrun.launcher <> - EXIT:  Destroy the launcher...
+53 [1455634160] TRACE perfrun.launcher <> - PluginManagerProxy::doOperation thread was terminated.
+53 [1455634160] TRACE perfrun.launcher <> - EXIT:  int main(int, char **)

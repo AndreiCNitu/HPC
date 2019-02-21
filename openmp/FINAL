@@ -1,0 +1,362 @@
+Running on host: node32-022
+Time is: Thu Feb 21 21:02:57 GMT 2019
+Directory is: /panfs/panasas01/cosc/an16228/myfiles/HPC/openmp
+PBS job ID is: 8121700.master.cm.cluster
+This jobs runs on the following machines: node32-022
+
+Copyright (C) 2009-2019 Intel Corporation. All rights reserved.
+Intel(R) VTune(TM) Amplifier 2019 (build 588069)
+Copyright (C) 2009-2019 Intel Corporation. All rights reserved.
+Intel(R) Advisor 2019 (build 588361)
+
+
+1 CORES
+########################################
+128 x 128
+==done==
+Reynolds number:		9.755440711975E+00
+Elapsed time:			8.782318 (s)
+Elapsed user CPU time:		8.781664 (s)
+Elapsed system CPU time:	0.003999 (s)
+256 x 256
+==done==
+Reynolds number:		1.006101512909E+01
+Elapsed time:			67.889379 (s)
+Elapsed user CPU time:		67.894678 (s)
+Elapsed system CPU time:	0.003999 (s)
+1024 x 1024
+==done==
+Reynolds number:		3.376504182816E+00
+Elapsed time:			305.514144 (s)
+Elapsed user CPU time:		305.533551 (s)
+Elapsed system CPU time:	0.021996 (s)
+
+
+2 CORES
+########################################
+128 x 128
+==done==
+Reynolds number:		9.755440711975E+00
+Elapsed time:			4.655689 (s)
+Elapsed user CPU time:		9.314583 (s)
+Elapsed system CPU time:	0.001999 (s)
+256 x 256
+==done==
+Reynolds number:		1.006101512909E+01
+Elapsed time:			34.586348 (s)
+Elapsed user CPU time:		69.181482 (s)
+Elapsed system CPU time:	0.005999 (s)
+1024 x 1024
+==done==
+Reynolds number:		3.376504182816E+00
+Elapsed time:			153.619218 (s)
+Elapsed user CPU time:		307.234293 (s)
+Elapsed system CPU time:	0.093985 (s)
+
+
+3 CORES
+########################################
+128 x 128
+==done==
+Reynolds number:		9.755440711975E+00
+Elapsed time:			3.203866 (s)
+Elapsed user CPU time:		9.609539 (s)
+Elapsed system CPU time:	0.006998 (s)
+256 x 256
+==done==
+Reynolds number:		1.006101512909E+01
+Elapsed time:			23.499437 (s)
+Elapsed user CPU time:		70.508281 (s)
+Elapsed system CPU time:	0.006998 (s)
+1024 x 1024
+==done==
+Reynolds number:		3.376504182816E+00
+Elapsed time:			103.898744 (s)
+Elapsed user CPU time:		311.654621 (s)
+Elapsed system CPU time:	0.131979 (s)
+
+
+4 CORES
+########################################
+128 x 128
+==done==
+Reynolds number:		9.755440711975E+00
+Elapsed time:			2.421544 (s)
+Elapsed user CPU time:		9.684527 (s)
+Elapsed system CPU time:	0.006998 (s)
+256 x 256
+==done==
+Reynolds number:		1.006101512909E+01
+Elapsed time:			17.668025 (s)
+Elapsed user CPU time:		70.665257 (s)
+Elapsed system CPU time:	0.022996 (s)
+1024 x 1024
+==done==
+Reynolds number:		3.376504182816E+00
+Elapsed time:			78.419778 (s)
+Elapsed user CPU time:		313.574329 (s)
+Elapsed system CPU time:	0.194970 (s)
+
+
+5 CORES
+########################################
+128 x 128
+==done==
+Reynolds number:		9.755440711975E+00
+Elapsed time:			2.110134 (s)
+Elapsed user CPU time:		10.553395 (s)
+Elapsed system CPU time:	0.003999 (s)
+256 x 256
+==done==
+Reynolds number:		1.006101512909E+01
+Elapsed time:			14.802069 (s)
+Elapsed user CPU time:		73.967755 (s)
+Elapsed system CPU time:	0.062990 (s)
+1024 x 1024
+==done==
+Reynolds number:		3.376504182816E+00
+Elapsed time:			65.030550 (s)
+Elapsed user CPU time:		325.010590 (s)
+Elapsed system CPU time:	0.238963 (s)
+
+
+6 CORES
+########################################
+128 x 128
+==done==
+Reynolds number:		9.755440711975E+00
+Elapsed time:			1.828311 (s)
+Elapsed user CPU time:		10.975331 (s)
+Elapsed system CPU time:	0.003999 (s)
+256 x 256
+==done==
+Reynolds number:		1.006101512909E+01
+Elapsed time:			12.482440 (s)
+Elapsed user CPU time:		74.905612 (s)
+Elapsed system CPU time:	0.011998 (s)
+1024 x 1024
+==done==
+Reynolds number:		3.376504182816E+00
+Elapsed time:			54.955964 (s)
+Elapsed user CPU time:		329.428919 (s)
+Elapsed system CPU time:	0.403938 (s)
+
+
+7 CORES
+########################################
+128 x 128
+==done==
+Reynolds number:		9.755440711975E+00
+Elapsed time:			1.552160 (s)
+Elapsed user CPU time:		10.865348 (s)
+Elapsed system CPU time:	0.004999 (s)
+256 x 256
+==done==
+Reynolds number:		1.006101512909E+01
+Elapsed time:			10.721233 (s)
+Elapsed user CPU time:		75.064588 (s)
+Elapsed system CPU time:	0.003999 (s)
+1024 x 1024
+==done==
+Reynolds number:		3.376504182816E+00
+Elapsed time:			50.556665 (s)
+Elapsed user CPU time:		353.472264 (s)
+Elapsed system CPU time:	0.531919 (s)
+
+
+8 CORES
+########################################
+128 x 128
+==done==
+Reynolds number:		9.755440711975E+00
+Elapsed time:			1.415719 (s)
+Elapsed user CPU time:		11.329277 (s)
+Elapsed system CPU time:	0.006998 (s)
+256 x 256
+==done==
+Reynolds number:		1.006101512909E+01
+Elapsed time:			9.465702 (s)
+Elapsed user CPU time:		75.732486 (s)
+Elapsed system CPU time:	0.014997 (s)
+1024 x 1024
+==done==
+Reynolds number:		3.376504182816E+00
+Elapsed time:			43.464438 (s)
+Elapsed user CPU time:		347.288204 (s)
+Elapsed system CPU time:	0.536918 (s)
+
+
+9 CORES
+########################################
+128 x 128
+==done==
+Reynolds number:		9.755440711975E+00
+Elapsed time:			1.320912 (s)
+Elapsed user CPU time:		11.920187 (s)
+Elapsed system CPU time:	0.010998 (s)
+256 x 256
+==done==
+Reynolds number:		1.006101512909E+01
+Elapsed time:			8.671099 (s)
+Elapsed user CPU time:		78.009140 (s)
+Elapsed system CPU time:	0.087986 (s)
+1024 x 1024
+==done==
+Reynolds number:		3.376504182816E+00
+Elapsed time:			39.331195 (s)
+Elapsed user CPU time:		353.576248 (s)
+Elapsed system CPU time:	0.512922 (s)
+
+
+10 CORES
+########################################
+128 x 128
+==done==
+Reynolds number:		9.755440711975E+00
+Elapsed time:			1.210658 (s)
+Elapsed user CPU time:		12.105159 (s)
+Elapsed system CPU time:	0.011998 (s)
+256 x 256
+==done==
+Reynolds number:		1.006101512909E+01
+Elapsed time:			7.979272 (s)
+Elapsed user CPU time:		79.772872 (s)
+Elapsed system CPU time:	0.040993 (s)
+1024 x 1024
+==done==
+Reynolds number:		3.376504182816E+00
+Elapsed time:			37.348076 (s)
+Elapsed user CPU time:		372.937304 (s)
+Elapsed system CPU time:	0.656900 (s)
+
+
+11 CORES
+########################################
+128 x 128
+==done==
+Reynolds number:		9.755440711975E+00
+Elapsed time:			1.173164 (s)
+Elapsed user CPU time:		12.912037 (s)
+Elapsed system CPU time:	0.006998 (s)
+256 x 256
+==done==
+Reynolds number:		1.006101512909E+01
+Elapsed time:			7.411183 (s)
+Elapsed user CPU time:		81.520606 (s)
+Elapsed system CPU time:	0.024996 (s)
+1024 x 1024
+==done==
+Reynolds number:		3.376504182816E+00
+Elapsed time:			36.597000 (s)
+Elapsed user CPU time:		402.089873 (s)
+Elapsed system CPU time:	0.591910 (s)
+
+
+12 CORES
+########################################
+128 x 128
+==done==
+Reynolds number:		9.755440711975E+00
+Elapsed time:			1.069383 (s)
+Elapsed user CPU time:		12.845047 (s)
+Elapsed system CPU time:	0.004999 (s)
+256 x 256
+==done==
+Reynolds number:		1.006101512909E+01
+Elapsed time:			6.812719 (s)
+Elapsed user CPU time:		81.756571 (s)
+Elapsed system CPU time:	0.016997 (s)
+1024 x 1024
+==done==
+Reynolds number:		3.376504182816E+00
+Elapsed time:			50.093667 (s)
+Elapsed user CPU time:		597.643144 (s)
+Elapsed system CPU time:	3.624449 (s)
+
+
+13 CORES
+########################################
+128 x 128
+==done==
+Reynolds number:		9.755440711975E+00
+Elapsed time:			1.045780 (s)
+Elapsed user CPU time:		13.597932 (s)
+Elapsed system CPU time:	0.012998 (s)
+256 x 256
+==done==
+Reynolds number:		1.006101512909E+01
+Elapsed time:			6.601077 (s)
+Elapsed user CPU time:		85.845949 (s)
+Elapsed system CPU time:	0.042993 (s)
+1024 x 1024
+==done==
+Reynolds number:		3.376504182816E+00
+Elapsed time:			42.900572 (s)
+Elapsed user CPU time:		554.612686 (s)
+Elapsed system CPU time:	3.220510 (s)
+
+
+14 CORES
+########################################
+128 x 128
+==done==
+Reynolds number:		9.755440711975E+00
+Elapsed time:			0.992302 (s)
+Elapsed user CPU time:		13.951878 (s)
+Elapsed system CPU time:	0.005999 (s)
+256 x 256
+==done==
+Reynolds number:		1.006101512909E+01
+Elapsed time:			6.187473 (s)
+Elapsed user CPU time:		86.688821 (s)
+Elapsed system CPU time:	0.012998 (s)
+1024 x 1024
+==done==
+Reynolds number:		3.376504182816E+00
+Elapsed time:			36.697586 (s)
+Elapsed user CPU time:		511.359261 (s)
+Elapsed system CPU time:	2.529615 (s)
+
+
+15 CORES
+########################################
+128 x 128
+==done==
+Reynolds number:		9.755440711975E+00
+Elapsed time:			0.963144 (s)
+Elapsed user CPU time:		14.446803 (s)
+Elapsed system CPU time:	0.014997 (s)
+256 x 256
+==done==
+Reynolds number:		1.006101512909E+01
+Elapsed time:			5.870480 (s)
+Elapsed user CPU time:		88.136601 (s)
+Elapsed system CPU time:	0.014997 (s)
+1024 x 1024
+==done==
+Reynolds number:		3.376504182816E+00
+Elapsed time:			47.009978 (s)
+Elapsed user CPU time:		701.226397 (s)
+Elapsed system CPU time:	4.024388 (s)
+
+
+16 CORES
+########################################
+128 x 128
+==done==
+Reynolds number:		9.755440711975E+00
+Elapsed time:			0.891986 (s)
+Elapsed user CPU time:		14.335820 (s)
+Elapsed system CPU time:	0.011998 (s)
+256 x 256
+==done==
+Reynolds number:		1.006101512909E+01
+Elapsed time:			5.404512 (s)
+Elapsed user CPU time:		86.542843 (s)
+Elapsed system CPU time:	0.023996 (s)
+1024 x 1024
+==done==
+Reynolds number:		3.376504182816E+00
+Elapsed time:			39.525911 (s)
+Elapsed user CPU time:		629.548294 (s)
+Elapsed system CPU time:	3.038538 (s)

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- <!DOCTYPE IntelParallelAdvisorSummaryCollection SYSTEM  "IntelParallelAdvisorSummaryCollection.dtd"> -->
+
+<IntelParallelAdvisorSummary version="" 
+                             kind="DATAKIND_SURVEY_EX" >
+  <hotspot filename="/panfs/panasas01/cosc/an16228/myfiles/HPC/openmp/lbm0.c"
+           line_no="249"
+           routine="rebound"
+           is_vectorized="0"
+           self_time="9.999714E-03"
+           total_time="4.799888E-01"
+           trip_counts=""
+           func_instance="22"
+           priority="0"/>
+  <hotspot filename="/panfs/panasas01/cosc/an16228/myfiles/HPC/openmp/lbm0.c"
+           line_no="376"
+           routine="av_velocity"
+           is_vectorized="0"
+           self_time="5.528906E+00"
+           total_time="5.528906E+00"
+           trip_counts=""
+           func_instance="4"
+           priority="0"/>
+  <hotspot filename="/panfs/panasas01/cosc/an16228/myfiles/HPC/openmp/lbm0.c"
+           line_no="222"
+           routine="propagate"
+           is_vectorized="1"
+           self_time="2.876961E+00"
+           total_time="4.086942E+00"
+           trip_counts=""
+           func_instance="42"
+           priority="0"/>
+  <hotspot filename="/panfs/panasas01/cosc/an16228/myfiles/HPC/openmp/lbm0.c"
+           line_no="250"
+           routine="rebound"
+           is_vectorized="0"
+           self_time="4.699891E-01"
+           total_time="4.699891E-01"
+           trip_counts=""
+           func_instance="20"
+           priority="0"/>
+  <hotspot filename="/panfs/panasas01/cosc/an16228/myfiles/HPC/openmp/lbm0.c"
+           line_no="281"
+           routine="collision"
+           is_vectorized="0"
+           self_time="1.475570E+01"
+           total_time="1.475570E+01"
+           trip_counts=""
+           func_instance="12"
+           priority="0"/>
+</IntelParallelAdvisorSummary >

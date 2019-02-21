@@ -1,0 +1,746 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<bag xmlns:float="http://www.w3.org/2001/XMLSchema#float" xmlns:int="http://www.w3.org/2001/XMLSchema#int" xmlns:unsignedInt="http://www.w3.org/2001/XMLSchema#unsignedInt" xmlns:unsignedLong="http://www.w3.org/2001/XMLSchema#unsignedLong" int:version="7">
+ <issues>
+  <issue>
+   <unsignedInt:flags>65</unsignedInt:flags>
+   <id>issue_div</id>
+   <int:severity>1</int:severity>
+   <text>div_issue_text</text>
+   <title>Unoptimized floating point operation processing possible</title>
+   <attributes>
+    <float:severity>1</float:severity>
+   </attributes>
+   <parameters/>
+   <recommendations>
+    <recommendation>
+     <int:confidence>1</int:confidence>
+     <unsignedInt:flags>8</unsignedInt:flags>
+     <id>rec_sqrt_c</id>
+     <text>add_sqrt_text</text>
+     <title>add_sqrt_title</title>
+     <attributes>
+      <float:confidence>1</float:confidence>
+     </attributes>
+     <parameters/>
+    </recommendation>
+   </recommendations>
+   <unsignedLong:rowKey>4</unsignedLong:rowKey>
+  </issue>
+  <issue>
+   <unsignedInt:flags>66</unsignedInt:flags>
+   <id>compiler_diag_issue_15335</id>
+   <int:severity>1</int:severity>
+   <text>&lt;b&gt;Cause:&lt;/b&gt; The compiler vectorizer determined the loop will not benefit from vectorization. Common reasons include: &lt;ul&gt; &lt;li&gt;Non-unit stride memory access&lt;/li&gt; &lt;li&gt;Indirect memory access&lt;/li&gt; &lt;li&gt;Low iteration count&lt;/li&gt; &lt;/ul&gt; &lt;b&gt;C++ Example:&lt;/b&gt; The compiler vectorizer determines the cost of creating a vector operand (non-unit stride access in the vector operand creation) is significant when compared to the number/type of computations in which those vector operands are used. &lt;div class=&quot;sample&quot;&gt;&lt;br/&gt;
+#include &amp;lt;iostream&amp;gt; &lt;br/&gt;
+#define N 100&lt;br/&gt;
+struct s1 {&lt;br/&gt;
+int a, b, c;&lt;br/&gt;
+}&lt;br/&gt;
+int main(){&lt;br/&gt;
+s1 arr[N], sum;&lt;br/&gt;
+&lt;b&gt;for(int i = 0; i &amp;lt; N; i++)&lt;/b&gt;&lt;br/&gt;
+{&lt;br/&gt;
+&amp;nbsp;&amp;nbsp;sum.a += arr[i].a;&lt;br/&gt;
+&amp;nbsp;&amp;nbsp;sum.b += arr[i].b;&lt;br/&gt;
+&amp;nbsp;&amp;nbsp;sum.c += arr[i].c;&lt;br/&gt;
+}&lt;br/&gt;
+std::cout &amp;lt;&amp;lt; sum.a &amp;lt;&amp;lt; &quot;t&quot; &amp;lt;&amp;lt; sum.b &amp;lt;&amp;lt; &quot;t&quot; &amp;lt;&amp;lt; sum.c &amp;lt;&amp;lt; &quot;n&quot;; &lt;br/&gt;
+return 0;&lt;br/&gt;
+}&lt;/div&gt; </text>
+   <title>Loop vectorization possible but seems inefficient </title>
+   <attributes>
+    <float:severity>1</float:severity>
+   </attributes>
+   <parameters/>
+   <recommendations>
+    <recommendation>
+     <int:confidence>1</int:confidence>
+     <unsignedInt:flags>8</unsignedInt:flags>
+     <id>compiler_diag_rec_15335</id>
+     <text>&lt;ul&gt; &lt;li&gt;If you still believe vectorization might result in a speedup, override the compiler cost model using a directive before the loop &lt;table&gt; &lt;tr&gt; &lt;th&gt;Target &lt;/th&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;ICL/ICC/ICPC&lt;/a&gt; Directive &lt;/th&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;IFORT&lt;/a&gt; Directive &lt;/th&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Source loop&lt;/td&gt; &lt;td&gt;#pragma vector or #pragma vector always&lt;/td&gt; &lt;td&gt;!DIR$ VECTOR or !DIR$ VECTOR ALWAYS&lt;/td&gt; &lt;/tr&gt; &lt;/table&gt; Alternatively, use a compiler option to always vectorize loops. The compiler will still test for dependencies and will not vectorize the loop unless it is safe. &lt;table&gt; &lt;tr&gt; &lt;th&gt;Windows* OS - &lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;ICL&lt;/a&gt; and &lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;IFORT&lt;/a&gt; Option&lt;/th&gt; &lt;th&gt;Linux* OS - &lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;ICC/ICPC&lt;/a&gt; and &lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;IFORT&lt;/a&gt; Option&lt;/th&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;/Qvec-threshold0&lt;/td&gt; &lt;td&gt;-vec-threshold0&lt;/td&gt; &lt;/tr&gt; &lt;/table&gt; &lt;/li&gt; &lt;li&gt;Require vectorization using a directive before the loop. The compiler will not perform a dependency analysis; it is your responsibility to ensure vectorization is safe: &lt;table&gt; &lt;tr&gt; &lt;th&gt;Target &lt;/th&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;ICL/ICC/ICPC&lt;/a&gt; Directive &lt;/th&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;IFORT&lt;/a&gt; Directive &lt;/th&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Source loop&lt;/td&gt; &lt;td&gt;#pragma simd or #pragma omp simd &lt;/td&gt; &lt;td&gt;!DIR$ SIMD or !$OMP SIMD &lt;/td&gt; &lt;/tr&gt; &lt;/table&gt; &lt;/li&gt; &lt;li&gt;Rewrite the data structure/loop to have more regular memory accesses. &lt;/li&gt; &lt;/ul&gt; &lt;b&gt;Read More C++ Information:&lt;/b&gt; &lt;ul&gt; &lt;li&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/cdiag15335&quot;&gt;https://software.intel.com/en-us/articles/cdiag15335&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href=&quot;C++/17/index.htm#GUID-4D8CDB9C-8A96-4CB2-B5E5-3D81003FE4FF.htm&quot;&gt;omp simd&lt;/a&gt;, &lt;a href=&quot;C++/17/index.htm#GUID-1EA04294-988E-4152-B584-B028FD6FAC48.htm&quot;&gt;simd&lt;/a&gt;, &lt;a href=&quot;C++/17/index.htm#GUID-C7A523F1-B43D-4AF7-920A-5B155E0823EE.htm&quot;&gt;vec-threshold&lt;/a&gt;, &lt;a href=&quot;C++/17/index.htm#GUID-2B528C72-29B4-4DBC-8B91-EE4D1A03A850.htm&quot;&gt;vector&lt;/a&gt; &lt;li&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/getting-started-with-intel-composer-xe-2013-compiler-pragmas-and-directives&quot;&gt;Getting Started with Intel Compiler Pragmas and Directives&lt;/a&gt; and &lt;a href=&quot;https://software.intel.com/en-us/vectorization-resources-advisor&quot;&gt;Vectorization Resources for Intel&amp;reg; Advisor XE Users&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt;  </text>
+     <title>Recommendations </title>
+     <attributes>
+      <float:confidence>1</float:confidence>
+     </attributes>
+     <parameters/>
+    </recommendation>
+   </recommendations>
+   <unsignedLong:rowKey>4</unsignedLong:rowKey>
+  </issue>
+  <issue>
+   <unsignedInt:flags>69</unsignedInt:flags>
+   <id>issue_assumed_dependency</id>
+   <int:severity>2</int:severity>
+   <text>The compiler assumed there is an anti-dependency (Write after read - WAR) or true dependency (Read after write - RAW) in the loop. Improve performance by investigating the assumption and handling accordingly. </text>
+   <title>Assumed dependency present </title>
+   <attributes>
+    <float:severity>2</float:severity>
+   </attributes>
+   <parameters/>
+   <recommendations>
+    <recommendation>
+     <int:confidence>2</int:confidence>
+     <unsignedInt:flags>8</unsignedInt:flags>
+     <id>rec_assumed_dependency_run_correctness_c</id>
+     <text>There is no confirmation that a real (proven) dependency is present in the loop. To confirm: Run a &lt;a href=&quot;../help/index.htm#GUID-3268707B-9B05-49DA-B657-4511383363E0.htm&quot;&gt;Dependencies analysis&lt;/a&gt;. </text>
+     <title>Confirm dependency is real </title>
+     <attributes>
+      <float:confidence>2</float:confidence>
+     </attributes>
+     <parameters/>
+    </recommendation>
+   </recommendations>
+   <unsignedLong:rowKey>6</unsignedLong:rowKey>
+  </issue>
+  <issue>
+   <unsignedInt:flags>66</unsignedInt:flags>
+   <id>compiler_diag_issue_15344</id>
+   <int:severity>1</int:severity>
+   <text>&lt;b&gt;Cause:&lt;/b&gt; The compiler detected or assumed a vector dependence in the loop. &lt;br/&gt; &lt;b&gt;C++ Example:&lt;/b&gt; &lt;div class=&quot;sample&quot;&gt;&lt;br/&gt;
+int foo(float *A, int n){&lt;br/&gt;
+&amp;nbsp;&amp;nbsp;int inx = 0;&lt;br/&gt;
+&amp;nbsp;&amp;nbsp;float max = A[0];&lt;br/&gt;
+&amp;nbsp;&amp;nbsp;int i;&lt;br/&gt;
+&amp;nbsp;&amp;nbsp;for (i=0;i &amp;lt; n;i++){&lt;br/&gt;
+&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;if (max &amp;lt; A[i]){&lt;br/&gt;
+&lt;b&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;max = A[i];&lt;br/&gt;
+&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;inx = i*i;&lt;/b&gt; &lt;br/&gt;
+&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;}&lt;br/&gt;
+&amp;nbsp;&amp;nbsp;}&lt;br/&gt;
+&amp;nbsp;&amp;nbsp;return inx;&lt;br/&gt;
+} &lt;/div&gt;  </text>
+   <title>Vector dependence prevents vectorization </title>
+   <attributes>
+    <float:severity>1</float:severity>
+   </attributes>
+   <parameters/>
+   <recommendations>
+    <recommendation>
+     <int:confidence>1</int:confidence>
+     <unsignedInt:flags>8</unsignedInt:flags>
+     <id>compiler_diag_rec_15344</id>
+     <text>&lt;ul&gt; &lt;li&gt;Rewrite code to remove dependencies.&lt;/li&gt; &lt;li&gt;Run a Dependencies analysis to check if the loop has real dependencies. There are two types of dependencies: &lt;ul&gt; &lt;li&gt;True dependency - Read after write (RAW) &lt;/li&gt; &lt;li&gt;Anti-dependency - Write after read (WAR) &lt;/li&gt; &lt;/ul&gt; &lt;/li&gt; &lt;li&gt;If no dependencies exist, use one of the following to tell the compiler it is safe to vectorize: &lt;ul&gt; &lt;li&gt;Directive to prevent all dependencies in the loop &lt;table&gt; &lt;tr&gt; &lt;th&gt;Target &lt;/th&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;ICL/ICC/ICPC&lt;/a&gt; Directive &lt;/th&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;IFORT&lt;/a&gt; Directive &lt;/th&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Source Loop &lt;/td&gt; &lt;td&gt;#pragma simd or #pragma omp simd &lt;/td&gt; &lt;td&gt;!DIR$ SIMD or !$OMP SIMD &lt;/td&gt; &lt;/tr&gt; &lt;/table&gt; &lt;/li&gt; &lt;li&gt;Directive to ignore only vector dependencies (which is safer) &lt;table&gt; &lt;tr&gt; &lt;th&gt;Target &lt;/th&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;ICL/ICC/ICPC&lt;/a&gt; Directive &lt;/th&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;IFORT&lt;/a&gt; Directive &lt;/th&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Source Loop &lt;/td&gt; &lt;td&gt;#pragma ivdep&lt;/td&gt; &lt;td&gt;!DIR$ IVDEP &lt;/td&gt; &lt;/tr&gt; &lt;/table&gt; &lt;/li&gt; &lt;li&gt;&lt;div class=&quot;inplace_sample&quot;&gt;restrict&lt;/div&gt; keyword &lt;/li&gt; &lt;/ul&gt; &lt;/li&gt; &lt;li&gt;If anti-dependency exists, use a directive where &lt;div class=&quot;inplace_sample&quot;&gt;k&lt;/div&gt; is smaller than the distance between dependent items in anti-dependency. This enables vectorization, as dependent items are put into different vectors: &lt;table&gt; &lt;tr&gt; &lt;th&gt;Target &lt;/th&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;ICL/ICC/ICPC&lt;/a&gt; Directive &lt;/th&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;IFORT&lt;/a&gt; Directive &lt;/th&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Source Loop &lt;/td&gt; &lt;td&gt;#pragma simd vectorlength(k)&lt;/td&gt; &lt;td&gt;!DIR$ SIMD VECTORLENGTH(k) &lt;/td&gt; &lt;/tr&gt; &lt;/table&gt; &lt;/li&gt; &lt;/ul&gt; &lt;b&gt;Read More C++ Information:&lt;/b&gt; &lt;ul&gt; &lt;li&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/cdiag15344&quot;&gt;https://software.intel.com/en-us/articles/cdiag15344&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href=&quot;C++/17/index.htm#GUID-B25ABCC2-BE6F-4599-AEDF-2434F4676E1B.htm&quot;&gt;ivdep&lt;/a&gt;, &lt;a href=&quot;C++/17/index.htm#GUID-4D8CDB9C-8A96-4CB2-B5E5-3D81003FE4FF.htm&quot;&gt;omp simd&lt;/a&gt;, &lt;a href=&quot;C++/17/index.htm#GUID-1EA04294-988E-4152-B584-B028FD6FAC48.htm&quot;&gt;simd&lt;/a&gt; &lt;li&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/getting-started-with-intel-composer-xe-2013-compiler-pragmas-and-directives&quot;&gt;Getting Started with Intel Compiler Pragmas and Directives&lt;/a&gt; and &lt;a href=&quot;https://software.intel.com/en-us/vectorization-resources-advisor&quot;&gt;Vectorization Resources for Intel&amp;reg; Advisor XE Users&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt;  </text>
+     <title>Recommendations </title>
+     <attributes>
+      <float:confidence>1</float:confidence>
+     </attributes>
+     <parameters/>
+    </recommendation>
+   </recommendations>
+   <unsignedLong:rowKey>6</unsignedLong:rowKey>
+  </issue>
+  <issue>
+   <unsignedInt:flags>65</unsignedInt:flags>
+   <id>issue_type_conversions</id>
+   <int:severity>1</int:severity>
+   <text>There are multiple data types within loops. Utilize hardware vectorization support more effectively by avoiding data type conversion. </text>
+   <title>Data type conversions present </title>
+   <attributes>
+    <float:severity>1</float:severity>
+   </attributes>
+   <parameters/>
+   <recommendations>
+    <recommendation>
+     <int:confidence>1</int:confidence>
+     <unsignedInt:flags>8</unsignedInt:flags>
+     <id>rec_type_conversions_smallest_c</id>
+     <text>The &lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;source loop&lt;/a&gt; contains data types of different widths. To fix: Use the smallest data type that gives the needed precision to use the entire &lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;vector register width&lt;/a&gt;.
+&lt;/br&gt;&lt;b&gt;Example:&lt;/b&gt; If only 16-bits are needed, using a short rather than an int can make the difference between eight-way or four-way SIMD parallelism, respectively. </text>
+     <title>Use the smallest data type </title>
+     <attributes>
+      <float:confidence>1</float:confidence>
+     </attributes>
+     <parameters/>
+    </recommendation>
+   </recommendations>
+   <unsignedLong:rowKey>9</unsignedLong:rowKey>
+  </issue>
+  <issue>
+   <unsignedInt:flags>66</unsignedInt:flags>
+   <id>compiler_diag_issue_15542</id>
+   <int:severity>1</int:severity>
+   <text>&lt;b&gt;Cause:&lt;/b&gt; The inner loop in a nested loop is vectorized. &lt;br/&gt; &lt;b&gt;C++ Example:&lt;/b&gt;
+&lt;div class=&quot;sample&quot;&gt;&lt;br/&gt;#define N 1000&lt;br/&gt;
+float A[N][N];&lt;br/&gt;
+void foo(int n){&lt;br/&gt;
+&amp;nbsp;&amp;nbsp;int i,j;&lt;br/&gt;
+&amp;nbsp;&amp;nbsp;for (i=0; i &amp;lt; n; i++){&lt;br/&gt;
+&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;for (j=0; j &amp;lt; n; j++){&lt;br/&gt;
+&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;A[i][j]++;&lt;br/&gt;
+&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;}&lt;br/&gt;
+&amp;nbsp;&amp;nbsp;}&lt;br/&gt;
+} &lt;/div&gt;  </text>
+   <title>Inner loop was already vectorized </title>
+   <attributes>
+    <float:severity>1</float:severity>
+   </attributes>
+   <parameters/>
+   <recommendations>
+    <recommendation>
+     <int:confidence>1</int:confidence>
+     <unsignedInt:flags>8</unsignedInt:flags>
+     <id>compiler_diag_rec_15542</id>
+     <text>Force vectorization of the outer loop: &lt;ul&gt; &lt;li&gt;In some cases it is possible to collapse a nested loop structure into a single loop structure using a directive before the outer loop. The &lt;div class=&quot;inplace_sample&quot;&gt;n&lt;/div&gt; argument is an integer that specifies how many loops to collapse into one loop for vectorization: &lt;table&gt; &lt;tr&gt; &lt;th&gt;Target &lt;/th&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;ICL/ICC/ICPC&lt;/a&gt; Directive &lt;/th&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;IFORT&lt;/a&gt; Directive &lt;/th&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Outer loop &lt;/td&gt; &lt;td&gt;#pragma omp simd collapse(n), #pragma omp simd, or #pragma simd&lt;/td&gt; &lt;td&gt;!$OMP SIMD COLLAPSE(n), !$OMP SIMD, or !DIR$ SIMD&lt;/td&gt; &lt;/tr&gt; &lt;/table&gt; &lt;/li&gt; &lt;li&gt;If using the &lt;div class=&quot;inplace_sample&quot;&gt;O3&lt;/div&gt; compiler option, use a directive before the inner and outer loops to request vectorization of the outer loop: &lt;table&gt; &lt;tr&gt; &lt;th&gt;Target &lt;/th&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;ICL/ICC/ICPC&lt;/a&gt; Directive &lt;/th&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;IFORT&lt;/a&gt; Directive &lt;/th&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Inner loop &lt;/td&gt; &lt;td&gt;#pragma novector&lt;/td&gt; &lt;td&gt;!DIR$ NOVECTOR&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Outer loop&lt;/td&gt; &lt;td&gt;#pragma vector always&lt;/td&gt; &lt;td&gt;!DIR$ VECTOR ALWAYS&lt;/td&gt; &lt;/tr&gt; &lt;/table&gt; &lt;/li&gt; &lt;/ul&gt; &lt;b&gt;Read More C++ Information:&lt;/b&gt; &lt;ul&gt; &lt;li&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/cdiag15542&quot;&gt;https://software.intel.com/en-us/articles/cdiag15542&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href=&quot;C++/17/index.htm#GUID-CFBEC461-748D-4162-A669-C4F42848267F.htm&quot;&gt;novector&lt;/a&gt;, &lt;a href=&quot;C++/17/index.htm#GUID-CDCCCACD-A61C-40C5-A342-E452C95E1608.htm&quot;&gt;O&lt;/a&gt;, &lt;a href=&quot;C++/17/index.htm#GUID-4D8CDB9C-8A96-4CB2-B5E5-3D81003FE4FF.htm&quot;&gt;omp simd&lt;/a&gt;, &lt;a href=&quot;C++/17/index.htm#GUID-1EA04294-988E-4152-B584-B028FD6FAC48.htm&quot;&gt;simd&lt;/a&gt;, &lt;a href=&quot;C++/17/index.htm#GUID-2B528C72-29B4-4DBC-8B91-EE4D1A03A850.htm&quot;&gt;vector&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/getting-started-with-intel-composer-xe-2013-compiler-pragmas-and-directives&quot;&gt;Getting Started with Intel Compiler Pragmas and Directives&lt;/a&gt; and &lt;a href=&quot;https://software.intel.com/en-us/vectorization-resources-advisor&quot;&gt;Vectorization Resources for Intel&amp;reg; Advisor XE Users&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt;  </text>
+     <title>Recommendations </title>
+     <attributes>
+      <float:confidence>1</float:confidence>
+     </attributes>
+     <parameters/>
+    </recommendation>
+   </recommendations>
+   <unsignedLong:rowKey>9</unsignedLong:rowKey>
+  </issue>
+  <issue>
+   <unsignedInt:flags>66</unsignedInt:flags>
+   <id>compiler_diag_issue_15542</id>
+   <int:severity>1</int:severity>
+   <text>&lt;b&gt;Cause:&lt;/b&gt; The inner loop in a nested loop is vectorized. &lt;br/&gt; &lt;b&gt;C++ Example:&lt;/b&gt;
+&lt;div class=&quot;sample&quot;&gt;&lt;br/&gt;#define N 1000&lt;br/&gt;
+float A[N][N];&lt;br/&gt;
+void foo(int n){&lt;br/&gt;
+&amp;nbsp;&amp;nbsp;int i,j;&lt;br/&gt;
+&amp;nbsp;&amp;nbsp;for (i=0; i &amp;lt; n; i++){&lt;br/&gt;
+&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;for (j=0; j &amp;lt; n; j++){&lt;br/&gt;
+&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;A[i][j]++;&lt;br/&gt;
+&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;}&lt;br/&gt;
+&amp;nbsp;&amp;nbsp;}&lt;br/&gt;
+} &lt;/div&gt;  </text>
+   <title>Inner loop was already vectorized </title>
+   <attributes>
+    <float:severity>1</float:severity>
+   </attributes>
+   <parameters/>
+   <recommendations>
+    <recommendation>
+     <int:confidence>1</int:confidence>
+     <unsignedInt:flags>8</unsignedInt:flags>
+     <id>compiler_diag_rec_15542</id>
+     <text>Force vectorization of the outer loop: &lt;ul&gt; &lt;li&gt;In some cases it is possible to collapse a nested loop structure into a single loop structure using a directive before the outer loop. The &lt;div class=&quot;inplace_sample&quot;&gt;n&lt;/div&gt; argument is an integer that specifies how many loops to collapse into one loop for vectorization: &lt;table&gt; &lt;tr&gt; &lt;th&gt;Target &lt;/th&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;ICL/ICC/ICPC&lt;/a&gt; Directive &lt;/th&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;IFORT&lt;/a&gt; Directive &lt;/th&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Outer loop &lt;/td&gt; &lt;td&gt;#pragma omp simd collapse(n), #pragma omp simd, or #pragma simd&lt;/td&gt; &lt;td&gt;!$OMP SIMD COLLAPSE(n), !$OMP SIMD, or !DIR$ SIMD&lt;/td&gt; &lt;/tr&gt; &lt;/table&gt; &lt;/li&gt; &lt;li&gt;If using the &lt;div class=&quot;inplace_sample&quot;&gt;O3&lt;/div&gt; compiler option, use a directive before the inner and outer loops to request vectorization of the outer loop: &lt;table&gt; &lt;tr&gt; &lt;th&gt;Target &lt;/th&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;ICL/ICC/ICPC&lt;/a&gt; Directive &lt;/th&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;IFORT&lt;/a&gt; Directive &lt;/th&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Inner loop &lt;/td&gt; &lt;td&gt;#pragma novector&lt;/td&gt; &lt;td&gt;!DIR$ NOVECTOR&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Outer loop&lt;/td&gt; &lt;td&gt;#pragma vector always&lt;/td&gt; &lt;td&gt;!DIR$ VECTOR ALWAYS&lt;/td&gt; &lt;/tr&gt; &lt;/table&gt; &lt;/li&gt; &lt;/ul&gt; &lt;b&gt;Read More C++ Information:&lt;/b&gt; &lt;ul&gt; &lt;li&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/cdiag15542&quot;&gt;https://software.intel.com/en-us/articles/cdiag15542&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href=&quot;C++/17/index.htm#GUID-CFBEC461-748D-4162-A669-C4F42848267F.htm&quot;&gt;novector&lt;/a&gt;, &lt;a href=&quot;C++/17/index.htm#GUID-CDCCCACD-A61C-40C5-A342-E452C95E1608.htm&quot;&gt;O&lt;/a&gt;, &lt;a href=&quot;C++/17/index.htm#GUID-4D8CDB9C-8A96-4CB2-B5E5-3D81003FE4FF.htm&quot;&gt;omp simd&lt;/a&gt;, &lt;a href=&quot;C++/17/index.htm#GUID-1EA04294-988E-4152-B584-B028FD6FAC48.htm&quot;&gt;simd&lt;/a&gt;, &lt;a href=&quot;C++/17/index.htm#GUID-2B528C72-29B4-4DBC-8B91-EE4D1A03A850.htm&quot;&gt;vector&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/getting-started-with-intel-composer-xe-2013-compiler-pragmas-and-directives&quot;&gt;Getting Started with Intel Compiler Pragmas and Directives&lt;/a&gt; and &lt;a href=&quot;https://software.intel.com/en-us/vectorization-resources-advisor&quot;&gt;Vectorization Resources for Intel&amp;reg; Advisor XE Users&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt;  </text>
+     <title>Recommendations </title>
+     <attributes>
+      <float:confidence>1</float:confidence>
+     </attributes>
+     <parameters/>
+    </recommendation>
+   </recommendations>
+   <unsignedLong:rowKey>12</unsignedLong:rowKey>
+  </issue>
+  <issue>
+   <unsignedInt:flags>66</unsignedInt:flags>
+   <id>compiler_diag_issue_15542</id>
+   <int:severity>1</int:severity>
+   <text>&lt;b&gt;Cause:&lt;/b&gt; The inner loop in a nested loop is vectorized. &lt;br/&gt; &lt;b&gt;C++ Example:&lt;/b&gt;
+&lt;div class=&quot;sample&quot;&gt;&lt;br/&gt;#define N 1000&lt;br/&gt;
+float A[N][N];&lt;br/&gt;
+void foo(int n){&lt;br/&gt;
+&amp;nbsp;&amp;nbsp;int i,j;&lt;br/&gt;
+&amp;nbsp;&amp;nbsp;for (i=0; i &amp;lt; n; i++){&lt;br/&gt;
+&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;for (j=0; j &amp;lt; n; j++){&lt;br/&gt;
+&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;A[i][j]++;&lt;br/&gt;
+&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;}&lt;br/&gt;
+&amp;nbsp;&amp;nbsp;}&lt;br/&gt;
+} &lt;/div&gt;  </text>
+   <title>Inner loop was already vectorized </title>
+   <attributes>
+    <float:severity>1</float:severity>
+   </attributes>
+   <parameters/>
+   <recommendations>
+    <recommendation>
+     <int:confidence>1</int:confidence>
+     <unsignedInt:flags>8</unsignedInt:flags>
+     <id>compiler_diag_rec_15542</id>
+     <text>Force vectorization of the outer loop: &lt;ul&gt; &lt;li&gt;In some cases it is possible to collapse a nested loop structure into a single loop structure using a directive before the outer loop. The &lt;div class=&quot;inplace_sample&quot;&gt;n&lt;/div&gt; argument is an integer that specifies how many loops to collapse into one loop for vectorization: &lt;table&gt; &lt;tr&gt; &lt;th&gt;Target &lt;/th&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;ICL/ICC/ICPC&lt;/a&gt; Directive &lt;/th&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;IFORT&lt;/a&gt; Directive &lt;/th&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Outer loop &lt;/td&gt; &lt;td&gt;#pragma omp simd collapse(n), #pragma omp simd, or #pragma simd&lt;/td&gt; &lt;td&gt;!$OMP SIMD COLLAPSE(n), !$OMP SIMD, or !DIR$ SIMD&lt;/td&gt; &lt;/tr&gt; &lt;/table&gt; &lt;/li&gt; &lt;li&gt;If using the &lt;div class=&quot;inplace_sample&quot;&gt;O3&lt;/div&gt; compiler option, use a directive before the inner and outer loops to request vectorization of the outer loop: &lt;table&gt; &lt;tr&gt; &lt;th&gt;Target &lt;/th&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;ICL/ICC/ICPC&lt;/a&gt; Directive &lt;/th&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;IFORT&lt;/a&gt; Directive &lt;/th&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Inner loop &lt;/td&gt; &lt;td&gt;#pragma novector&lt;/td&gt; &lt;td&gt;!DIR$ NOVECTOR&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Outer loop&lt;/td&gt; &lt;td&gt;#pragma vector always&lt;/td&gt; &lt;td&gt;!DIR$ VECTOR ALWAYS&lt;/td&gt; &lt;/tr&gt; &lt;/table&gt; &lt;/li&gt; &lt;/ul&gt; &lt;b&gt;Read More C++ Information:&lt;/b&gt; &lt;ul&gt; &lt;li&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/cdiag15542&quot;&gt;https://software.intel.com/en-us/articles/cdiag15542&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href=&quot;C++/17/index.htm#GUID-CFBEC461-748D-4162-A669-C4F42848267F.htm&quot;&gt;novector&lt;/a&gt;, &lt;a href=&quot;C++/17/index.htm#GUID-CDCCCACD-A61C-40C5-A342-E452C95E1608.htm&quot;&gt;O&lt;/a&gt;, &lt;a href=&quot;C++/17/index.htm#GUID-4D8CDB9C-8A96-4CB2-B5E5-3D81003FE4FF.htm&quot;&gt;omp simd&lt;/a&gt;, &lt;a href=&quot;C++/17/index.htm#GUID-1EA04294-988E-4152-B584-B028FD6FAC48.htm&quot;&gt;simd&lt;/a&gt;, &lt;a href=&quot;C++/17/index.htm#GUID-2B528C72-29B4-4DBC-8B91-EE4D1A03A850.htm&quot;&gt;vector&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/getting-started-with-intel-composer-xe-2013-compiler-pragmas-and-directives&quot;&gt;Getting Started with Intel Compiler Pragmas and Directives&lt;/a&gt; and &lt;a href=&quot;https://software.intel.com/en-us/vectorization-resources-advisor&quot;&gt;Vectorization Resources for Intel&amp;reg; Advisor XE Users&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt;  </text>
+     <title>Recommendations </title>
+     <attributes>
+      <float:confidence>1</float:confidence>
+     </attributes>
+     <parameters/>
+    </recommendation>
+   </recommendations>
+   <unsignedLong:rowKey>14</unsignedLong:rowKey>
+  </issue>
+  <issue>
+   <unsignedInt:flags>66</unsignedInt:flags>
+   <id>compiler_diag_issue_15335</id>
+   <int:severity>1</int:severity>
+   <text>&lt;b&gt;Cause:&lt;/b&gt; The compiler vectorizer determined the loop will not benefit from vectorization. Common reasons include: &lt;ul&gt; &lt;li&gt;Non-unit stride memory access&lt;/li&gt; &lt;li&gt;Indirect memory access&lt;/li&gt; &lt;li&gt;Low iteration count&lt;/li&gt; &lt;/ul&gt; &lt;b&gt;C++ Example:&lt;/b&gt; The compiler vectorizer determines the cost of creating a vector operand (non-unit stride access in the vector operand creation) is significant when compared to the number/type of computations in which those vector operands are used. &lt;div class=&quot;sample&quot;&gt;&lt;br/&gt;
+#include &amp;lt;iostream&amp;gt; &lt;br/&gt;
+#define N 100&lt;br/&gt;
+struct s1 {&lt;br/&gt;
+int a, b, c;&lt;br/&gt;
+}&lt;br/&gt;
+int main(){&lt;br/&gt;
+s1 arr[N], sum;&lt;br/&gt;
+&lt;b&gt;for(int i = 0; i &amp;lt; N; i++)&lt;/b&gt;&lt;br/&gt;
+{&lt;br/&gt;
+&amp;nbsp;&amp;nbsp;sum.a += arr[i].a;&lt;br/&gt;
+&amp;nbsp;&amp;nbsp;sum.b += arr[i].b;&lt;br/&gt;
+&amp;nbsp;&amp;nbsp;sum.c += arr[i].c;&lt;br/&gt;
+}&lt;br/&gt;
+std::cout &amp;lt;&amp;lt; sum.a &amp;lt;&amp;lt; &quot;t&quot; &amp;lt;&amp;lt; sum.b &amp;lt;&amp;lt; &quot;t&quot; &amp;lt;&amp;lt; sum.c &amp;lt;&amp;lt; &quot;n&quot;; &lt;br/&gt;
+return 0;&lt;br/&gt;
+}&lt;/div&gt; </text>
+   <title>Loop vectorization possible but seems inefficient </title>
+   <attributes>
+    <float:severity>1</float:severity>
+   </attributes>
+   <parameters/>
+   <recommendations>
+    <recommendation>
+     <int:confidence>1</int:confidence>
+     <unsignedInt:flags>8</unsignedInt:flags>
+     <id>compiler_diag_rec_15335</id>
+     <text>&lt;ul&gt; &lt;li&gt;If you still believe vectorization might result in a speedup, override the compiler cost model using a directive before the loop &lt;table&gt; &lt;tr&gt; &lt;th&gt;Target &lt;/th&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;ICL/ICC/ICPC&lt;/a&gt; Directive &lt;/th&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;IFORT&lt;/a&gt; Directive &lt;/th&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Source loop&lt;/td&gt; &lt;td&gt;#pragma vector or #pragma vector always&lt;/td&gt; &lt;td&gt;!DIR$ VECTOR or !DIR$ VECTOR ALWAYS&lt;/td&gt; &lt;/tr&gt; &lt;/table&gt; Alternatively, use a compiler option to always vectorize loops. The compiler will still test for dependencies and will not vectorize the loop unless it is safe. &lt;table&gt; &lt;tr&gt; &lt;th&gt;Windows* OS - &lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;ICL&lt;/a&gt; and &lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;IFORT&lt;/a&gt; Option&lt;/th&gt; &lt;th&gt;Linux* OS - &lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;ICC/ICPC&lt;/a&gt; and &lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;IFORT&lt;/a&gt; Option&lt;/th&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;/Qvec-threshold0&lt;/td&gt; &lt;td&gt;-vec-threshold0&lt;/td&gt; &lt;/tr&gt; &lt;/table&gt; &lt;/li&gt; &lt;li&gt;Require vectorization using a directive before the loop. The compiler will not perform a dependency analysis; it is your responsibility to ensure vectorization is safe: &lt;table&gt; &lt;tr&gt; &lt;th&gt;Target &lt;/th&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;ICL/ICC/ICPC&lt;/a&gt; Directive &lt;/th&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;IFORT&lt;/a&gt; Directive &lt;/th&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Source loop&lt;/td&gt; &lt;td&gt;#pragma simd or #pragma omp simd &lt;/td&gt; &lt;td&gt;!DIR$ SIMD or !$OMP SIMD &lt;/td&gt; &lt;/tr&gt; &lt;/table&gt; &lt;/li&gt; &lt;li&gt;Rewrite the data structure/loop to have more regular memory accesses. &lt;/li&gt; &lt;/ul&gt; &lt;b&gt;Read More C++ Information:&lt;/b&gt; &lt;ul&gt; &lt;li&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/cdiag15335&quot;&gt;https://software.intel.com/en-us/articles/cdiag15335&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href=&quot;C++/17/index.htm#GUID-4D8CDB9C-8A96-4CB2-B5E5-3D81003FE4FF.htm&quot;&gt;omp simd&lt;/a&gt;, &lt;a href=&quot;C++/17/index.htm#GUID-1EA04294-988E-4152-B584-B028FD6FAC48.htm&quot;&gt;simd&lt;/a&gt;, &lt;a href=&quot;C++/17/index.htm#GUID-C7A523F1-B43D-4AF7-920A-5B155E0823EE.htm&quot;&gt;vec-threshold&lt;/a&gt;, &lt;a href=&quot;C++/17/index.htm#GUID-2B528C72-29B4-4DBC-8B91-EE4D1A03A850.htm&quot;&gt;vector&lt;/a&gt; &lt;li&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/getting-started-with-intel-composer-xe-2013-compiler-pragmas-and-directives&quot;&gt;Getting Started with Intel Compiler Pragmas and Directives&lt;/a&gt; and &lt;a href=&quot;https://software.intel.com/en-us/vectorization-resources-advisor&quot;&gt;Vectorization Resources for Intel&amp;reg; Advisor XE Users&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt;  </text>
+     <title>Recommendations </title>
+     <attributes>
+      <float:confidence>1</float:confidence>
+     </attributes>
+     <parameters/>
+    </recommendation>
+   </recommendations>
+   <unsignedLong:rowKey>15</unsignedLong:rowKey>
+  </issue>
+  <issue>
+   <unsignedInt:flags>66</unsignedInt:flags>
+   <id>compiler_diag_issue_15335</id>
+   <int:severity>1</int:severity>
+   <text>&lt;b&gt;Cause:&lt;/b&gt; The compiler vectorizer determined the loop will not benefit from vectorization. Common reasons include: &lt;ul&gt; &lt;li&gt;Non-unit stride memory access&lt;/li&gt; &lt;li&gt;Indirect memory access&lt;/li&gt; &lt;li&gt;Low iteration count&lt;/li&gt; &lt;/ul&gt; &lt;b&gt;C++ Example:&lt;/b&gt; The compiler vectorizer determines the cost of creating a vector operand (non-unit stride access in the vector operand creation) is significant when compared to the number/type of computations in which those vector operands are used. &lt;div class=&quot;sample&quot;&gt;&lt;br/&gt;
+#include &amp;lt;iostream&amp;gt; &lt;br/&gt;
+#define N 100&lt;br/&gt;
+struct s1 {&lt;br/&gt;
+int a, b, c;&lt;br/&gt;
+}&lt;br/&gt;
+int main(){&lt;br/&gt;
+s1 arr[N], sum;&lt;br/&gt;
+&lt;b&gt;for(int i = 0; i &amp;lt; N; i++)&lt;/b&gt;&lt;br/&gt;
+{&lt;br/&gt;
+&amp;nbsp;&amp;nbsp;sum.a += arr[i].a;&lt;br/&gt;
+&amp;nbsp;&amp;nbsp;sum.b += arr[i].b;&lt;br/&gt;
+&amp;nbsp;&amp;nbsp;sum.c += arr[i].c;&lt;br/&gt;
+}&lt;br/&gt;
+std::cout &amp;lt;&amp;lt; sum.a &amp;lt;&amp;lt; &quot;t&quot; &amp;lt;&amp;lt; sum.b &amp;lt;&amp;lt; &quot;t&quot; &amp;lt;&amp;lt; sum.c &amp;lt;&amp;lt; &quot;n&quot;; &lt;br/&gt;
+return 0;&lt;br/&gt;
+}&lt;/div&gt; </text>
+   <title>Loop vectorization possible but seems inefficient </title>
+   <attributes>
+    <float:severity>1</float:severity>
+   </attributes>
+   <parameters/>
+   <recommendations>
+    <recommendation>
+     <int:confidence>1</int:confidence>
+     <unsignedInt:flags>8</unsignedInt:flags>
+     <id>compiler_diag_rec_15335</id>
+     <text>&lt;ul&gt; &lt;li&gt;If you still believe vectorization might result in a speedup, override the compiler cost model using a directive before the loop &lt;table&gt; &lt;tr&gt; &lt;th&gt;Target &lt;/th&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;ICL/ICC/ICPC&lt;/a&gt; Directive &lt;/th&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;IFORT&lt;/a&gt; Directive &lt;/th&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Source loop&lt;/td&gt; &lt;td&gt;#pragma vector or #pragma vector always&lt;/td&gt; &lt;td&gt;!DIR$ VECTOR or !DIR$ VECTOR ALWAYS&lt;/td&gt; &lt;/tr&gt; &lt;/table&gt; Alternatively, use a compiler option to always vectorize loops. The compiler will still test for dependencies and will not vectorize the loop unless it is safe. &lt;table&gt; &lt;tr&gt; &lt;th&gt;Windows* OS - &lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;ICL&lt;/a&gt; and &lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;IFORT&lt;/a&gt; Option&lt;/th&gt; &lt;th&gt;Linux* OS - &lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;ICC/ICPC&lt;/a&gt; and &lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;IFORT&lt;/a&gt; Option&lt;/th&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;/Qvec-threshold0&lt;/td&gt; &lt;td&gt;-vec-threshold0&lt;/td&gt; &lt;/tr&gt; &lt;/table&gt; &lt;/li&gt; &lt;li&gt;Require vectorization using a directive before the loop. The compiler will not perform a dependency analysis; it is your responsibility to ensure vectorization is safe: &lt;table&gt; &lt;tr&gt; &lt;th&gt;Target &lt;/th&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;ICL/ICC/ICPC&lt;/a&gt; Directive &lt;/th&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;IFORT&lt;/a&gt; Directive &lt;/th&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Source loop&lt;/td&gt; &lt;td&gt;#pragma simd or #pragma omp simd &lt;/td&gt; &lt;td&gt;!DIR$ SIMD or !$OMP SIMD &lt;/td&gt; &lt;/tr&gt; &lt;/table&gt; &lt;/li&gt; &lt;li&gt;Rewrite the data structure/loop to have more regular memory accesses. &lt;/li&gt; &lt;/ul&gt; &lt;b&gt;Read More C++ Information:&lt;/b&gt; &lt;ul&gt; &lt;li&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/cdiag15335&quot;&gt;https://software.intel.com/en-us/articles/cdiag15335&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href=&quot;C++/17/index.htm#GUID-4D8CDB9C-8A96-4CB2-B5E5-3D81003FE4FF.htm&quot;&gt;omp simd&lt;/a&gt;, &lt;a href=&quot;C++/17/index.htm#GUID-1EA04294-988E-4152-B584-B028FD6FAC48.htm&quot;&gt;simd&lt;/a&gt;, &lt;a href=&quot;C++/17/index.htm#GUID-C7A523F1-B43D-4AF7-920A-5B155E0823EE.htm&quot;&gt;vec-threshold&lt;/a&gt;, &lt;a href=&quot;C++/17/index.htm#GUID-2B528C72-29B4-4DBC-8B91-EE4D1A03A850.htm&quot;&gt;vector&lt;/a&gt; &lt;li&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/getting-started-with-intel-composer-xe-2013-compiler-pragmas-and-directives&quot;&gt;Getting Started with Intel Compiler Pragmas and Directives&lt;/a&gt; and &lt;a href=&quot;https://software.intel.com/en-us/vectorization-resources-advisor&quot;&gt;Vectorization Resources for Intel&amp;reg; Advisor XE Users&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt;  </text>
+     <title>Recommendations </title>
+     <attributes>
+      <float:confidence>1</float:confidence>
+     </attributes>
+     <parameters/>
+    </recommendation>
+   </recommendations>
+   <unsignedLong:rowKey>17</unsignedLong:rowKey>
+  </issue>
+  <issue>
+   <unsignedInt:flags>65</unsignedInt:flags>
+   <id>issue_register_pressure</id>
+   <int:severity>3</int:severity>
+   <text>Possible register &lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;spilling&lt;/a&gt; was detected and all vector registers are in use. This may negatively impact performance, because the spilled variable must be loaded to and unloaded from main memory. Improve performance by decreasing vector &lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;register pressure&lt;/a&gt;. </text>
+   <title>Vector register spilling possible </title>
+   <attributes>
+    <float:severity>3</float:severity>
+   </attributes>
+   <parameters/>
+   <recommendations>
+    <recommendation>
+     <int:confidence>3</int:confidence>
+     <unsignedInt:flags>8</unsignedInt:flags>
+     <id>rec_registers_pressure_split_loop_c</id>
+     <text>Possible register &lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;spilling&lt;/a&gt; along with high vector &lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;register pressure&lt;/a&gt; is preventing effective vectorization. To fix: Use a &lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;directive&lt;/a&gt; or rewrite your code to distribute the &lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;source loop&lt;/a&gt;. This can decrease register pressure as well as enable software pipelining and improve both instruction and data cache use. &lt;/br&gt; &lt;table&gt; &lt;tr&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;ICL/ICC/ICPC&lt;/a&gt; Directive &lt;/th&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;IFORT&lt;/a&gt; Directive &lt;/th&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt; #pragma distribute_point &lt;/td&gt; &lt;td&gt; !DIR$ DISTRIBUTE POINT &lt;/td&gt; &lt;/tr&gt; &lt;/table&gt; &lt;b&gt;Read More:&lt;/b&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;C++&lt;/strong&gt;: &lt;a href=&quot;C++/17/index.htm#GUID-03B94EAB-70E2-4B45-B275-D73FD76961A0.htm&quot;&gt;distribute_point&lt;/a&gt;&lt;!--, &lt;a href=&quot;https://software.intel.com/en-us/compiler_16.0_ug_c&quot;&gt;Intel&amp;reg; C++ Compiler XE 16.0 User and Reference Guides&lt;/a&gt;--&gt; &lt;li&gt;&lt;strong&gt;Fortran&lt;/strong&gt;: &lt;a href=&quot;Fortran/17/index.htm#GUID-759F460A-1FF1-44AC-B64C-910D8C57BB1B.htm&quot;&gt;DISTRIBUTE POINT&lt;/a&gt;&lt;!--, &lt;a href=&quot;https://software.intel.com/en-us/compiler_16.0_ug_f&quot;&gt;Intel&amp;reg; Fortran Compiler XE 16.0 User and Reference Guides&lt;/a&gt;--&gt; &lt;li&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/getting-started-with-intel-composer-xe-2013-compiler-pragmas-and-directives&quot;&gt;Getting Started with Intel Compiler Pragmas and Directives&lt;/a&gt; &lt;li&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/3d-finite-differences-on-multi-core-processors&quot;&gt;3D Finite Differences on Multi-core Processors&lt;/a&gt; &lt;/ul&gt; </text>
+     <title>Split loop into smaller loops </title>
+     <attributes>
+      <float:confidence>3</float:confidence>
+     </attributes>
+     <parameters/>
+    </recommendation>
+   </recommendations>
+   <unsignedLong:rowKey>18</unsignedLong:rowKey>
+  </issue>
+  <issue>
+   <unsignedInt:flags>69</unsignedInt:flags>
+   <id>issue_check_access_patterns</id>
+   <int:severity>2</int:severity>
+   <text>Inefficient memory access patterns may result in significant vector code execution slowdown or block automatic vectorization by the compiler. Improve performance by investigating. </text>
+   <title>Possible inefficient memory access patterns present </title>
+   <attributes>
+    <float:severity>2</float:severity>
+   </attributes>
+   <parameters/>
+   <recommendations>
+    <recommendation>
+     <int:confidence>2</int:confidence>
+     <unsignedInt:flags>8</unsignedInt:flags>
+     <id>rec_check_access_patterns_run_map_c</id>
+     <text>There is no confirmation inefficient memory access patterns are present. To confirm: Run a &lt;a href=&quot;../help/index.htm#GUID-B98AD81B-4946-4E86-B452-9A1810F4517C.htm&quot;&gt;Memory Access Patterns analysis&lt;/a&gt;. </text>
+     <title>Confirm inefficient memory access patterns </title>
+     <attributes>
+      <float:confidence>2</float:confidence>
+     </attributes>
+     <parameters/>
+    </recommendation>
+   </recommendations>
+   <unsignedLong:rowKey>18</unsignedLong:rowKey>
+  </issue>
+  <issue>
+   <unsignedInt:flags>65</unsignedInt:flags>
+   <id>issue_register_pressure</id>
+   <int:severity>3</int:severity>
+   <text>Possible register &lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;spilling&lt;/a&gt; was detected and all vector registers are in use. This may negatively impact performance, because the spilled variable must be loaded to and unloaded from main memory. Improve performance by decreasing vector &lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;register pressure&lt;/a&gt;. </text>
+   <title>Vector register spilling possible </title>
+   <attributes>
+    <float:severity>3</float:severity>
+   </attributes>
+   <parameters/>
+   <recommendations>
+    <recommendation>
+     <int:confidence>3</int:confidence>
+     <unsignedInt:flags>8</unsignedInt:flags>
+     <id>rec_registers_pressure_split_loop_c</id>
+     <text>Possible register &lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;spilling&lt;/a&gt; along with high vector &lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;register pressure&lt;/a&gt; is preventing effective vectorization. To fix: Use a &lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;directive&lt;/a&gt; or rewrite your code to distribute the &lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;source loop&lt;/a&gt;. This can decrease register pressure as well as enable software pipelining and improve both instruction and data cache use. &lt;/br&gt; &lt;table&gt; &lt;tr&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;ICL/ICC/ICPC&lt;/a&gt; Directive &lt;/th&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;IFORT&lt;/a&gt; Directive &lt;/th&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt; #pragma distribute_point &lt;/td&gt; &lt;td&gt; !DIR$ DISTRIBUTE POINT &lt;/td&gt; &lt;/tr&gt; &lt;/table&gt; &lt;b&gt;Read More:&lt;/b&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;C++&lt;/strong&gt;: &lt;a href=&quot;C++/17/index.htm#GUID-03B94EAB-70E2-4B45-B275-D73FD76961A0.htm&quot;&gt;distribute_point&lt;/a&gt;&lt;!--, &lt;a href=&quot;https://software.intel.com/en-us/compiler_16.0_ug_c&quot;&gt;Intel&amp;reg; C++ Compiler XE 16.0 User and Reference Guides&lt;/a&gt;--&gt; &lt;li&gt;&lt;strong&gt;Fortran&lt;/strong&gt;: &lt;a href=&quot;Fortran/17/index.htm#GUID-759F460A-1FF1-44AC-B64C-910D8C57BB1B.htm&quot;&gt;DISTRIBUTE POINT&lt;/a&gt;&lt;!--, &lt;a href=&quot;https://software.intel.com/en-us/compiler_16.0_ug_f&quot;&gt;Intel&amp;reg; Fortran Compiler XE 16.0 User and Reference Guides&lt;/a&gt;--&gt; &lt;li&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/getting-started-with-intel-composer-xe-2013-compiler-pragmas-and-directives&quot;&gt;Getting Started with Intel Compiler Pragmas and Directives&lt;/a&gt; &lt;li&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/3d-finite-differences-on-multi-core-processors&quot;&gt;3D Finite Differences on Multi-core Processors&lt;/a&gt; &lt;/ul&gt; </text>
+     <title>Split loop into smaller loops </title>
+     <attributes>
+      <float:confidence>3</float:confidence>
+     </attributes>
+     <parameters/>
+    </recommendation>
+   </recommendations>
+   <unsignedLong:rowKey>24</unsignedLong:rowKey>
+  </issue>
+  <issue>
+   <unsignedInt:flags>69</unsignedInt:flags>
+   <id>issue_check_access_patterns</id>
+   <int:severity>2</int:severity>
+   <text>Inefficient memory access patterns may result in significant vector code execution slowdown or block automatic vectorization by the compiler. Improve performance by investigating. </text>
+   <title>Possible inefficient memory access patterns present </title>
+   <attributes>
+    <float:severity>2</float:severity>
+   </attributes>
+   <parameters/>
+   <recommendations>
+    <recommendation>
+     <int:confidence>2</int:confidence>
+     <unsignedInt:flags>8</unsignedInt:flags>
+     <id>rec_check_access_patterns_run_map_c</id>
+     <text>There is no confirmation inefficient memory access patterns are present. To confirm: Run a &lt;a href=&quot;../help/index.htm#GUID-B98AD81B-4946-4E86-B452-9A1810F4517C.htm&quot;&gt;Memory Access Patterns analysis&lt;/a&gt;. </text>
+     <title>Confirm inefficient memory access patterns </title>
+     <attributes>
+      <float:confidence>2</float:confidence>
+     </attributes>
+     <parameters/>
+    </recommendation>
+   </recommendations>
+   <unsignedLong:rowKey>24</unsignedLong:rowKey>
+  </issue>
+  <issue>
+   <unsignedInt:flags>65</unsignedInt:flags>
+   <id>issue_div</id>
+   <int:severity>1</int:severity>
+   <text>div_issue_text</text>
+   <title>Unoptimized floating point operation processing possible</title>
+   <attributes>
+    <float:severity>1</float:severity>
+   </attributes>
+   <parameters/>
+   <recommendations>
+    <recommendation>
+     <int:confidence>1</int:confidence>
+     <unsignedInt:flags>8</unsignedInt:flags>
+     <id>rec_sqrt_c</id>
+     <text>add_sqrt_text</text>
+     <title>add_sqrt_title</title>
+     <attributes>
+      <float:confidence>1</float:confidence>
+     </attributes>
+     <parameters/>
+    </recommendation>
+   </recommendations>
+   <unsignedLong:rowKey>28</unsignedLong:rowKey>
+  </issue>
+  <issue>
+   <unsignedInt:flags>65</unsignedInt:flags>
+   <id>issue_type_conversions</id>
+   <int:severity>1</int:severity>
+   <text>There are multiple data types within loops. Utilize hardware vectorization support more effectively by avoiding data type conversion. </text>
+   <title>Data type conversions present </title>
+   <attributes>
+    <float:severity>1</float:severity>
+   </attributes>
+   <parameters/>
+   <recommendations>
+    <recommendation>
+     <int:confidence>1</int:confidence>
+     <unsignedInt:flags>8</unsignedInt:flags>
+     <id>rec_type_conversions_smallest_c</id>
+     <text>The &lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;source loop&lt;/a&gt; contains data types of different widths. To fix: Use the smallest data type that gives the needed precision to use the entire &lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;vector register width&lt;/a&gt;.
+&lt;/br&gt;&lt;b&gt;Example:&lt;/b&gt; If only 16-bits are needed, using a short rather than an int can make the difference between eight-way or four-way SIMD parallelism, respectively. </text>
+     <title>Use the smallest data type </title>
+     <attributes>
+      <float:confidence>1</float:confidence>
+     </attributes>
+     <parameters/>
+    </recommendation>
+   </recommendations>
+   <unsignedLong:rowKey>28</unsignedLong:rowKey>
+  </issue>
+  <issue>
+   <unsignedInt:flags>66</unsignedInt:flags>
+   <id>compiler_diag_issue_15523</id>
+   <int:severity>1</int:severity>
+   <text>&lt;b&gt;Causes:&lt;/b&gt; &lt;ul&gt; &lt;li&gt;The loop iteration count is not available before the loop executes.&lt;/li&gt; &lt;li&gt;The compiler cannot determine if there is aliasing between all the pointers used inside the loop and loop boundaries.&lt;/li&gt; &lt;/ul&gt; &lt;b&gt;C++ Example 1:&lt;/b&gt; The upper bound of the loop iteration count is controlled by &lt;div class=&quot;inplace_sample&quot;&gt;bar()&lt;/div&gt;, whose implementation is available in this compilation unit. Because the loop iteration count is not available before the loop executes, the compiler cannot determine: &lt;ul&gt; &lt;li&gt;How to map the loop to vector registers&lt;/li&gt; &lt;li&gt;If it needs to create peeled and remainder loops &lt;/li&gt; &lt;li&gt;Where it has enough iterations to saturate at least one vector register&lt;/li&gt; &lt;/ul&gt; &lt;div class=&quot;sample&quot;&gt; void foo (float *A) {&lt;br/&gt; &amp;nbsp;&amp;nbsp;int i;&lt;br/&gt; &amp;nbsp;&amp;nbsp;int OuterCount = 90;&lt;br/&gt; &amp;nbsp;&amp;nbsp;while (OuterCount &amp;gt; 0) {&lt;br/&gt; &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;for (i = 1; i &amp;lt; bar(int(A[0])); i++) {&lt;br/&gt; &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;A[i] = i + 4;&lt;br/&gt; &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;}&lt;br/&gt; &amp;nbsp;&amp;nbsp;OuterCount--;&lt;br/&gt; &amp;nbsp;&amp;nbsp;}&lt;br/&gt; } &lt;/div&gt; &lt;b&gt;C++ Example 2:&lt;/b&gt; The compiler cannot determine if there is aliasing between all the pointers used inside the loop and loop boundaries. &lt;div class=&quot;sample&quot;&gt; struct Dim { int x, y, z; };&lt;br/&gt; Dim dim;&lt;br/&gt; double *B;&lt;br/&gt;&lt;br/&gt; void foo (double* A) {&lt;br/&gt; &amp;nbsp;&amp;nbsp;for (int i = 0; i &amp;lt; dim.x; i++) {&lt;br/&gt; &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;A[i] = B[i];&lt;br/&gt; &amp;nbsp;&amp;nbsp}&lt;br/&gt; } &lt;/div&gt; </text>
+   <title>Cannot compute loop iteration count before executing the loop </title>
+   <attributes>
+    <float:severity>1</float:severity>
+   </attributes>
+   <parameters/>
+   <recommendations>
+    <recommendation>
+     <int:confidence>1</int:confidence>
+     <unsignedInt:flags>8</unsignedInt:flags>
+     <id>compiler_diag_rec_15523</id>
+     <text>&lt;ul&gt; &lt;li&gt; For &lt;b&gt;Example 1&lt;/b&gt;, where the loop iteration count is not available before the loop executes: If the loop iteration count and iterations lower bound can be calculated for the whole loop: &lt;ul&gt; &lt;li&gt;Move the calculation outside the loop using an additional variable.&lt;/li&gt; &lt;li&gt;Rewrite the loop to avoid &lt;div class=&quot;inplace_sample&quot;&gt;goto&lt;/div&gt; statements or other early exits from the loop.&lt;/li&gt; &lt;li&gt;Identify the loop iterations lower bound using a constant.&lt;/li&gt; &lt;/ul&gt; For example, introduce the new &lt;div class=&quot;inplace_sample&quot;&gt;limit&lt;/div&gt; variable: &lt;div class=&quot;sample&quot;&gt; void foo(float *A) {&lt;br/&gt; &amp;nbsp;&amp;nbsp;int i;&lt;br/&gt; &amp;nbsp;&amp;nbsp;int OuterCount = 90;&lt;br/&gt; &amp;nbsp;&amp;nbsp;&lt;b&gt;int limit = bar(int(A[0]));&lt;/b&gt;&lt;br/&gt; &amp;nbsp;&amp;nbsp;while (OuterCount &amp;gt; 0) {&lt;br/&gt; &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;for (i = 1; i &amp;lt; limit; i++) {&lt;br/&gt; &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;A[i] = i + 4;&lt;br/&gt; &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;}&lt;br/&gt; &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;OuterCount--;&lt;br/&gt; &amp;nbsp;&amp;nbsp;}&lt;br/&gt; } &lt;/div&gt; &lt;/li&gt; &lt;li&gt; For &lt;b&gt;Example 2&lt;/b&gt;, where the compiler cannot determine if there is aliasing between all the pointers used inside the loop and loop boundaries: Assign the loop boundary value to a local variable. In most cases, this is enough for the compiler to determine aliasing may not occur.&lt;br/&gt; You can use a directive to accomplish the same thing automatically. &lt;table&gt; &lt;tr&gt; &lt;th&gt;Target&lt;/th&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;ICL/ICC/ICPC&lt;/a&gt; Directive&lt;/th&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Source loop&lt;/th&gt; &lt;td&gt;#pragma simd or #pragma omp simd&lt;/th&gt; &lt;/tr&gt; &lt;/table&gt; Do not use global variables or indirect accesses as loop boundaries unless you also use one of the following: &lt;ul&gt; &lt;li&gt; Directive to ignore vector dependencies &lt;table&gt; &lt;tr&gt; &lt;th&gt;Target&lt;/th&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;ICL/ICC/ICPC&lt;/a&gt; Directive&lt;/th&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Source loop&lt;/th&gt; &lt;td&gt;#pragma ivdep&lt;/th&gt; &lt;/tr&gt; &lt;/table&gt; &lt;/li&gt; &lt;li&gt;&lt;div class=&quot;inplace_sample&quot;&gt;restrict&lt;/div&gt; keyword.&lt;/li&gt; &lt;/ul&gt; &lt;/li&gt; &lt;/ul&gt; &lt;b&gt;Read More:&lt;/b&gt; &lt;ul&gt; &lt;li&gt;C++ information at &lt;a href=&quot;https://software.intel.com/en-us/articles/cdiag15523&quot;&gt;https://software.intel.com/en-us/articles/cdiag15523&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href=&quot;C++/17/index.htm#GUID-B25ABCC2-BE6F-4599-AEDF-2434F4676E1B.htm&quot;&gt;ivdep&lt;/a&gt;, &lt;a href=&quot;C++/17/index.htm#GUID-4D8CDB9C-8A96-4CB2-B5E5-3D81003FE4FF.htm&quot;&gt;omp simd&lt;/a&gt;, &lt;a href=&quot;C++/17/index.htm#GUID-1EA04294-988E-4152-B584-B028FD6FAC48.htm&quot;&gt;simd&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href=&quot;https://software.intel.com/en-us/vectorization-resources-advisor&quot;&gt;Vectorization Resources for Intel&amp;reg; Advisor XE Users&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; </text>
+     <title>Recommendations </title>
+     <attributes>
+      <float:confidence>1</float:confidence>
+     </attributes>
+     <parameters/>
+    </recommendation>
+   </recommendations>
+   <unsignedLong:rowKey>28</unsignedLong:rowKey>
+  </issue>
+  <issue>
+   <unsignedInt:flags>65</unsignedInt:flags>
+   <id>issue_system_functions</id>
+   <int:severity>1</int:severity>
+   <text>System function call(s) in the &lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;loop body&lt;/a&gt; may prevent the compiler from vectorizing the loop. </text>
+   <title>System function call(s) present </title>
+   <attributes>
+    <float:severity>1</float:severity>
+   </attributes>
+   <parameters/>
+   <recommendations>
+    <recommendation>
+     <int:confidence>1</int:confidence>
+     <unsignedInt:flags>8</unsignedInt:flags>
+     <id>rec_system_functions_move_c</id>
+     <text>Typically system function or subroutine calls cannot be auto-vectorized; even a print statement is sufficient to prevent vectorization. To fix: Avoid using system function calls in loops. </text>
+     <title>Remove system function call(s) inside loop </title>
+     <attributes>
+      <float:confidence>1</float:confidence>
+     </attributes>
+     <parameters/>
+    </recommendation>
+   </recommendations>
+   <unsignedLong:rowKey>28</unsignedLong:rowKey>
+  </issue>
+  <issue>
+   <unsignedInt:flags>66</unsignedInt:flags>
+   <id>compiler_diag_issue_15523</id>
+   <int:severity>1</int:severity>
+   <text>&lt;b&gt;Causes:&lt;/b&gt; &lt;ul&gt; &lt;li&gt;The loop iteration count is not available before the loop executes.&lt;/li&gt; &lt;li&gt;The compiler cannot determine if there is aliasing between all the pointers used inside the loop and loop boundaries.&lt;/li&gt; &lt;/ul&gt; &lt;b&gt;C++ Example 1:&lt;/b&gt; The upper bound of the loop iteration count is controlled by &lt;div class=&quot;inplace_sample&quot;&gt;bar()&lt;/div&gt;, whose implementation is available in this compilation unit. Because the loop iteration count is not available before the loop executes, the compiler cannot determine: &lt;ul&gt; &lt;li&gt;How to map the loop to vector registers&lt;/li&gt; &lt;li&gt;If it needs to create peeled and remainder loops &lt;/li&gt; &lt;li&gt;Where it has enough iterations to saturate at least one vector register&lt;/li&gt; &lt;/ul&gt; &lt;div class=&quot;sample&quot;&gt; void foo (float *A) {&lt;br/&gt; &amp;nbsp;&amp;nbsp;int i;&lt;br/&gt; &amp;nbsp;&amp;nbsp;int OuterCount = 90;&lt;br/&gt; &amp;nbsp;&amp;nbsp;while (OuterCount &amp;gt; 0) {&lt;br/&gt; &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;for (i = 1; i &amp;lt; bar(int(A[0])); i++) {&lt;br/&gt; &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;A[i] = i + 4;&lt;br/&gt; &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;}&lt;br/&gt; &amp;nbsp;&amp;nbsp;OuterCount--;&lt;br/&gt; &amp;nbsp;&amp;nbsp;}&lt;br/&gt; } &lt;/div&gt; &lt;b&gt;C++ Example 2:&lt;/b&gt; The compiler cannot determine if there is aliasing between all the pointers used inside the loop and loop boundaries. &lt;div class=&quot;sample&quot;&gt; struct Dim { int x, y, z; };&lt;br/&gt; Dim dim;&lt;br/&gt; double *B;&lt;br/&gt;&lt;br/&gt; void foo (double* A) {&lt;br/&gt; &amp;nbsp;&amp;nbsp;for (int i = 0; i &amp;lt; dim.x; i++) {&lt;br/&gt; &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;A[i] = B[i];&lt;br/&gt; &amp;nbsp;&amp;nbsp}&lt;br/&gt; } &lt;/div&gt; </text>
+   <title>Cannot compute loop iteration count before executing the loop </title>
+   <attributes>
+    <float:severity>1</float:severity>
+   </attributes>
+   <parameters/>
+   <recommendations>
+    <recommendation>
+     <int:confidence>1</int:confidence>
+     <unsignedInt:flags>8</unsignedInt:flags>
+     <id>compiler_diag_rec_15523</id>
+     <text>&lt;ul&gt; &lt;li&gt; For &lt;b&gt;Example 1&lt;/b&gt;, where the loop iteration count is not available before the loop executes: If the loop iteration count and iterations lower bound can be calculated for the whole loop: &lt;ul&gt; &lt;li&gt;Move the calculation outside the loop using an additional variable.&lt;/li&gt; &lt;li&gt;Rewrite the loop to avoid &lt;div class=&quot;inplace_sample&quot;&gt;goto&lt;/div&gt; statements or other early exits from the loop.&lt;/li&gt; &lt;li&gt;Identify the loop iterations lower bound using a constant.&lt;/li&gt; &lt;/ul&gt; For example, introduce the new &lt;div class=&quot;inplace_sample&quot;&gt;limit&lt;/div&gt; variable: &lt;div class=&quot;sample&quot;&gt; void foo(float *A) {&lt;br/&gt; &amp;nbsp;&amp;nbsp;int i;&lt;br/&gt; &amp;nbsp;&amp;nbsp;int OuterCount = 90;&lt;br/&gt; &amp;nbsp;&amp;nbsp;&lt;b&gt;int limit = bar(int(A[0]));&lt;/b&gt;&lt;br/&gt; &amp;nbsp;&amp;nbsp;while (OuterCount &amp;gt; 0) {&lt;br/&gt; &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;for (i = 1; i &amp;lt; limit; i++) {&lt;br/&gt; &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;A[i] = i + 4;&lt;br/&gt; &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;}&lt;br/&gt; &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;OuterCount--;&lt;br/&gt; &amp;nbsp;&amp;nbsp;}&lt;br/&gt; } &lt;/div&gt; &lt;/li&gt; &lt;li&gt; For &lt;b&gt;Example 2&lt;/b&gt;, where the compiler cannot determine if there is aliasing between all the pointers used inside the loop and loop boundaries: Assign the loop boundary value to a local variable. In most cases, this is enough for the compiler to determine aliasing may not occur.&lt;br/&gt; You can use a directive to accomplish the same thing automatically. &lt;table&gt; &lt;tr&gt; &lt;th&gt;Target&lt;/th&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;ICL/ICC/ICPC&lt;/a&gt; Directive&lt;/th&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Source loop&lt;/th&gt; &lt;td&gt;#pragma simd or #pragma omp simd&lt;/th&gt; &lt;/tr&gt; &lt;/table&gt; Do not use global variables or indirect accesses as loop boundaries unless you also use one of the following: &lt;ul&gt; &lt;li&gt; Directive to ignore vector dependencies &lt;table&gt; &lt;tr&gt; &lt;th&gt;Target&lt;/th&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;ICL/ICC/ICPC&lt;/a&gt; Directive&lt;/th&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Source loop&lt;/th&gt; &lt;td&gt;#pragma ivdep&lt;/th&gt; &lt;/tr&gt; &lt;/table&gt; &lt;/li&gt; &lt;li&gt;&lt;div class=&quot;inplace_sample&quot;&gt;restrict&lt;/div&gt; keyword.&lt;/li&gt; &lt;/ul&gt; &lt;/li&gt; &lt;/ul&gt; &lt;b&gt;Read More:&lt;/b&gt; &lt;ul&gt; &lt;li&gt;C++ information at &lt;a href=&quot;https://software.intel.com/en-us/articles/cdiag15523&quot;&gt;https://software.intel.com/en-us/articles/cdiag15523&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href=&quot;C++/17/index.htm#GUID-B25ABCC2-BE6F-4599-AEDF-2434F4676E1B.htm&quot;&gt;ivdep&lt;/a&gt;, &lt;a href=&quot;C++/17/index.htm#GUID-4D8CDB9C-8A96-4CB2-B5E5-3D81003FE4FF.htm&quot;&gt;omp simd&lt;/a&gt;, &lt;a href=&quot;C++/17/index.htm#GUID-1EA04294-988E-4152-B584-B028FD6FAC48.htm&quot;&gt;simd&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href=&quot;https://software.intel.com/en-us/vectorization-resources-advisor&quot;&gt;Vectorization Resources for Intel&amp;reg; Advisor XE Users&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; </text>
+     <title>Recommendations </title>
+     <attributes>
+      <float:confidence>1</float:confidence>
+     </attributes>
+     <parameters/>
+    </recommendation>
+   </recommendations>
+   <unsignedLong:rowKey>30</unsignedLong:rowKey>
+  </issue>
+  <issue>
+   <unsignedInt:flags>65</unsignedInt:flags>
+   <id>issue_type_conversions</id>
+   <int:severity>1</int:severity>
+   <text>There are multiple data types within loops. Utilize hardware vectorization support more effectively by avoiding data type conversion. </text>
+   <title>Data type conversions present </title>
+   <attributes>
+    <float:severity>1</float:severity>
+   </attributes>
+   <parameters/>
+   <recommendations>
+    <recommendation>
+     <int:confidence>1</int:confidence>
+     <unsignedInt:flags>8</unsignedInt:flags>
+     <id>rec_type_conversions_smallest_c</id>
+     <text>The &lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;source loop&lt;/a&gt; contains data types of different widths. To fix: Use the smallest data type that gives the needed precision to use the entire &lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;vector register width&lt;/a&gt;.
+&lt;/br&gt;&lt;b&gt;Example:&lt;/b&gt; If only 16-bits are needed, using a short rather than an int can make the difference between eight-way or four-way SIMD parallelism, respectively. </text>
+     <title>Use the smallest data type </title>
+     <attributes>
+      <float:confidence>1</float:confidence>
+     </attributes>
+     <parameters/>
+    </recommendation>
+   </recommendations>
+   <unsignedLong:rowKey>31</unsignedLong:rowKey>
+  </issue>
+  <issue>
+   <unsignedInt:flags>66</unsignedInt:flags>
+   <id>compiler_diag_issue_15523</id>
+   <int:severity>1</int:severity>
+   <text>&lt;b&gt;Causes:&lt;/b&gt; &lt;ul&gt; &lt;li&gt;The loop iteration count is not available before the loop executes.&lt;/li&gt; &lt;li&gt;The compiler cannot determine if there is aliasing between all the pointers used inside the loop and loop boundaries.&lt;/li&gt; &lt;/ul&gt; &lt;b&gt;C++ Example 1:&lt;/b&gt; The upper bound of the loop iteration count is controlled by &lt;div class=&quot;inplace_sample&quot;&gt;bar()&lt;/div&gt;, whose implementation is available in this compilation unit. Because the loop iteration count is not available before the loop executes, the compiler cannot determine: &lt;ul&gt; &lt;li&gt;How to map the loop to vector registers&lt;/li&gt; &lt;li&gt;If it needs to create peeled and remainder loops &lt;/li&gt; &lt;li&gt;Where it has enough iterations to saturate at least one vector register&lt;/li&gt; &lt;/ul&gt; &lt;div class=&quot;sample&quot;&gt; void foo (float *A) {&lt;br/&gt; &amp;nbsp;&amp;nbsp;int i;&lt;br/&gt; &amp;nbsp;&amp;nbsp;int OuterCount = 90;&lt;br/&gt; &amp;nbsp;&amp;nbsp;while (OuterCount &amp;gt; 0) {&lt;br/&gt; &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;for (i = 1; i &amp;lt; bar(int(A[0])); i++) {&lt;br/&gt; &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;A[i] = i + 4;&lt;br/&gt; &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;}&lt;br/&gt; &amp;nbsp;&amp;nbsp;OuterCount--;&lt;br/&gt; &amp;nbsp;&amp;nbsp;}&lt;br/&gt; } &lt;/div&gt; &lt;b&gt;C++ Example 2:&lt;/b&gt; The compiler cannot determine if there is aliasing between all the pointers used inside the loop and loop boundaries. &lt;div class=&quot;sample&quot;&gt; struct Dim { int x, y, z; };&lt;br/&gt; Dim dim;&lt;br/&gt; double *B;&lt;br/&gt;&lt;br/&gt; void foo (double* A) {&lt;br/&gt; &amp;nbsp;&amp;nbsp;for (int i = 0; i &amp;lt; dim.x; i++) {&lt;br/&gt; &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;A[i] = B[i];&lt;br/&gt; &amp;nbsp;&amp;nbsp}&lt;br/&gt; } &lt;/div&gt; </text>
+   <title>Cannot compute loop iteration count before executing the loop </title>
+   <attributes>
+    <float:severity>1</float:severity>
+   </attributes>
+   <parameters/>
+   <recommendations>
+    <recommendation>
+     <int:confidence>1</int:confidence>
+     <unsignedInt:flags>8</unsignedInt:flags>
+     <id>compiler_diag_rec_15523</id>
+     <text>&lt;ul&gt; &lt;li&gt; For &lt;b&gt;Example 1&lt;/b&gt;, where the loop iteration count is not available before the loop executes: If the loop iteration count and iterations lower bound can be calculated for the whole loop: &lt;ul&gt; &lt;li&gt;Move the calculation outside the loop using an additional variable.&lt;/li&gt; &lt;li&gt;Rewrite the loop to avoid &lt;div class=&quot;inplace_sample&quot;&gt;goto&lt;/div&gt; statements or other early exits from the loop.&lt;/li&gt; &lt;li&gt;Identify the loop iterations lower bound using a constant.&lt;/li&gt; &lt;/ul&gt; For example, introduce the new &lt;div class=&quot;inplace_sample&quot;&gt;limit&lt;/div&gt; variable: &lt;div class=&quot;sample&quot;&gt; void foo(float *A) {&lt;br/&gt; &amp;nbsp;&amp;nbsp;int i;&lt;br/&gt; &amp;nbsp;&amp;nbsp;int OuterCount = 90;&lt;br/&gt; &amp;nbsp;&amp;nbsp;&lt;b&gt;int limit = bar(int(A[0]));&lt;/b&gt;&lt;br/&gt; &amp;nbsp;&amp;nbsp;while (OuterCount &amp;gt; 0) {&lt;br/&gt; &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;for (i = 1; i &amp;lt; limit; i++) {&lt;br/&gt; &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;A[i] = i + 4;&lt;br/&gt; &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;}&lt;br/&gt; &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;OuterCount--;&lt;br/&gt; &amp;nbsp;&amp;nbsp;}&lt;br/&gt; } &lt;/div&gt; &lt;/li&gt; &lt;li&gt; For &lt;b&gt;Example 2&lt;/b&gt;, where the compiler cannot determine if there is aliasing between all the pointers used inside the loop and loop boundaries: Assign the loop boundary value to a local variable. In most cases, this is enough for the compiler to determine aliasing may not occur.&lt;br/&gt; You can use a directive to accomplish the same thing automatically. &lt;table&gt; &lt;tr&gt; &lt;th&gt;Target&lt;/th&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;ICL/ICC/ICPC&lt;/a&gt; Directive&lt;/th&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Source loop&lt;/th&gt; &lt;td&gt;#pragma simd or #pragma omp simd&lt;/th&gt; &lt;/tr&gt; &lt;/table&gt; Do not use global variables or indirect accesses as loop boundaries unless you also use one of the following: &lt;ul&gt; &lt;li&gt; Directive to ignore vector dependencies &lt;table&gt; &lt;tr&gt; &lt;th&gt;Target&lt;/th&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;ICL/ICC/ICPC&lt;/a&gt; Directive&lt;/th&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Source loop&lt;/th&gt; &lt;td&gt;#pragma ivdep&lt;/th&gt; &lt;/tr&gt; &lt;/table&gt; &lt;/li&gt; &lt;li&gt;&lt;div class=&quot;inplace_sample&quot;&gt;restrict&lt;/div&gt; keyword.&lt;/li&gt; &lt;/ul&gt; &lt;/li&gt; &lt;/ul&gt; &lt;b&gt;Read More:&lt;/b&gt; &lt;ul&gt; &lt;li&gt;C++ information at &lt;a href=&quot;https://software.intel.com/en-us/articles/cdiag15523&quot;&gt;https://software.intel.com/en-us/articles/cdiag15523&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href=&quot;C++/17/index.htm#GUID-B25ABCC2-BE6F-4599-AEDF-2434F4676E1B.htm&quot;&gt;ivdep&lt;/a&gt;, &lt;a href=&quot;C++/17/index.htm#GUID-4D8CDB9C-8A96-4CB2-B5E5-3D81003FE4FF.htm&quot;&gt;omp simd&lt;/a&gt;, &lt;a href=&quot;C++/17/index.htm#GUID-1EA04294-988E-4152-B584-B028FD6FAC48.htm&quot;&gt;simd&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href=&quot;https://software.intel.com/en-us/vectorization-resources-advisor&quot;&gt;Vectorization Resources for Intel&amp;reg; Advisor XE Users&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; </text>
+     <title>Recommendations </title>
+     <attributes>
+      <float:confidence>1</float:confidence>
+     </attributes>
+     <parameters/>
+    </recommendation>
+   </recommendations>
+   <unsignedLong:rowKey>31</unsignedLong:rowKey>
+  </issue>
+  <issue>
+   <unsignedInt:flags>65</unsignedInt:flags>
+   <id>issue_system_functions</id>
+   <int:severity>1</int:severity>
+   <text>System function call(s) in the &lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;loop body&lt;/a&gt; may prevent the compiler from vectorizing the loop. </text>
+   <title>System function call(s) present </title>
+   <attributes>
+    <float:severity>1</float:severity>
+   </attributes>
+   <parameters/>
+   <recommendations>
+    <recommendation>
+     <int:confidence>1</int:confidence>
+     <unsignedInt:flags>8</unsignedInt:flags>
+     <id>rec_system_functions_move_c</id>
+     <text>Typically system function or subroutine calls cannot be auto-vectorized; even a print statement is sufficient to prevent vectorization. To fix: Avoid using system function calls in loops. </text>
+     <title>Remove system function call(s) inside loop </title>
+     <attributes>
+      <float:confidence>1</float:confidence>
+     </attributes>
+     <parameters/>
+    </recommendation>
+   </recommendations>
+   <unsignedLong:rowKey>31</unsignedLong:rowKey>
+  </issue>
+  <issue>
+   <unsignedInt:flags>65</unsignedInt:flags>
+   <id>issue_register_pressure</id>
+   <int:severity>3</int:severity>
+   <text>Possible register &lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;spilling&lt;/a&gt; was detected and all vector registers are in use. This may negatively impact performance, because the spilled variable must be loaded to and unloaded from main memory. Improve performance by decreasing vector &lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;register pressure&lt;/a&gt;. </text>
+   <title>Vector register spilling possible </title>
+   <attributes>
+    <float:severity>3</float:severity>
+   </attributes>
+   <parameters/>
+   <recommendations>
+    <recommendation>
+     <int:confidence>3</int:confidence>
+     <unsignedInt:flags>8</unsignedInt:flags>
+     <id>rec_registers_pressure_split_loop_c</id>
+     <text>Possible register &lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;spilling&lt;/a&gt; along with high vector &lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;register pressure&lt;/a&gt; is preventing effective vectorization. To fix: Use a &lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;directive&lt;/a&gt; or rewrite your code to distribute the &lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;source loop&lt;/a&gt;. This can decrease register pressure as well as enable software pipelining and improve both instruction and data cache use. &lt;/br&gt; &lt;table&gt; &lt;tr&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;ICL/ICC/ICPC&lt;/a&gt; Directive &lt;/th&gt; &lt;th&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/intel-advisor-xe-2016-vectorization-advisor-glossary&quot;&gt;IFORT&lt;/a&gt; Directive &lt;/th&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt; #pragma distribute_point &lt;/td&gt; &lt;td&gt; !DIR$ DISTRIBUTE POINT &lt;/td&gt; &lt;/tr&gt; &lt;/table&gt; &lt;b&gt;Read More:&lt;/b&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;C++&lt;/strong&gt;: &lt;a href=&quot;C++/17/index.htm#GUID-03B94EAB-70E2-4B45-B275-D73FD76961A0.htm&quot;&gt;distribute_point&lt;/a&gt;&lt;!--, &lt;a href=&quot;https://software.intel.com/en-us/compiler_16.0_ug_c&quot;&gt;Intel&amp;reg; C++ Compiler XE 16.0 User and Reference Guides&lt;/a&gt;--&gt; &lt;li&gt;&lt;strong&gt;Fortran&lt;/strong&gt;: &lt;a href=&quot;Fortran/17/index.htm#GUID-759F460A-1FF1-44AC-B64C-910D8C57BB1B.htm&quot;&gt;DISTRIBUTE POINT&lt;/a&gt;&lt;!--, &lt;a href=&quot;https://software.intel.com/en-us/compiler_16.0_ug_f&quot;&gt;Intel&amp;reg; Fortran Compiler XE 16.0 User and Reference Guides&lt;/a&gt;--&gt; &lt;li&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/getting-started-with-intel-composer-xe-2013-compiler-pragmas-and-directives&quot;&gt;Getting Started with Intel Compiler Pragmas and Directives&lt;/a&gt; &lt;li&gt;&lt;a href=&quot;https://software.intel.com/en-us/articles/3d-finite-differences-on-multi-core-processors&quot;&gt;3D Finite Differences on Multi-core Processors&lt;/a&gt; &lt;/ul&gt; </text>
+     <title>Split loop into smaller loops </title>
+     <attributes>
+      <float:confidence>3</float:confidence>
+     </attributes>
+     <parameters/>
+    </recommendation>
+   </recommendations>
+   <unsignedLong:rowKey>38</unsignedLong:rowKey>
+  </issue>
+  <issue>
+   <unsignedInt:flags>69</unsignedInt:flags>
+   <id>issue_check_access_patterns</id>
+   <int:severity>2</int:severity>
+   <text>Inefficient memory access patterns may result in significant vector code execution slowdown or block automatic vectorization by the compiler. Improve performance by investigating. </text>
+   <title>Possible inefficient memory access patterns present </title>
+   <attributes>
+    <float:severity>2</float:severity>
+   </attributes>
+   <parameters/>
+   <recommendations>
+    <recommendation>
+     <int:confidence>2</int:confidence>
+     <unsignedInt:flags>8</unsignedInt:flags>
+     <id>rec_check_access_patterns_run_map_c</id>
+     <text>There is no confirmation inefficient memory access patterns are present. To confirm: Run a &lt;a href=&quot;../help/index.htm#GUID-B98AD81B-4946-4E86-B452-9A1810F4517C.htm&quot;&gt;Memory Access Patterns analysis&lt;/a&gt;. </text>
+     <title>Confirm inefficient memory access patterns </title>
+     <attributes>
+      <float:confidence>2</float:confidence>
+     </attributes>
+     <parameters/>
+    </recommendation>
+   </recommendations>
+   <unsignedLong:rowKey>38</unsignedLong:rowKey>
+  </issue>
+ </issues>
+ <traits>
+  <trait>
+   <int:fieldId>134</int:fieldId>
+   <int:id>4</int:id>
+   <text>Low Trip Counts May Produce Ineffective Peeled/Remainder Loops After Vectorization - Consider Adding Data Padding or Identifying Expected Number of Iterations </text>
+   <unsignedLong:rowKey>4</unsignedLong:rowKey>
+  </trait>
+  <trait>
+   <int:fieldId>127</int:fieldId>
+   <int:id>5</int:id>
+   <text>Low Trip Counts May Produce Ineffective Peeled/Remainder Loops After Vectorization - Consider Adding Data Padding or Identifying Expected Number of Iterations </text>
+   <unsignedLong:rowKey>4</unsignedLong:rowKey>
+  </trait>
+  <trait>
+   <int:fieldId>134</int:fieldId>
+   <int:id>4</int:id>
+   <text>Low Trip Counts May Produce Ineffective Peeled/Remainder Loops After Vectorization - Consider Adding Data Padding or Identifying Expected Number of Iterations </text>
+   <unsignedLong:rowKey>12</unsignedLong:rowKey>
+  </trait>
+  <trait>
+   <int:fieldId>127</int:fieldId>
+   <int:id>5</int:id>
+   <text>Low Trip Counts May Produce Ineffective Peeled/Remainder Loops After Vectorization - Consider Adding Data Padding or Identifying Expected Number of Iterations </text>
+   <unsignedLong:rowKey>12</unsignedLong:rowKey>
+  </trait>
+  <trait>
+   <int:fieldId>44</int:fieldId>
+   <int:id>2</int:id>
+   <text>Irregular Memory Access Patterns May Decrease Performance 
+Suggestion: See Recommendations Tab </text>
+   <unsignedLong:rowKey>18</unsignedLong:rowKey>
+  </trait>
+  <trait>
+   <int:fieldId>44</int:fieldId>
+   <int:id>2</int:id>
+   <text>Irregular Memory Access Patterns May Decrease Performance 
+Suggestion: See Recommendations Tab </text>
+   <unsignedLong:rowKey>24</unsignedLong:rowKey>
+  </trait>
+  <trait>
+   <int:fieldId>44</int:fieldId>
+   <int:id>2</int:id>
+   <text>Irregular Memory Access Patterns May Decrease Performance 
+Suggestion: See Recommendations Tab </text>
+   <unsignedLong:rowKey>38</unsignedLong:rowKey>
+  </trait>
+ </traits>
+</bag>

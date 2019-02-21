@@ -1,0 +1,13 @@
+-r
+/panfs/panasas01/cosc/an16228/myfiles/HPC/openmp/roof-init-256/e000/trc000
+-quiet
+-cs-file
+/panfs/panasas01/cosc/an16228/myfiles/HPC/openmp/roof-init-256/e000/callstacks.def
+--cs-mode=no-count-loops,no-count-flops,stack-stitching
+--target-loops=n
+--count-flops
+--benchmarks=dram,mcdram,cpu_cache,flop_peak,int
+--
+./lbm
+input_128x128.params
+obstacles_128x128.dat

@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<bag xmlns:boolean="http://www.w3.org/2001/XMLSchema#boolean" xmlns:int="http://www.w3.org/2001/XMLSchema#int" int:version="1">
+ <SurveyView int:survey_view_data_type="0" int:survey_view_memory_level="0" int:survey_view_memory_operation_type="0">
+  <BottomUpGrid>
+   <ColumnStructure DefaultColumnLayout="Default" SmartColumnLayout="Smart Mode"/>
+  </BottomUpGrid>
+  <RooflineChart rooflineState="{&quot;integratedRooflineType&quot;:0,&quot;threadCount4RoofIdx&quot;:8,&quot;roofsState&quot;:{&quot;spvectoraddpeak&quot;:{&quot;selected&quot;:true},&quot;int32vectoraddpeak&quot;:{&quot;selected&quot;:true},&quot;l1bandwidth&quot;:{&quot;selected&quot;:true},&quot;drambandwidth&quot;:{&quot;selected&quot;:true},&quot;l2bandwidth&quot;:{&quot;selected&quot;:false},&quot;l3bandwidth&quot;:{&quot;selected&quot;:false},&quot;scalaraddpeak&quot;:{&quot;selected&quot;:false},&quot;dpvectoraddpeak&quot;:{&quot;selected&quot;:false},&quot;integerscalaraddpeak&quot;:{&quot;selected&quot;:false},&quot;int64vectoraddpeak&quot;:{&quot;selected&quot;:false}}}"/>
+ </SurveyView>
+ <FilterView boolean:VectorizedButtonChecked="true" boolean:NotVectorizedButtonChecked="true" boolean:FakeLoopButtonChecked="false" boolean:LibrariesButtonChecked="false" ModuleFilterValue="All Modules" SourceFilterValue="All Sources" LoopModeFilterValue="Loops And Functions" ThreadFilterValue="All Threads"/>
+</bag>

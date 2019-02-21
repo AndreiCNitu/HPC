@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<log version="1.0" tool="runtool">
+
+<msg id="1" tool="runtool">
+  <type>log-start</type>
+  <arg>2019/02/21 13:30:44</arg>
+</msg>
+<msg id="2" tool="runtool">
+  <type>bandwidth-measurement-starts</type>
+</msg>
+<msg id="3" tool="runtool">
+  <type>bandwidth-measurement-done</type>
+</msg>
+<msg id="4" tool="runtool">
+  <type>collector-starts</type>
+</msg>
+<msg id="5" tool="runtool">
+  <type>marker-file</type>
+  <arg>/panfs/panasas01/cosc/an16228/myfiles/HPC/openmp/roof-16-1024/e000/trc000/trc000.advixe</arg>
+</msg>
+<msg id="6" tool="trc">
+  <type>PROCESS_START</type>
+  <arg>/panfs/panasas01/cosc/an16228/myfiles/HPC/openmp/lbm</arg>
+  <arg>4420</arg>
+  <severity>INFO</severity>
+  <timestamp>Thu Feb 21 13:30:55 2019</timestamp>
+</msg>
+<msg id="7" tool="trc">
+  <type>PROCESS_ANALYSIS_MODE</type>
+  <arg>full</arg>
+  <severity>INFO</severity>
+  <timestamp>Thu Feb 21 13:30:55 2019</timestamp>
+</msg>
+<msg id="8" tool="trc">
+  <type>LOAD_MODULE</type>
+  <arg>/panfs/panasas01/cosc/an16228/myfiles/HPC/openmp/lbm</arg>
+  <arg>0x400000</arg>
+  <arg>0x6129df</arg>
+  <severity>INFO</severity>
+  <timestamp>Thu Feb 21 13:30:55 2019</timestamp>
+</msg>
+<msg id="9" tool="trc">
+  <type>LOAD_MODULE</type>
+  <arg>/lib64/ld-linux-x86-64.so.2</arg>
+  <arg>0x2aaaaaaab000</arg>
+  <arg>0x2aaaaaccc187</arg>
+  <severity>INFO</severity>
+  <timestamp>Thu Feb 21 13:30:55 2019</timestamp>
+</msg>
+<msg id="10" tool="trc">
+  <type>LOAD_MODULE</type>
+  <arg>[vdso]</arg>
+  <arg>0x2aaaaaacb000</arg>
+  <arg>0x2aaaaaacbaaf</arg>
+  <severity>INFO</severity>
+  <timestamp>Thu Feb 21 13:30:55 2019</timestamp>
+</msg>
+<msg id="11" tool="trc">
+  <type>LOAD_MODULE</type>
+  <arg>/lib64/libm.so.6</arg>
+  <arg>0x2aaabfb43000</arg>
+  <arg>0x2aaabfdc60b7</arg>
+  <severity>INFO</severity>
+  <timestamp>Thu Feb 21 13:30:55 2019</timestamp>
+</msg>
+<msg id="12" tool="trc">
+  <type>LOAD_MODULE</type>
+  <arg>/cm/shared/languages/Intel-Compiler-XE-16-U2/compilers_and_libraries_2016.2.181/linux/compiler/lib/intel64/libiomp5.so</arg>
+  <arg>0x2aaabfe04000</arg>
+  <arg>0x2aaac014445f</arg>
+  <severity>INFO</severity>
+  <timestamp>Thu Feb 21 13:30:55 2019</timestamp>
+</msg>
+<msg id="13" tool="trc">
+  <type>LOAD_MODULE</type>
+  <arg>/cm/shared/languages/GCC-4.8.4/lib64/libgcc_s.so.1</arg>
+  <arg>0x2aaac015c000</arg>
+  <arg>0x2aaac037161f</arg>
+  <severity>INFO</severity>
+  <timestamp>Thu Feb 21 13:30:55 2019</timestamp>
+</msg>
+<msg id="14" tool="trc">
+  <type>LOAD_MODULE</type>
+  <arg>/lib64/libpthread.so.0</arg>
+  <arg>0x2aaac03ad000</arg>
+  <arg>0x2aaac05c93ef</arg>
+  <severity>INFO</severity>
+  <timestamp>Thu Feb 21 13:30:55 2019</timestamp>
+</msg>
+<msg id="15" tool="trc">
+  <type>LOAD_MODULE</type>
+  <arg>/lib64/libc.so.6</arg>
+  <arg>0x2aaac05ca000</arg>
+  <arg>0x2aaac095d907</arg>
+  <severity>INFO</severity>
+  <timestamp>Thu Feb 21 13:30:55 2019</timestamp>
+</msg>
+<msg id="16" tool="trc">
+  <type>LOAD_MODULE</type>
+  <arg>/lib64/libdl.so.2</arg>
+  <arg>0x2aaac095e000</arg>
+  <arg>0x2aaac0b610ff</arg>
+  <severity>INFO</severity>
+  <timestamp>Thu Feb 21 13:30:55 2019</timestamp>
+</msg>
+<msg id="17" tool="trc">
+  <type>LOAD_MODULE</type>
+  <arg>/panfs/panasas01/cosc/an16228/intel/advisor_2019.2.0.588361/lib64/runtime/libittnotify.so</arg>
+  <arg>0x2aaac16f4000</arg>
+  <arg>0x2aaac18ff63f</arg>
+  <severity>INFO</severity>
+  <timestamp>Thu Feb 21 13:30:55 2019</timestamp>
+</msg>
+<msg id="18" tool="trc">
+  <type>UNLOAD_MODULE</type>
+  <arg>/panfs/panasas01/cosc/an16228/myfiles/HPC/openmp/lbm</arg>
+  <severity>INFO</severity>
+  <timestamp>Thu Feb 21 13:31:00 2019</timestamp>
+</msg>
+<msg id="19" tool="trc">
+  <type>UNLOAD_MODULE</type>
+  <arg>/lib64/ld-linux-x86-64.so.2</arg>
+  <severity>INFO</severity>
+  <timestamp>Thu Feb 21 13:31:00 2019</timestamp>
+</msg>
+<msg id="20" tool="trc">
+  <type>UNLOAD_MODULE</type>
+  <arg>[vdso]</arg>
+  <severity>INFO</severity>
+  <timestamp>Thu Feb 21 13:31:00 2019</timestamp>
+</msg>
+<msg id="21" tool="trc">
+  <type>UNLOAD_MODULE</type>
+  <arg>/lib64/libm.so.6</arg>
+  <severity>INFO</severity>
+  <timestamp>Thu Feb 21 13:31:00 2019</timestamp>
+</msg>
+<msg id="22" tool="trc">
+  <type>UNLOAD_MODULE</type>
+  <arg>/cm/shared/languages/Intel-Compiler-XE-16-U2/compilers_and_libraries_2016.2.181/linux/compiler/lib/intel64/libiomp5.so</arg>
+  <severity>INFO</severity>
+  <timestamp>Thu Feb 21 13:31:00 2019</timestamp>
+</msg>
+<msg id="23" tool="trc">
+  <type>UNLOAD_MODULE</type>
+  <arg>/cm/shared/languages/GCC-4.8.4/lib64/libgcc_s.so.1</arg>
+  <severity>INFO</severity>
+  <timestamp>Thu Feb 21 13:31:00 2019</timestamp>
+</msg>
+<msg id="24" tool="trc">
+  <type>UNLOAD_MODULE</type>
+  <arg>/lib64/libpthread.so.0</arg>
+  <severity>INFO</severity>
+  <timestamp>Thu Feb 21 13:31:00 2019</timestamp>
+</msg>
+<msg id="25" tool="trc">
+  <type>UNLOAD_MODULE</type>
+  <arg>/lib64/libc.so.6</arg>
+  <severity>INFO</severity>
+  <timestamp>Thu Feb 21 13:31:00 2019</timestamp>
+</msg>
+<msg id="26" tool="trc">
+  <type>UNLOAD_MODULE</type>
+  <arg>/lib64/libdl.so.2</arg>
+  <severity>INFO</severity>
+  <timestamp>Thu Feb 21 13:31:00 2019</timestamp>
+</msg>
+<msg id="27" tool="trc">
+  <type>UNLOAD_MODULE</type>
+  <arg>/panfs/panasas01/cosc/an16228/intel/advisor_2019.2.0.588361/lib64/runtime/libittnotify.so</arg>
+  <severity>INFO</severity>
+  <timestamp>Thu Feb 21 13:31:00 2019</timestamp>
+</msg>
+<msg id="28" tool="trc">
+  <type>PROCESS_FINISH</type>
+  <arg>/panfs/panasas01/cosc/an16228/myfiles/HPC/openmp/lbm</arg>
+  <arg>4420</arg>
+  <arg>0x0</arg>
+  <severity>INFO</severity>
+  <timestamp>Thu Feb 21 13:31:00 2019</timestamp>
+</msg>
+<msg id="29" tool="runtool">
+  <type>app-exit-code</type>
+  <arg>0</arg>
+</msg>
+<msg id="30" tool="runtool">
+  <type>marker-file</type>
+  <arg>/panfs/panasas01/cosc/an16228/myfiles/HPC/openmp/roof-16-1024/e000/trc000/trc000.advixe</arg>
+</msg>
+<msg id="31" tool="runtool">
+  <type>collector-done</type>
+</msg>
+<msg id="32" tool="runtool">
+  <type>log-end</type>
+  <arg>2019/02/21 13:31:04</arg>
+</msg>
+
+</log>
+
