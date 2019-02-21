@@ -1,4 +1,0 @@
-403 [46912793224960] TRACE mrtehelpers.mrteenv <> - ENTER: virtual mrtehelpers_3_0::MrteEnvVarIterator mrtehelpers_3_0::MrteProfilingInitializer::getMrteProfilingEnvironment()
-403 [46912793224960] TRACE mrtehelpers.mrteenv <> - INTEL_MRTE_DATA_DIR=/tmp/advixe-tmp-an16228/advixe-res-88154-112337291231049186/data.0/
-403 [46912793224960] TRACE mrtehelpers.mrteenv <> - INTEL_MRTE_HOST_NAME=node44-010
-404 [46912793224960] TRACE mrtehelpers.mrteenv <> - EXIT:  virtual mrtehelpers_3_0::MrteEnvVarIterator mrtehelpers_3_0::MrteProfilingInitializer::getMrteProfilingEnvironment()
