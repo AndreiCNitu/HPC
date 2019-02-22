@@ -1,9 +1,9 @@
 
-SRC=lbm
-EXE=lbm
+SRC=d2q9-bgk
+EXE=d2q9-bgk
 
 CC=icc
-CFLAGS= -std=c99 -Wall -Ofast -xAVX -restrict -ansi-alias -qopenmp -qopt-report=5 -g -S -fcode-asm
+CFLAGS= -std=c99 -Wall -Ofast -fast -xAVX -restrict -ansi-alias -qopenmp -qopt-report=5
 LIBS = -lm
 
 STATE=./final_state.dat

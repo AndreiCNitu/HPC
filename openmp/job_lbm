@@ -22,9 +22,8 @@ source ~/intel/advisor_2019.2.0.588361/advixe-vars.sh
 export OMP_NUM_THREADS=1
 export OMP_PROC_BIND=true
 export OMP_PLACES=cores
-#export OMP_DISPLAY_ENV=true
 
-for cores in {1..16}
+for cores in {16..16}
 do
   echo
   echo
@@ -33,9 +32,12 @@ do
   echo "########################################"
   echo 128 x 128
   ./lbm input_128x128.params obstacles_128x128.dat  
+  make check-small
   echo 256 x 256
   ./lbm input_256x256.params obstacles_256x256.dat
+  make check-medium
   echo 1024 x 1024
   ./lbm input_1024x1024.params obstacles_1024x1024.dat
+  make check-large
 done
 
