@@ -3,7 +3,7 @@ SRC=d2q9-bgk
 EXE=d2q9-bgk
 
 CC=icc
-CFLAGS= -std=c99 -Wall -Ofast -fast -xAVX -restrict -ansi-alias -qopenmp -qopt-report=5
+CFLAGS= -g -std=c99 -Wall -Ofast -fast -xAVX -restrict -ansi-alias -qopenmp -qopt-report=5
 LIBS = -lm
 
 STATE=./final_state.dat

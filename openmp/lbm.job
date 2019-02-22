@@ -1,9 +1,9 @@
 #!/bin/bash
 
 #PBS -j oe 
-#PBS -o lbm.out
-#PBS -q veryshort
-#PBS -l nodes=1:ppn=16,walltime=00:45:00
+#PBS -o d2q9-bgk.out
+#PBS -q teaching
+#PBS -l nodes=1:ppn=16,walltime=01:00:00
 
 # Change the working directory (default is home directory)
 cd "$PBS_O_WORKDIR"
@@ -19,11 +19,11 @@ module load languages/python-2.7.6
 source ~/intel/vtune_amplifier_2019.2.0.588069/amplxe-vars.sh
 source ~/intel/advisor_2019.2.0.588361/advixe-vars.sh
 
-export OMP_NUM_THREADS=1
+export OMP_NUM_THREADS=16
 export OMP_PROC_BIND=true
 export OMP_PLACES=cores
 
-for cores in {16..16}
+for cores in {1..16}
 do
   echo
   echo
@@ -31,13 +31,9 @@ do
   echo $cores CORES
   echo "########################################"
   echo 128 x 128
-  ./lbm input_128x128.params obstacles_128x128.dat  
-  make check-small
-  echo 256 x 256
-  ./lbm input_256x256.params obstacles_256x256.dat
-  make check-medium
-  echo 1024 x 1024
-  ./lbm input_1024x1024.params obstacles_1024x1024.dat
-  make check-large
+   ./d2q9-bgk input_128x128.params obstacles_128x128.dat  
+   echo 256 x 256
+   ./d2q9-bgk input_256x256.params obstacles_256x256.dat
+   echo 1024 x 1024
+   ./d2q9-bgk input_1024x1024.params obstacles_1024x1024.dat
 done
-
