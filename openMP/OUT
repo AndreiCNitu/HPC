@@ -1,0 +1,410 @@
+Running on host: node31-034
+Time is: Thu Mar 14 10:25:13 GMT 2019
+Directory is: /newhome/an16228/myfiles/HPC/openMP
+PBS job ID is: 8191010.master.cm.cluster
+This jobs runs on the following machines: node31-034
+
+Copyright (C) 2009-2019 Intel Corporation. All rights reserved.
+Intel(R) VTune(TM) Amplifier 2019 (build 588069)
+Copyright (C) 2009-2019 Intel Corporation. All rights reserved.
+Intel(R) Advisor 2019 (build 588361)
+
+
+1 CORES
+########################################
+128 x 128
+==done==
+Reynolds number:		9.755440711975E+00
+Elapsed time:			8.773362 (s)
+Elapsed user CPU time:		8.773666 (s)
+Elapsed system CPU time:	0.001999 (s)
+ memory bandwidth: 0.000000 GB/s
+256 x 256
+==done==
+Reynolds number:		1.006101512909E+01
+Elapsed time:			67.452526 (s)
+Elapsed user CPU time:		67.461744 (s)
+Elapsed system CPU time:	0.001999 (s)
+ memory bandwidth: 0.000000 GB/s
+1024 x 1024
+==done==
+Reynolds number:		3.376504182816E+00
+Elapsed time:			304.754329 (s)
+Elapsed user CPU time:		304.777666 (s)
+Elapsed system CPU time:	0.030995 (s)
+ memory bandwidth: 4.614373 GB/s
+
+
+2 CORES
+########################################
+128 x 128
+==done==
+Reynolds number:		9.755440711975E+00
+Elapsed time:			4.629189 (s)
+Elapsed user CPU time:		9.258592 (s)
+Elapsed system CPU time:	0.001999 (s)
+ memory bandwidth: 0.000000 GB/s
+256 x 256
+==done==
+Reynolds number:		1.006101512909E+01
+Elapsed time:			34.532739 (s)
+Elapsed user CPU time:		69.076498 (s)
+Elapsed system CPU time:	0.004999 (s)
+ memory bandwidth: 0.000000 GB/s
+1024 x 1024
+==done==
+Reynolds number:		3.376504182816E+00
+Elapsed time:			154.223298 (s)
+Elapsed user CPU time:		308.400116 (s)
+Elapsed system CPU time:	0.143978 (s)
+ memory bandwidth: 9.118272 GB/s
+
+
+3 CORES
+########################################
+128 x 128
+==done==
+Reynolds number:		9.755440711975E+00
+Elapsed time:			3.130406 (s)
+Elapsed user CPU time:		9.394571 (s)
+Elapsed system CPU time:	0.001999 (s)
+ memory bandwidth: 0.000000 GB/s
+256 x 256
+==done==
+Reynolds number:		1.006101512909E+01
+Elapsed time:			23.331721 (s)
+Elapsed user CPU time:		69.993359 (s)
+Elapsed system CPU time:	0.015997 (s)
+ memory bandwidth: 0.000000 GB/s
+1024 x 1024
+==done==
+Reynolds number:		3.376504182816E+00
+Elapsed time:			103.531222 (s)
+Elapsed user CPU time:		310.498797 (s)
+Elapsed system CPU time:	0.189971 (s)
+ memory bandwidth: 13.582859 GB/s
+
+
+4 CORES
+########################################
+128 x 128
+==done==
+Reynolds number:		9.755440711975E+00
+Elapsed time:			2.405417 (s)
+Elapsed user CPU time:		9.621537 (s)
+Elapsed system CPU time:	0.003999 (s)
+ memory bandwidth: 0.000000 GB/s
+256 x 256
+==done==
+Reynolds number:		1.006101512909E+01
+Elapsed time:			17.520247 (s)
+Elapsed user CPU time:		70.104342 (s)
+Elapsed system CPU time:	0.004999 (s)
+ memory bandwidth: 0.000000 GB/s
+1024 x 1024
+==done==
+Reynolds number:		3.376504182816E+00
+Elapsed time:			79.255050 (s)
+Elapsed user CPU time:		316.796839 (s)
+Elapsed system CPU time:	0.324950 (s)
+ memory bandwidth: 17.743349 GB/s
+
+
+5 CORES
+########################################
+128 x 128
+==done==
+Reynolds number:		9.755440711975E+00
+Elapsed time:			2.058852 (s)
+Elapsed user CPU time:		10.298434 (s)
+Elapsed system CPU time:	0.002999 (s)
+ memory bandwidth: 0.000000 GB/s
+256 x 256
+==done==
+Reynolds number:		1.006101512909E+01
+Elapsed time:			14.772378 (s)
+Elapsed user CPU time:		73.823777 (s)
+Elapsed system CPU time:	0.059990 (s)
+ memory bandwidth: 0.000000 GB/s
+1024 x 1024
+==done==
+Reynolds number:		3.376504182816E+00
+Elapsed time:			64.840434 (s)
+Elapsed user CPU time:		324.028740 (s)
+Elapsed system CPU time:	0.277957 (s)
+ memory bandwidth: 21.687856 GB/s
+
+
+6 CORES
+########################################
+128 x 128
+==done==
+Reynolds number:		9.755440711975E+00
+Elapsed time:			1.787291 (s)
+Elapsed user CPU time:		10.729368 (s)
+Elapsed system CPU time:	0.002999 (s)
+ memory bandwidth: 0.000000 GB/s
+256 x 256
+==done==
+Reynolds number:		1.006101512909E+01
+Elapsed time:			12.373271 (s)
+Elapsed user CPU time:		74.250712 (s)
+Elapsed system CPU time:	0.012998 (s)
+ memory bandwidth: 0.000000 GB/s
+1024 x 1024
+==done==
+Reynolds number:		3.376504182816E+00
+Elapsed time:			60.004890 (s)
+Elapsed user CPU time:		359.520344 (s)
+Elapsed system CPU time:	0.625904 (s)
+ memory bandwidth: 23.435590 GB/s
+
+
+7 CORES
+########################################
+128 x 128
+==done==
+Reynolds number:		9.755440711975E+00
+Elapsed time:			1.568626 (s)
+Elapsed user CPU time:		10.980330 (s)
+Elapsed system CPU time:	0.005999 (s)
+ memory bandwidth: 0.000000 GB/s
+256 x 256
+==done==
+Reynolds number:		1.006101512909E+01
+Elapsed time:			10.653159 (s)
+Elapsed user CPU time:		74.581661 (s)
+Elapsed system CPU time:	0.013997 (s)
+ memory bandwidth: 0.000000 GB/s
+1024 x 1024
+==done==
+Reynolds number:		3.376504182816E+00
+Elapsed time:			54.379890 (s)
+Elapsed user CPU time:		379.511305 (s)
+Elapsed system CPU time:	1.273806 (s)
+ memory bandwidth: 25.859743 GB/s
+
+
+8 CORES
+########################################
+128 x 128
+==done==
+Reynolds number:		9.755440711975E+00
+Elapsed time:			1.399241 (s)
+Elapsed user CPU time:		11.201297 (s)
+Elapsed system CPU time:	0.002999 (s)
+ memory bandwidth: 0.000000 GB/s
+256 x 256
+==done==
+Reynolds number:		1.006101512909E+01
+Elapsed time:			9.391930 (s)
+Elapsed user CPU time:		75.146575 (s)
+Elapsed system CPU time:	0.016997 (s)
+ memory bandwidth: 0.000000 GB/s
+1024 x 1024
+==done==
+Reynolds number:		3.376504182816E+00
+Elapsed time:			51.926635 (s)
+Elapsed user CPU time:		413.622119 (s)
+Elapsed system CPU time:	1.924707 (s)
+ memory bandwidth: 27.081478 GB/s
+
+
+9 CORES
+########################################
+128 x 128
+==done==
+Reynolds number:		9.755440711975E+00
+Elapsed time:			1.357610 (s)
+Elapsed user CPU time:		12.222141 (s)
+Elapsed system CPU time:	0.004999 (s)
+ memory bandwidth: 0.000000 GB/s
+256 x 256
+==done==
+Reynolds number:		1.006101512909E+01
+Elapsed time:			8.533886 (s)
+Elapsed user CPU time:		76.797325 (s)
+Elapsed system CPU time:	0.031995 (s)
+ memory bandwidth: 0.000000 GB/s
+1024 x 1024
+==done==
+Reynolds number:		3.376504182816E+00
+Elapsed time:			52.347251 (s)
+Elapsed user CPU time:		468.156829 (s)
+Elapsed system CPU time:	3.116526 (s)
+ memory bandwidth: 26.863875 GB/s
+
+
+10 CORES
+########################################
+128 x 128
+==done==
+Reynolds number:		9.755440711975E+00
+Elapsed time:			1.212923 (s)
+Elapsed user CPU time:		12.133155 (s)
+Elapsed system CPU time:	0.006998 (s)
+ memory bandwidth: 0.000000 GB/s
+256 x 256
+==done==
+Reynolds number:		1.006101512909E+01
+Elapsed time:			7.858074 (s)
+Elapsed user CPU time:		78.596051 (s)
+Elapsed system CPU time:	0.011998 (s)
+ memory bandwidth: 0.000000 GB/s
+1024 x 1024
+==done==
+Reynolds number:		3.376504182816E+00
+Elapsed time:			42.960140 (s)
+Elapsed user CPU time:		427.248048 (s)
+Elapsed system CPU time:	2.492621 (s)
+ memory bandwidth: 32.733832 GB/s
+
+
+11 CORES
+########################################
+128 x 128
+==done==
+Reynolds number:		9.755440711975E+00
+Elapsed time:			1.163815 (s)
+Elapsed user CPU time:		12.805053 (s)
+Elapsed system CPU time:	0.005999 (s)
+ memory bandwidth: 0.000000 GB/s
+256 x 256
+==done==
+Reynolds number:		1.006101512909E+01
+Elapsed time:			7.352156 (s)
+Elapsed user CPU time:		80.890702 (s)
+Elapsed system CPU time:	0.009998 (s)
+ memory bandwidth: 0.000000 GB/s
+1024 x 1024
+==done==
+Reynolds number:		3.376504182816E+00
+Elapsed time:			51.250732 (s)
+Elapsed user CPU time:		559.514940 (s)
+Elapsed system CPU time:	4.405330 (s)
+ memory bandwidth: 27.438633 GB/s
+
+
+12 CORES
+########################################
+128 x 128
+==done==
+Reynolds number:		9.755440711975E+00
+Elapsed time:			1.081880 (s)
+Elapsed user CPU time:		12.999023 (s)
+Elapsed system CPU time:	0.017997 (s)
+ memory bandwidth: 0.000000 GB/s
+256 x 256
+==done==
+Reynolds number:		1.006101512909E+01
+Elapsed time:			6.779621 (s)
+Elapsed user CPU time:		81.399625 (s)
+Elapsed system CPU time:	0.027995 (s)
+ memory bandwidth: 0.000000 GB/s
+1024 x 1024
+==done==
+Reynolds number:		3.376504182816E+00
+Elapsed time:			50.814440 (s)
+Elapsed user CPU time:		604.932036 (s)
+Elapsed system CPU time:	5.011238 (s)
+ memory bandwidth: 27.674220 GB/s
+
+
+13 CORES
+########################################
+128 x 128
+==done==
+Reynolds number:		9.755440711975E+00
+Elapsed time:			1.036747 (s)
+Elapsed user CPU time:		13.480950 (s)
+Elapsed system CPU time:	0.006998 (s)
+ memory bandwidth: 0.000000 GB/s
+256 x 256
+==done==
+Reynolds number:		1.006101512909E+01
+Elapsed time:			6.475247 (s)
+Elapsed user CPU time:		84.184202 (s)
+Elapsed system CPU time:	0.025996 (s)
+ memory bandwidth: 0.000000 GB/s
+1024 x 1024
+==done==
+Reynolds number:		3.376504182816E+00
+Elapsed time:			48.219861 (s)
+Elapsed user CPU time:		621.857463 (s)
+Elapsed system CPU time:	5.141218 (s)
+ memory bandwidth: 29.163294 GB/s
+
+
+14 CORES
+########################################
+128 x 128
+==done==
+Reynolds number:		9.755440711975E+00
+Elapsed time:			0.985843 (s)
+Elapsed user CPU time:		13.861892 (s)
+Elapsed system CPU time:	0.005999 (s)
+ memory bandwidth: 0.000000 GB/s
+256 x 256
+==done==
+Reynolds number:		1.006101512909E+01
+Elapsed time:			6.088473 (s)
+Elapsed user CPU time:		85.257038 (s)
+Elapsed system CPU time:	0.011998 (s)
+ memory bandwidth: 0.000000 GB/s
+1024 x 1024
+==done==
+Reynolds number:		3.376504182816E+00
+Elapsed time:			43.794417 (s)
+Elapsed user CPU time:		608.441502 (s)
+Elapsed system CPU time:	4.843263 (s)
+ memory bandwidth: 32.110257 GB/s
+
+
+15 CORES
+########################################
+128 x 128
+==done==
+Reynolds number:		9.755440711975E+00
+Elapsed time:			0.971485 (s)
+Elapsed user CPU time:		14.631775 (s)
+Elapsed system CPU time:	0.005999 (s)
+ memory bandwidth: 0.000000 GB/s
+256 x 256
+==done==
+Reynolds number:		1.006101512909E+01
+Elapsed time:			5.797490 (s)
+Elapsed user CPU time:		86.975777 (s)
+Elapsed system CPU time:	0.016997 (s)
+ memory bandwidth: 0.000000 GB/s
+1024 x 1024
+==done==
+Reynolds number:		3.376504182816E+00
+Elapsed time:			44.006001 (s)
+Elapsed user CPU time:		654.878443 (s)
+Elapsed system CPU time:	5.243202 (s)
+ memory bandwidth: 31.955869 GB/s
+
+
+16 CORES
+########################################
+128 x 128
+==done==
+Reynolds number:		9.755440711975E+00
+Elapsed time:			0.894154 (s)
+Elapsed user CPU time:		14.447803 (s)
+Elapsed system CPU time:	0.011998 (s)
+ memory bandwidth: 0.000000 GB/s
+256 x 256
+==done==
+Reynolds number:		1.006101512909E+01
+Elapsed time:			5.307909 (s)
+Elapsed user CPU time:		84.917090 (s)
+Elapsed system CPU time:	0.029995 (s)
+ memory bandwidth: 0.000000 GB/s
+1024 x 1024
+==done==
+Reynolds number:		3.376504182816E+00
+Elapsed time:			46.473605 (s)
+Elapsed user CPU time:		737.678855 (s)
+Elapsed system CPU time:	5.806117 (s)
+ memory bandwidth: 30.259112 GB/s
