@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
   t_speed* cells     = NULL;    /* grid containing fluid densities */
   t_speed* tmp_cells = NULL;    /* scratch space */
   int*     obstacles = NULL;    /* grid indicating which cells are blocked */
-  float* av_vels   = NULL;     /* a record of the av. velocity computed for each timestep */
+  float* av_vels   = NULL;      /* a record of the av. velocity computed for each timestep */
   cl_int err;
   struct timeval timstr;        /* structure to hold elapsed time */
   struct rusage ru;             /* structure to hold CPU time--system and user */
@@ -594,7 +594,8 @@ int initialise(const char* paramfile, const char* obstaclefile,
   checkError(err, "creating program", __LINE__);
 
   // Build OpenCL program
-  err = clBuildProgram(ocl->program, 1, &ocl->device, "", NULL, NULL);
+  char flags[] = "-cl-opt-disable";
+   err = clBuildProgram(ocl->program, 1, &ocl->device, flags, NULL, NULL);
   if (err == CL_BUILD_PROGRAM_FAILURE) {
     size_t sz;
     clGetProgramBuildInfo(

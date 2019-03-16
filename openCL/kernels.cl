@@ -2,16 +2,14 @@
 
 #define NSPEEDS         9
 
-typedef struct
-{
+typedef struct {
   float speeds[NSPEEDS];
 } t_speed;
 
 kernel void accelerate_flow(global t_speed* cells,
                             global int* obstacles,
                             int nx, int ny,
-                            float density, float accel)
-{
+                            float density, float accel) {
   /* compute weighting factors */
   float w1 = density * accel / 9.0;
   float w2 = density * accel / 36.0;
@@ -27,8 +25,7 @@ kernel void accelerate_flow(global t_speed* cells,
   if (!obstacles[ii + jj* nx]
       && (cells[ii + jj* nx].speeds[3] - w1) > 0.f
       && (cells[ii + jj* nx].speeds[6] - w2) > 0.f
-      && (cells[ii + jj* nx].speeds[7] - w2) > 0.f)
-  {
+      && (cells[ii + jj* nx].speeds[7] - w2) > 0.f) {
     /* increase 'east-side' densities */
     cells[ii + jj* nx].speeds[1] += w1;
     cells[ii + jj* nx].speeds[5] += w2;
@@ -43,8 +40,7 @@ kernel void accelerate_flow(global t_speed* cells,
 kernel void propagate(global t_speed* cells,
                       global t_speed* tmp_cells,
                       global int* obstacles,
-                      int nx, int ny)
-{
+                      int nx, int ny) {
   /* get column and row indices */
   int ii = get_global_id(0);
   int jj = get_global_id(1);
