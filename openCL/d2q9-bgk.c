@@ -1,53 +1,3 @@
-/*
-** Code to implement a d2q9-bgk lattice boltzmann scheme.
-** 'd2' inidates a 2-dimensional grid, and
-** 'q9' indicates 9 velocities per grid cell.
-** 'bgk' refers to the Bhatnagar-Gross-Krook collision step.
-**
-** The 'speeds' in each cell are numbered as follows:
-**
-** 6 2 5
-**  \|/
-** 3-0-1
-**  /|\
-** 7 4 8
-**
-** A 2D grid:
-**
-**           cols
-**       --- --- ---
-**      | D | E | F |
-** rows  --- --- ---
-**      | A | B | C |
-**       --- --- ---
-**
-** 'unwrapped' in row major order to give a 1D array:
-**
-**  --- --- --- --- --- ---
-** | A | B | C | D | E | F |
-**  --- --- --- --- --- ---
-**
-** Grid indicies are:
-**
-**          ny
-**          ^       cols(ii)
-**          |  ----- ----- -----
-**          | | ... | ... | etc |
-**          |  ----- ----- -----
-** rows(jj) | | 1,0 | 1,1 | 1,2 |
-**          |  ----- ----- -----
-**          | | 0,0 | 0,1 | 0,2 |
-**          |  ----- ----- -----
-**          ----------------------> nx
-**
-** Note the names of the input parameter and obstacle files
-** are passed on the command line, e.g.:
-**
-**   ./d2q9-bgk input.params obstacles.dat
-**
-** Be sure to adjust the grid dimensions in the parameter file
-** if you choose a different obstacle file.
-*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -69,8 +19,7 @@
 #define OCLFILE         "kernels.cl"
 
 /* struct to hold the parameter values */
-typedef struct
-{
+typedef struct {
   int    nx;            /* no. of cells in x-direction */
   int    ny;            /* no. of cells in y-direction */
   int    maxIters;      /* no. of iterations */
@@ -81,8 +30,7 @@ typedef struct
 } t_param;
 
 /* struct to hold OpenCL objects */
-typedef struct
-{
+typedef struct {
   cl_device_id      device;
   cl_context        context;
   cl_command_queue  queue;
@@ -97,14 +45,10 @@ typedef struct
 } t_ocl;
 
 /* struct to hold the 'speed' values */
-typedef struct
-{
+typedef struct {
   float speeds[NSPEEDS];
 } t_speed;
 
-/*
-** function prototypes
-*/
 
 /* load params, allocate memory, load obstacles & initialise fluid particle densities */
 int initialise(const char* paramfile, const char* obstaclefile,
@@ -148,8 +92,8 @@ cl_device_id selectOpenCLDevice();
 ** main program:
 ** initialise, timestep loop, finalise
 */
-int main(int argc, char* argv[])
-{
+int main(int argc, char* argv[]) {
+
   char*    paramfile = NULL;    /* name of the input parameter file */
   char*    obstaclefile = NULL; /* name of a the input obstacle file */
   t_param  params;              /* struct to hold parameter values */
@@ -166,12 +110,9 @@ int main(int argc, char* argv[])
   double systim;                /* floating point number to record elapsed system CPU time */
 
   /* parse the command line */
-  if (argc != 3)
-  {
+  if (argc != 3) {
     usage(argv[0]);
-  }
-  else
-  {
+  } else {
     paramfile = argv[1];
     obstaclefile = argv[2];
   }
@@ -195,8 +136,7 @@ int main(int argc, char* argv[])
     sizeof(cl_int) * params.nx * params.ny, obstacles, 0, NULL, NULL);
   checkError(err, "writing obstacles data", __LINE__);
 
-  for (int tt = 0; tt < params.maxIters; tt++)
-  {
+  for (int tt = 0; tt < params.maxIters; tt++) {
     timestep(params, cells, tmp_cells, obstacles, ocl);
     av_vels[tt] = av_velocity(params, cells, obstacles, ocl);
 #ifdef DEBUG
@@ -226,8 +166,7 @@ int main(int argc, char* argv[])
   return EXIT_SUCCESS;
 }
 
-int timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles, t_ocl ocl)
-{
+int timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles, t_ocl ocl) {
   cl_int err;
 
   // Write cells to device
@@ -250,8 +189,7 @@ int timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obst
   return EXIT_SUCCESS;
 }
 
-int accelerate_flow(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl)
-{
+int accelerate_flow(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl) {
   cl_int err;
 
   // Set kernel arguments
@@ -281,8 +219,7 @@ int accelerate_flow(const t_param params, t_speed* cells, int* obstacles, t_ocl 
   return EXIT_SUCCESS;
 }
 
-int propagate(const t_param params, t_speed* cells, t_speed* tmp_cells, t_ocl ocl)
-{
+int propagate(const t_param params, t_speed* cells, t_speed* tmp_cells, t_ocl ocl) {
   cl_int err;
 
   // Set kernel arguments
@@ -310,16 +247,12 @@ int propagate(const t_param params, t_speed* cells, t_speed* tmp_cells, t_ocl oc
   return EXIT_SUCCESS;
 }
 
-int rebound(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles, t_ocl ocl)
-{
+int rebound(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles, t_ocl ocl) {
   /* loop over the cells in the grid */
-  for (int jj = 0; jj < params.ny; jj++)
-  {
-    for (int ii = 0; ii < params.nx; ii++)
-    {
+  for (int jj = 0; jj < params.ny; jj++) {
+    for (int ii = 0; ii < params.nx; ii++) {
       /* if the cell contains an obstacle */
-      if (obstacles[jj*params.nx + ii])
-      {
+      if (obstacles[jj*params.nx + ii]) {
         /* called after propagate, so taking values from scratch space
         ** mirroring, and writing into main grid */
         cells[ii + jj*params.nx].speeds[1] = tmp_cells[ii + jj*params.nx].speeds[3];
@@ -337,8 +270,7 @@ int rebound(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obsta
   return EXIT_SUCCESS;
 }
 
-int collision(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles, t_ocl ocl)
-{
+int collision(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles, t_ocl ocl) {
   const float c_sq = 1.f / 3.f; /* square of speed of sound */
   const float w0 = 4.f / 9.f;  /* weighting factor */
   const float w1 = 1.f / 9.f;  /* weighting factor */
@@ -348,18 +280,14 @@ int collision(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obs
   ** NB the collision step is called after
   ** the propagate step and so values of interest
   ** are in the scratch-space grid */
-  for (int jj = 0; jj < params.ny; jj++)
-  {
-    for (int ii = 0; ii < params.nx; ii++)
-    {
+  for (int jj = 0; jj < params.ny; jj++) {
+    for (int ii = 0; ii < params.nx; ii++) {
       /* don't consider occupied cells */
-      if (!obstacles[ii + jj*params.nx])
-      {
+      if (!obstacles[ii + jj*params.nx]) {
         /* compute local density total */
         float local_density = 0.f;
 
-        for (int kk = 0; kk < NSPEEDS; kk++)
-        {
+        for (int kk = 0; kk < NSPEEDS; kk++) {
           local_density += tmp_cells[ii + jj*params.nx].speeds[kk];
         }
 
@@ -427,8 +355,7 @@ int collision(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obs
                                          - u_sq / (2.f * c_sq));
 
         /* relaxation step */
-        for (int kk = 0; kk < NSPEEDS; kk++)
-        {
+        for (int kk = 0; kk < NSPEEDS; kk++) {
           cells[ii + jj*params.nx].speeds[kk] = tmp_cells[ii + jj*params.nx].speeds[kk]
                                                   + params.omega
                                                   * (d_equ[kk] - tmp_cells[ii + jj*params.nx].speeds[kk]);
@@ -440,8 +367,7 @@ int collision(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obs
   return EXIT_SUCCESS;
 }
 
-float av_velocity(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl)
-{
+float av_velocity(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl) {
   int    tot_cells = 0;  /* no. of cells used in calculation */
   float tot_u;          /* accumulated magnitudes of velocity for each cell */
 
@@ -449,18 +375,14 @@ float av_velocity(const t_param params, t_speed* cells, int* obstacles, t_ocl oc
   tot_u = 0.f;
 
   /* loop over all non-blocked cells */
-  for (int jj = 0; jj < params.ny; jj++)
-  {
-    for (int ii = 0; ii < params.nx; ii++)
-    {
+  for (int jj = 0; jj < params.ny; jj++) {
+    for (int ii = 0; ii < params.nx; ii++) {
       /* ignore occupied cells */
-      if (!obstacles[ii + jj*params.nx])
-      {
+      if (!obstacles[ii + jj*params.nx]) {
         /* local density total */
         float local_density = 0.f;
 
-        for (int kk = 0; kk < NSPEEDS; kk++)
-        {
+        for (int kk = 0; kk < NSPEEDS; kk++) {
           local_density += cells[ii + jj*params.nx].speeds[kk];
         }
 
@@ -493,8 +415,7 @@ float av_velocity(const t_param params, t_speed* cells, int* obstacles, t_ocl oc
 
 int initialise(const char* paramfile, const char* obstaclefile,
                t_param* params, t_speed** cells_ptr, t_speed** tmp_cells_ptr,
-               int** obstacles_ptr, float** av_vels_ptr, t_ocl *ocl)
-{
+               int** obstacles_ptr, float** av_vels_ptr, t_ocl *ocl) {
   char   message[1024];  /* message buffer */
   FILE*   fp;            /* file pointer */
   int    xx, yy;         /* generic array indices */
@@ -506,8 +427,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
   /* open the parameter file */
   fp = fopen(paramfile, "r");
 
-  if (fp == NULL)
-  {
+  if (fp == NULL) {
     sprintf(message, "could not open input parameter file: %s", paramfile);
     die(message, __LINE__, __FILE__);
   }
@@ -583,10 +503,8 @@ int initialise(const char* paramfile, const char* obstaclefile,
   float w1 = params->density      / 9.f;
   float w2 = params->density      / 36.f;
 
-  for (int jj = 0; jj < params->ny; jj++)
-  {
-    for (int ii = 0; ii < params->nx; ii++)
-    {
+  for (int jj = 0; jj < params->ny; jj++) {
+    for (int ii = 0; ii < params->nx; ii++) {
       /* centre */
       (*cells_ptr)[ii + jj*params->nx].speeds[0] = w0;
       /* axis directions */
@@ -603,10 +521,8 @@ int initialise(const char* paramfile, const char* obstaclefile,
   }
 
   /* first set all cells in obstacle array to zero */
-  for (int jj = 0; jj < params->ny; jj++)
-  {
-    for (int ii = 0; ii < params->nx; ii++)
-    {
+  for (int jj = 0; jj < params->ny; jj++) {
+    for (int ii = 0; ii < params->nx; ii++) {
       (*obstacles_ptr)[ii + jj*params->nx] = 0;
     }
   }
@@ -614,15 +530,13 @@ int initialise(const char* paramfile, const char* obstaclefile,
   /* open the obstacle data file */
   fp = fopen(obstaclefile, "r");
 
-  if (fp == NULL)
-  {
+  if (fp == NULL) {
     sprintf(message, "could not open input obstacles file: %s", obstaclefile);
     die(message, __LINE__, __FILE__);
   }
 
   /* read-in the blocked cells list */
-  while ((retval = fscanf(fp, "%d %d %d\n", &xx, &yy, &blocked)) != EOF)
-  {
+  while ((retval = fscanf(fp, "%d %d %d\n", &xx, &yy, &blocked)) != EOF) {
     /* some checks */
     if (retval != 3) die("expected 3 values per line in obstacle file", __LINE__, __FILE__);
 
@@ -655,8 +569,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
   checkError(err, "creating context", __LINE__);
 
   fp = fopen(OCLFILE, "r");
-  if (fp == NULL)
-  {
+  if (fp == NULL) {
     sprintf(message, "could not open OpenCL kernel file: %s", OCLFILE);
     die(message, __LINE__, __FILE__);
   }
@@ -682,8 +595,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
 
   // Build OpenCL program
   err = clBuildProgram(ocl->program, 1, &ocl->device, "", NULL, NULL);
-  if (err == CL_BUILD_PROGRAM_FAILURE)
-  {
+  if (err == CL_BUILD_PROGRAM_FAILURE) {
     size_t sz;
     clGetProgramBuildInfo(
       ocl->program, ocl->device,
@@ -721,8 +633,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
 }
 
 int finalise(const t_param* params, t_speed** cells_ptr, t_speed** tmp_cells_ptr,
-             int** obstacles_ptr, float** av_vels_ptr, t_ocl ocl)
-{
+             int** obstacles_ptr, float** av_vels_ptr, t_ocl ocl) {
   /*
   ** free up allocated memory
   */
@@ -751,23 +662,18 @@ int finalise(const t_param* params, t_speed** cells_ptr, t_speed** tmp_cells_ptr
 }
 
 
-float calc_reynolds(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl)
-{
+float calc_reynolds(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl) {
   const float viscosity = 1.f / 6.f * (2.f / params.omega - 1.f);
 
   return av_velocity(params, cells, obstacles, ocl) * params.reynolds_dim / viscosity;
 }
 
-float total_density(const t_param params, t_speed* cells)
-{
+float total_density(const t_param params, t_speed* cells) {
   float total = 0.f;  /* accumulator */
 
-  for (int jj = 0; jj < params.ny; jj++)
-  {
-    for (int ii = 0; ii < params.nx; ii++)
-    {
-      for (int kk = 0; kk < NSPEEDS; kk++)
-      {
+  for (int jj = 0; jj < params.ny; jj++) {
+    for (int ii = 0; ii < params.nx; ii++) {
+      for (int kk = 0; kk < NSPEEDS; kk++) {
         total += cells[ii + jj*params.nx].speeds[kk];
       }
     }
@@ -776,8 +682,7 @@ float total_density(const t_param params, t_speed* cells)
   return total;
 }
 
-int write_values(const t_param params, t_speed* cells, int* obstacles, float* av_vels)
-{
+int write_values(const t_param params, t_speed* cells, int* obstacles, float* av_vels) {
   FILE* fp;                     /* file pointer */
   const float c_sq = 1.f / 3.f; /* sq. of speed of sound */
   float local_density;         /* per grid cell sum of densities */
@@ -788,28 +693,22 @@ int write_values(const t_param params, t_speed* cells, int* obstacles, float* av
 
   fp = fopen(FINALSTATEFILE, "w");
 
-  if (fp == NULL)
-  {
+  if (fp == NULL) {
     die("could not open file output file", __LINE__, __FILE__);
   }
 
-  for (int jj = 0; jj < params.ny; jj++)
-  {
-    for (int ii = 0; ii < params.nx; ii++)
-    {
+  for (int jj = 0; jj < params.ny; jj++) {
+    for (int ii = 0; ii < params.nx; ii++) {
       /* an occupied cell */
-      if (obstacles[ii + jj*params.nx])
-      {
+      if (obstacles[ii + jj*params.nx]) {
         u_x = u_y = u = 0.f;
         pressure = params.density * c_sq;
       }
       /* no obstacle */
-      else
-      {
+      else {
         local_density = 0.f;
 
-        for (int kk = 0; kk < NSPEEDS; kk++)
-        {
+        for (int kk = 0; kk < NSPEEDS; kk++) {
           local_density += cells[ii + jj*params.nx].speeds[kk];
         }
 
@@ -844,13 +743,11 @@ int write_values(const t_param params, t_speed* cells, int* obstacles, float* av
 
   fp = fopen(AVVELSFILE, "w");
 
-  if (fp == NULL)
-  {
+  if (fp == NULL) {
     die("could not open file output file", __LINE__, __FILE__);
   }
 
-  for (int ii = 0; ii < params.maxIters; ii++)
-  {
+  for (int ii = 0; ii < params.maxIters; ii++) {
     fprintf(fp, "%d:\t%.12E\n", ii, av_vels[ii]);
   }
 
@@ -859,26 +756,22 @@ int write_values(const t_param params, t_speed* cells, int* obstacles, float* av
   return EXIT_SUCCESS;
 }
 
-void checkError(cl_int err, const char *op, const int line)
-{
-  if (err != CL_SUCCESS)
-  {
+void checkError(cl_int err, const char *op, const int line) {
+  if (err != CL_SUCCESS) {
     fprintf(stderr, "OpenCL error during '%s' on line %d: %d\n", op, line, err);
     fflush(stderr);
     exit(EXIT_FAILURE);
   }
 }
 
-void die(const char* message, const int line, const char* file)
-{
+void die(const char* message, const int line, const char* file) {
   fprintf(stderr, "Error at line %d of file %s:\n", line, file);
   fprintf(stderr, "%s\n", message);
   fflush(stderr);
   exit(EXIT_FAILURE);
 }
 
-void usage(const char* exe)
-{
+void usage(const char* exe) {
   fprintf(stderr, "Usage: %s <paramfile> <obstaclefile>\n", exe);
   exit(EXIT_FAILURE);
 }
@@ -886,8 +779,7 @@ void usage(const char* exe)
 #define MAX_DEVICES 32
 #define MAX_DEVICE_NAME 1024
 
-cl_device_id selectOpenCLDevice()
-{
+cl_device_id selectOpenCLDevice() {
   cl_int err;
   cl_uint num_platforms = 0;
   cl_uint total_devices = 0;
@@ -900,8 +792,7 @@ cl_device_id selectOpenCLDevice()
   checkError(err, "getting platforms", __LINE__);
 
   // Get list of devices
-  for (cl_uint p = 0; p < num_platforms; p++)
-  {
+  for (cl_uint p = 0; p < num_platforms; p++) {
     cl_uint num_devices = 0;
     err = clGetDeviceIDs(platforms[p], CL_DEVICE_TYPE_ALL,
                          MAX_DEVICES-total_devices, devices+total_devices,
@@ -912,8 +803,7 @@ cl_device_id selectOpenCLDevice()
 
   // Print list of devices
   printf("\nAvailable OpenCL devices:\n");
-  for (cl_uint d = 0; d < total_devices; d++)
-  {
+  for (cl_uint d = 0; d < total_devices; d++) {
     clGetDeviceInfo(devices[d], CL_DEVICE_NAME, MAX_DEVICE_NAME, name, NULL);
     printf("%2d: %s\n", d, name);
   }
@@ -922,16 +812,14 @@ cl_device_id selectOpenCLDevice()
   // Use first device unless OCL_DEVICE environment variable used
   cl_uint device_index = 0;
   char *dev_env = getenv("OCL_DEVICE");
-  if (dev_env)
-  {
+  if (dev_env) {
     char *end;
     device_index = strtol(dev_env, &end, 10);
     if (strlen(end))
       die("invalid OCL_DEVICE variable", __LINE__, __FILE__);
   }
 
-  if (device_index >= total_devices)
-  {
+  if (device_index >= total_devices) {
     fprintf(stderr, "device index set to %d but only %d devices available\n",
             device_index, total_devices);
     exit(1);
