@@ -1,10 +1,10 @@
 /* v0: Initial code
- * v1: Port rebound to kernel
+ *
  */
 
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
 
-#define NSPEEDS 9
+#define NSPEEDS         9
 
 typedef struct {
   float speeds[NSPEEDS];
@@ -43,6 +43,7 @@ kernel void accelerate_flow(global t_speed* cells,
 
 kernel void propagate(global t_speed* cells,
                       global t_speed* tmp_cells,
+                      global int* obstacles,
                       int nx, int ny) {
   /* get column and row indices */
   int ii = get_global_id(0);
@@ -67,27 +68,4 @@ kernel void propagate(global t_speed* cells,
   tmp_cells[ii + jj*nx].speeds[6] = cells[x_e + y_s*nx].speeds[6]; /* north-west */
   tmp_cells[ii + jj*nx].speeds[7] = cells[x_e + y_n*nx].speeds[7]; /* south-west */
   tmp_cells[ii + jj*nx].speeds[8] = cells[x_w + y_n*nx].speeds[8]; /* south-east */
-}
-
-kernel void rebound(global t_speed* cells,
-                    global t_speed* tmp_cells,
-                    global int* obstacles,
-                    int nx, int ny) {
-  /* get column and row indices */
-  int ii = get_global_id(0);
-  int jj = get_global_id(1);
-
-  /* if the cell contains an obstacle */
-  if (obstacles[jj*nx + ii]) {
-    /* called after propagate, so taking values from scratch space
-    ** mirroring, and writing into main grid */
-    cells[ii + jj*nx].speeds[1] = tmp_cells[ii + jj*nx].speeds[3];
-    cells[ii + jj*nx].speeds[2] = tmp_cells[ii + jj*nx].speeds[4];
-    cells[ii + jj*nx].speeds[3] = tmp_cells[ii + jj*nx].speeds[1];
-    cells[ii + jj*nx].speeds[4] = tmp_cells[ii + jj*nx].speeds[2];
-    cells[ii + jj*nx].speeds[5] = tmp_cells[ii + jj*nx].speeds[7];
-    cells[ii + jj*nx].speeds[6] = tmp_cells[ii + jj*nx].speeds[8];
-    cells[ii + jj*nx].speeds[7] = tmp_cells[ii + jj*nx].speeds[5];
-    cells[ii + jj*nx].speeds[8] = tmp_cells[ii + jj*nx].speeds[6];
-  }
 }

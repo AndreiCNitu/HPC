@@ -1,5 +1,5 @@
 /* v0: Initial code
- * v1: Port rebound to kernel
+ *
  */
 
 #include <stdio.h>
@@ -19,7 +19,7 @@
 #define NSPEEDS         9
 #define FINALSTATEFILE  "final_state.dat"
 #define AVVELSFILE      "av_vels.dat"
-#define OCLFILE         "kernels.cl"
+#define OCLFILE         "kernels0.cl"
 
 /* struct to hold the parameter values */
 typedef struct {
@@ -41,7 +41,6 @@ typedef struct {
   cl_program program;
   cl_kernel  accelerate_flow;
   cl_kernel  propagate;
-  cl_kernel  rebound;
 
   cl_mem cells;
   cl_mem tmp_cells;
@@ -181,7 +180,6 @@ int timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obst
 
   accelerate_flow(params, cells, obstacles, ocl);
   propagate(params, cells, tmp_cells, ocl);
-  rebound(params, cells, tmp_cells, obstacles, ocl);
 
   // Read tmp_cells from device
   err = clEnqueueReadBuffer(
@@ -189,12 +187,7 @@ int timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obst
     sizeof(t_speed) * params.nx * params.ny, tmp_cells, 0, NULL, NULL);
   checkError(err, "reading tmp_cells data", __LINE__);
 
-  // Read cells from device
-  err = clEnqueueReadBuffer(
-    ocl.queue, ocl.cells, CL_TRUE, 0,
-    sizeof(t_speed) * params.nx * params.ny, cells, 0, NULL, NULL);
-  checkError(err, "reading cells data", __LINE__);
-
+  rebound(params, cells, tmp_cells, obstacles, ocl);
   collision(params, cells, tmp_cells, obstacles, ocl);
   return EXIT_SUCCESS;
 }
@@ -237,9 +230,11 @@ int propagate(const t_param params, t_speed* cells, t_speed* tmp_cells, t_ocl oc
   checkError(err, "setting propagate arg 0", __LINE__);
   err = clSetKernelArg(ocl.propagate, 1, sizeof(cl_mem), &ocl.tmp_cells);
   checkError(err, "setting propagate arg 1", __LINE__);
-  err = clSetKernelArg(ocl.propagate, 2, sizeof(cl_int), &params.nx);
+  err = clSetKernelArg(ocl.propagate, 2, sizeof(cl_mem), &ocl.obstacles);
+  checkError(err, "setting propagate arg 2", __LINE__);
+  err = clSetKernelArg(ocl.propagate, 3, sizeof(cl_int), &params.nx);
   checkError(err, "setting propagate arg 3", __LINE__);
-  err = clSetKernelArg(ocl.propagate, 3, sizeof(cl_int), &params.ny);
+  err = clSetKernelArg(ocl.propagate, 4, sizeof(cl_int), &params.ny);
   checkError(err, "setting propagate arg 4", __LINE__);
 
   // Enqueue kernel
@@ -256,38 +251,33 @@ int propagate(const t_param params, t_speed* cells, t_speed* tmp_cells, t_ocl oc
 }
 
 int rebound(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles, t_ocl ocl) {
-    cl_int err;
-
-    // Set kernel arguments
-    err = clSetKernelArg(ocl.rebound, 0, sizeof(cl_mem), &ocl.cells);
-    checkError(err, "setting rebound arg 0", __LINE__);
-    err = clSetKernelArg(ocl.rebound, 1, sizeof(cl_mem), &ocl.tmp_cells);
-    checkError(err, "setting rebound arg 1", __LINE__);
-    err = clSetKernelArg(ocl.rebound, 2, sizeof(cl_mem), &ocl.obstacles);
-    checkError(err, "setting rebound arg 2", __LINE__);
-    err = clSetKernelArg(ocl.rebound, 3, sizeof(cl_int), &params.nx);
-    checkError(err, "setting rebound arg 3", __LINE__);
-    err = clSetKernelArg(ocl.rebound, 4, sizeof(cl_int), &params.ny);
-    checkError(err, "setting rebound arg 4", __LINE__);
-
-    // Enqueue kernel
-    size_t global[2] = {params.nx, params.ny};
-    err = clEnqueueNDRangeKernel(ocl.queue, ocl.rebound,
-                                 2, NULL, global, NULL, 0, NULL, NULL);
-    checkError(err, "enqueueing rebound kernel", __LINE__);
-
-    // Wait for kernel to finish
-    err = clFinish(ocl.queue);
-    checkError(err, "waiting for rebound kernel", __LINE__);
+  /* loop over the cells in the grid */
+  for (int jj = 0; jj < params.ny; jj++) {
+    for (int ii = 0; ii < params.nx; ii++) {
+      /* if the cell contains an obstacle */
+      if (obstacles[jj*params.nx + ii]) {
+        /* called after propagate, so taking values from scratch space
+        ** mirroring, and writing into main grid */
+        cells[ii + jj*params.nx].speeds[1] = tmp_cells[ii + jj*params.nx].speeds[3];
+        cells[ii + jj*params.nx].speeds[2] = tmp_cells[ii + jj*params.nx].speeds[4];
+        cells[ii + jj*params.nx].speeds[3] = tmp_cells[ii + jj*params.nx].speeds[1];
+        cells[ii + jj*params.nx].speeds[4] = tmp_cells[ii + jj*params.nx].speeds[2];
+        cells[ii + jj*params.nx].speeds[5] = tmp_cells[ii + jj*params.nx].speeds[7];
+        cells[ii + jj*params.nx].speeds[6] = tmp_cells[ii + jj*params.nx].speeds[8];
+        cells[ii + jj*params.nx].speeds[7] = tmp_cells[ii + jj*params.nx].speeds[5];
+        cells[ii + jj*params.nx].speeds[8] = tmp_cells[ii + jj*params.nx].speeds[6];
+      }
+    }
+  }
 
   return EXIT_SUCCESS;
 }
 
 int collision(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles, t_ocl ocl) {
   const float c_sq = 1.f / 3.f; /* square of speed of sound */
-  const float w0 = 4.f / 9.f;   /* weighting factor */
-  const float w1 = 1.f / 9.f;   /* weighting factor */
-  const float w2 = 1.f / 36.f;  /* weighting factor */
+  const float w0 = 4.f / 9.f;  /* weighting factor */
+  const float w1 = 1.f / 9.f;  /* weighting factor */
+  const float w2 = 1.f / 36.f; /* weighting factor */
 
   /* loop over the cells in the grid
   ** NB the collision step is called after
@@ -627,9 +617,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
   ocl->accelerate_flow = clCreateKernel(ocl->program, "accelerate_flow", &err);
   checkError(err, "creating accelerate_flow kernel", __LINE__);
   ocl->propagate = clCreateKernel(ocl->program, "propagate", &err);
-  checkError(err, "creating rebound kernel", __LINE__);
-  ocl->rebound = clCreateKernel(ocl->program, "rebound", &err);
-  checkError(err, "creating rebound kernel", __LINE__);
+  checkError(err, "creating propagate kernel", __LINE__);
 
   // Allocate OpenCL buffers
   ocl->cells = clCreateBuffer(
@@ -670,7 +658,6 @@ int finalise(const t_param* params, t_speed** cells_ptr, t_speed** tmp_cells_ptr
   clReleaseMemObject(ocl.obstacles);
   clReleaseKernel(ocl.accelerate_flow);
   clReleaseKernel(ocl.propagate);
-  clReleaseKernel(ocl.rebound);
   clReleaseProgram(ocl.program);
   clReleaseCommandQueue(ocl.queue);
   clReleaseContext(ocl.context);
