@@ -1,5 +1,6 @@
 # Makefile
 
+SRC=d2q9-bgk
 EXE=d2q9-bgk
 
 CC=gcc
@@ -27,7 +28,7 @@ VELS_LARGE=check/1024x1024.av_vels.dat
 all: $(EXE)
 
 $(EXE): $(EXE).c
-	$(CC) $(CFLAGS) $^ $(LIBS) -o $@
+	$(CC) $(CFLAGS) $^ $(LIBS) -o $(EXE)
 
 check-small:
 	python check/check.py --ref-av-vels-file=$(VELS_SMALL) --ref-final-state-file=$(STATE_SMALL) --av-vels-file=$(AV_VELS) --final-state-file=$(STATE)
