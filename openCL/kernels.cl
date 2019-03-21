@@ -191,3 +191,76 @@ kernel void collision(global t_speed* cells,
     }
   }
 }
+
+
+kernel void av_velocity(global t_speed* cells,
+                        global int* obstacles,
+                        int nx, int ny,
+                        global float* partial_tot_u,
+                        global int*   partial_tot_cells,
+                        local  float* local_tot_u,
+                        local  int*   local_tot_cells) {
+
+    /* get column and row indices */
+    int ii = get_global_id(0);
+    int jj = get_global_id(1);
+
+    /* ignore occupied cells */
+    if (!obstacles[ii + jj*nx]) {
+      /* local density total */
+      float local_density = 0.f;
+
+      for (int kk = 0; kk < NSPEEDS; kk++) {
+        local_density += cells[ii + jj*nx].speeds[kk];
+      }
+
+      /* x-component of velocity */
+      float u_x = (cells[ii + jj*nx].speeds[1]
+                    + cells[ii + jj*nx].speeds[5]
+                    + cells[ii + jj*nx].speeds[8]
+                    - (cells[ii + jj*nx].speeds[3]
+                       + cells[ii + jj*nx].speeds[6]
+                       + cells[ii + jj*nx].speeds[7]))
+                   / local_density;
+      /* compute y velocity component */
+      float u_y = (cells[ii + jj*nx].speeds[2]
+                    + cells[ii + jj*nx].speeds[5]
+                    + cells[ii + jj*nx].speeds[6]
+                    - (cells[ii + jj*nx].speeds[4]
+                       + cells[ii + jj*nx].speeds[7]
+                       + cells[ii + jj*nx].speeds[8]))
+                   / local_density;
+      /* accumulate the norm of x- and y- velocity components */
+      local_tot_u[get_local_id(0)] = sqrt((u_x * u_x) + (u_y * u_y));
+      /* increase counter of inspected cells */
+      local_tot_cells[get_local_id(0)] = 1;
+    } else {
+        local_tot_u[get_local_id(0)] = 0;
+        local_tot_cells[get_local_id(0)] = 0;
+    }
+
+    barrier(CLK_LOCAL_MEM_FENCE);
+    if (get_local_id(0) == 0) {
+        partial_tot_u[get_group_id(0)] = local_tot_u[0];
+        partial_tot_cells[get_group_id(0)] = local_tot_cells[0];
+        for (int i = 1; i < get_local_size(0); i++ ) {
+            partial_tot_u[get_group_id(0)] += local_tot_u[i];
+            partial_tot_cells[get_group_id(0)] += local_tot_cells[i];
+        }
+    }
+}
+
+// kernel void reduce( global float* partial_tot_u,
+//                     global int*   partial_tot_cells,
+//                     global float* av_vels) {
+//
+//   if (get_global_id(0) == 0) {
+//     float total_u = 0.0f;
+//     int total_cells = 0;
+//     for (int i = 0; i < get_global_size(0); i++) {
+//       total_u += partial_tot_u[i];
+//       total_cells += partial_tot_cells[i];
+//     }
+//     av_vels[tt] = total_u / (float)tot_cells;
+//   }
+// }
