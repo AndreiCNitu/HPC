@@ -1,7 +1,3 @@
-/* v0: Initial code
- * v1: Port rebound and collision to kernels
- */
-
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
 
 #define NSPEEDS 9
@@ -240,12 +236,13 @@ kernel void av_velocity(global t_speed* cells,
     }
 
     barrier(CLK_LOCAL_MEM_FENCE);
+
     if (get_local_id(0) == 0) {
-        partial_tot_u[get_group_id(0)] = local_tot_u[0];
-        partial_tot_cells[get_group_id(0)] = local_tot_cells[0];
-        for (int i = 1; i < get_local_size(0); i++ ) {
-            partial_tot_u[get_group_id(0)] += local_tot_u[i];
-            partial_tot_cells[get_group_id(0)] += local_tot_cells[i];
+        partial_tot_u[get_group_id(1)] = 0.0f;
+        partial_tot_cells[get_group_id(1)] = 0;
+        for (unsigned long i = 0; i < get_local_size(0); i++ ) {
+            partial_tot_u[get_group_id(1)] += local_tot_u[i];
+            partial_tot_cells[get_group_id(1)] += local_tot_cells[i];
         }
     }
 }

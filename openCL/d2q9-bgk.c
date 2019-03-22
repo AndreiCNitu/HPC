@@ -1,6 +1,3 @@
-/* v0: Initial code
- * v1: Port rebound and collision to kernels
- */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -343,7 +340,7 @@ float av_velocity(const t_param params, t_speed* cells, int* obstacles, t_ocl oc
   // Enqueue kernel
   size_t global[2] = {params.nx, params.ny};
   size_t local[2]  = {params.nx, 1};
-  err = clEnqueueNDRangeKernel(ocl.queue, ocl.collision,
+  err = clEnqueueNDRangeKernel(ocl.queue, ocl.av_velocity,
                                2, NULL, global, local, 0, NULL, NULL);
   checkError(err, "enqueueing av_velocity kernel", __LINE__);
 
@@ -351,29 +348,28 @@ float av_velocity(const t_param params, t_speed* cells, int* obstacles, t_ocl oc
   err = clFinish(ocl.queue);
   checkError(err, "waiting for av_velocity kernel", __LINE__);
 
-  int partial_tot_cells[params.ny];
-  float partial_tot_u[params.ny];
+  int* h_partial_tot_cells = malloc(sizeof(int) * params.ny);
+  float* h_partial_tot_u = malloc(sizeof(float) * params.ny);
 
   // Read partial_tot_u from device
   err = clEnqueueReadBuffer(
     ocl.queue, ocl.partial_tot_u, CL_TRUE, 0,
-    sizeof(float) * params.ny, partial_tot_u, 0, NULL, NULL);
+    sizeof(float) * params.ny, h_partial_tot_u, 0, NULL, NULL);
   checkError(err, "reading partial_tot_u data", __LINE__);
 
   // Read partial_tot_cells from device
   err = clEnqueueReadBuffer(
     ocl.queue, ocl.partial_tot_cells, CL_TRUE, 0,
-    sizeof(int) * params.ny, partial_tot_cells, 0, NULL, NULL);
+    sizeof(int) * params.ny, h_partial_tot_cells, 0, NULL, NULL);
   checkError(err, "reading partial_tot_cells data", __LINE__);
 
   float tot_u = 0.0f; /* accumulated magnitudes of velocity for each cell */
   int tot_cells = 0;  /* no. of cells used in calculation */
   for (int i = 0; i < params.ny; i++) {
-      tot_cells += partial_tot_cells[i];
-      tot_u += partial_tot_u[i];
+      tot_cells += h_partial_tot_cells[i];
+      tot_u += h_partial_tot_u[i];
   }
 
-  printf("u=%lf, cells=%d\n", tot_u, tot_cells);
   return tot_u / (float)tot_cells;
 }
 
