@@ -247,17 +247,18 @@ kernel void av_velocity(global t_speed* cells,
     }
 }
 
-// kernel void reduce( global float* partial_tot_u,
-//                     global int*   partial_tot_cells,
-//                     global float* av_vels) {
-//
-//   if (get_global_id(0) == 0) {
-//     float total_u = 0.0f;
-//     int total_cells = 0;
-//     for (int i = 0; i < get_global_size(0); i++) {
-//       total_u += partial_tot_u[i];
-//       total_cells += partial_tot_cells[i];
-//     }
-//     av_vels[tt] = total_u / (float)tot_cells;
-//   }
-// }
+kernel void reduce( global float* partial_tot_u,
+                    global int*   partial_tot_cells,
+                    global float* av_vels,
+                    int tt) {
+
+  if (get_global_id(0) == 0) {
+    float total_u = 0.0f;
+    int total_cells = 0;
+    for (int i = 0; i < get_global_size(0); i++) {
+      total_u += partial_tot_u[i];
+      total_cells += partial_tot_cells[i];
+    }
+    av_vels[tt] = total_u / (float)tot_cells;
+  }
+}
