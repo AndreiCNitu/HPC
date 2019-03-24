@@ -200,6 +200,10 @@ kernel void av_velocity(global t_speed* cells,
     /* get column and row indices */
     int ii = get_global_id(0);
     int jj = get_global_id(1);
+    int l_ii = get_local_id(0);
+    int l_jj = get_local_id(1);
+    int g_ii = get_group_id(0);
+    int g_jj = get_group_id(1);
 
     /* ignore occupied cells */
     if (!obstacles[ii + jj*nx]) {
@@ -227,30 +231,30 @@ kernel void av_velocity(global t_speed* cells,
                        + cells[ii + jj*nx].speeds[8]))
                    / local_density;
       /* accumulate the norm of x- and y- velocity components */
-      local_tot_u[get_local_id(0)] = sqrt((u_x * u_x) + (u_y * u_y));
+      local_tot_u[l_ii + l_jj * get_local_size(0)] = sqrt((u_x * u_x) + (u_y * u_y));
       /* increase counter of inspected cells */
-      local_tot_cells[get_local_id(0)] = 1;
+      local_tot_cells[l_ii + l_jj * get_local_size(0)] = 1;
     } else {
-        local_tot_u[get_local_id(0)] = 0;
-        local_tot_cells[get_local_id(0)] = 0;
+        local_tot_u[l_ii + l_jj * get_local_size(0)] = 0;
+        local_tot_cells[l_ii + l_jj * get_local_size(0)] = 0;
     }
 
     barrier(CLK_LOCAL_MEM_FENCE);
 
-    if (get_local_id(0) == 0) {
-        partial_tot_u[get_group_id(1)] = 0.0f;
-        partial_tot_cells[get_group_id(1)] = 0;
-        for (unsigned long i = 0; i < get_local_size(0); i++ ) {
-            partial_tot_u[get_group_id(1)] += local_tot_u[i];
-            partial_tot_cells[get_group_id(1)] += local_tot_cells[i];
+    if (get_local_id(0) == 0 && get_local_id(1) == 0) {
+        partial_tot_u[g_ii + g_jj * get_num_groups(0)] = 0.0f;
+        partial_tot_cells[g_ii + g_jj * get_num_groups(0)] = 0;
+        for (unsigned long i = 0; i < get_local_size(0) * get_local_size(1); i++ ) {
+            partial_tot_u[g_ii + g_jj * get_num_groups(0)] += local_tot_u[i];
+            partial_tot_cells[g_ii + g_jj * get_num_groups(0)] += local_tot_cells[i];
         }
     }
 }
 
-kernel void reduce( global float* partial_tot_u,
-                    global int*   partial_tot_cells,
-                    global float* av_vels,
-                    int tt) {
+kernel void reduce_vels( global float* partial_tot_u,
+                         global int*   partial_tot_cells,
+                         global float* av_vels,
+                         private int tt) {
 
   if (get_global_id(0) == 0) {
     float total_u = 0.0f;
@@ -259,6 +263,6 @@ kernel void reduce( global float* partial_tot_u,
       total_u += partial_tot_u[i];
       total_cells += partial_tot_cells[i];
     }
-    av_vels[tt] = total_u / (float)tot_cells;
+    av_vels[tt] = total_u / (float)total_cells;
   }
 }

@@ -18,6 +18,9 @@
 #define AVVELSFILE      "av_vels.dat"
 #define OCLFILE         "kernels.cl"
 
+#define LOCAL_NX 16
+#define LOCAL_NY 16
+
 /* struct to hold the parameter values */
 typedef struct {
   int    nx;            /* no. of cells in x-direction */
@@ -319,6 +322,12 @@ int collision(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obs
 float av_velocity(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl) {
   cl_int err;
 
+  size_t global[2] = {params.nx, params.ny};
+  size_t local[2]  = {LOCAL_NX, LOCAL_NY};
+
+  int num_wrks = (global[0] / local[0]) * (global[1] / local[1]);
+  int wrk_size = local[0] * local[1];
+
   // Set kernel arguments
   err = clSetKernelArg(ocl.av_velocity, 0, sizeof(cl_mem), &ocl.cells);
   checkError(err, "setting av_velocity arg 0", __LINE__);
@@ -332,14 +341,12 @@ float av_velocity(const t_param params, t_speed* cells, int* obstacles, t_ocl oc
   checkError(err, "setting av_velocity arg 4", __LINE__);
   err = clSetKernelArg(ocl.av_velocity, 5, sizeof(cl_mem), &ocl.partial_tot_cells);
   checkError(err, "setting av_velocity arg 5", __LINE__);
-  err = clSetKernelArg(ocl.av_velocity, 6, sizeof(cl_float) * params.nx, NULL);
+  err = clSetKernelArg(ocl.av_velocity, 6, sizeof(cl_float) * wrk_size, NULL);
   checkError(err, "setting av_velocity arg 6", __LINE__);
-  err = clSetKernelArg(ocl.av_velocity, 7, sizeof(cl_int) * params.nx, NULL);
+  err = clSetKernelArg(ocl.av_velocity, 7, sizeof(cl_int)   * wrk_size, NULL);
   checkError(err, "setting av_velocity arg 7", __LINE__);
 
   // Enqueue kernel
-  size_t global[2] = {params.nx, params.ny};
-  size_t local[2]  = {params.nx, 1};
   err = clEnqueueNDRangeKernel(ocl.queue, ocl.av_velocity,
                                2, NULL, global, local, 0, NULL, NULL);
   checkError(err, "enqueueing av_velocity kernel", __LINE__);
@@ -348,24 +355,24 @@ float av_velocity(const t_param params, t_speed* cells, int* obstacles, t_ocl oc
   err = clFinish(ocl.queue);
   checkError(err, "waiting for av_velocity kernel", __LINE__);
 
-  int* h_partial_tot_cells = malloc(sizeof(int) * params.ny);
-  float* h_partial_tot_u = malloc(sizeof(float) * params.ny);
+  int* h_partial_tot_cells = malloc(sizeof(int)   *  num_wrks);
+  float* h_partial_tot_u   = malloc(sizeof(float) *  num_wrks);
 
   // Read partial_tot_u from device
   err = clEnqueueReadBuffer(
     ocl.queue, ocl.partial_tot_u, CL_TRUE, 0,
-    sizeof(float) * params.ny, h_partial_tot_u, 0, NULL, NULL);
+    sizeof(float) * num_wrks, h_partial_tot_u, 0, NULL, NULL);
   checkError(err, "reading partial_tot_u data", __LINE__);
 
   // Read partial_tot_cells from device
   err = clEnqueueReadBuffer(
     ocl.queue, ocl.partial_tot_cells, CL_TRUE, 0,
-    sizeof(int) * params.ny, h_partial_tot_cells, 0, NULL, NULL);
+    sizeof(int) * num_wrks, h_partial_tot_cells, 0, NULL, NULL);
   checkError(err, "reading partial_tot_cells data", __LINE__);
 
   float tot_u = 0.0f; /* accumulated magnitudes of velocity for each cell */
   int tot_cells = 0;  /* no. of cells used in calculation */
-  for (int i = 0; i < params.ny; i++) {
+  for (int i = 0; i < num_wrks; i++) {
       tot_cells += h_partial_tot_cells[i];
       tot_u += h_partial_tot_u[i];
   }
@@ -645,13 +652,14 @@ int initialise(const char* paramfile, const char* obstaclefile,
     ocl->context, CL_MEM_READ_WRITE,
     sizeof(cl_float) * params->maxIters, NULL, &err);
   checkError(err, "creating av_vels buffer", __LINE__);
+  int num_wrks = (params->nx / LOCAL_NX) * (params->ny / LOCAL_NY);
   ocl->partial_tot_u = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->ny, NULL, &err);
+    sizeof(cl_float) * num_wrks, NULL, &err);
   checkError(err, "creating partial_tot_u buffer", __LINE__);
   ocl->partial_tot_cells = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_int) * params->ny, NULL, &err);
+    sizeof(cl_int) * num_wrks, NULL, &err);
   checkError(err, "creating partial_tot_cells buffer", __LINE__);
 
   return EXIT_SUCCESS;
@@ -832,8 +840,48 @@ cl_device_id selectOpenCLDevice() {
   // Print list of devices
   printf("\nAvailable OpenCL devices:\n");
   for (cl_uint d = 0; d < total_devices; d++) {
+    printf(" ------------------------------------------------\n");
     clGetDeviceInfo(devices[d], CL_DEVICE_NAME, MAX_DEVICE_NAME, name, NULL);
-    printf("%2d: %s\n", d, name);
+    printf("| %2d: %-42.42s |\n", d, name);
+    printf(" ------------------------------------------------\n");
+    cl_uint compute_units;
+    clGetDeviceInfo(devices[d], CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(compute_units), &compute_units, NULL);
+    printf("|  MAX_COMPUTE_UNITS:\t\t%u\n", compute_units);
+
+    size_t workitem_dims;
+    clGetDeviceInfo(devices[d], CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS, sizeof(workitem_dims), &workitem_dims, NULL);
+    printf("|  MAX_WORK_ITEM_DIMENSIONS:\t%u\n", workitem_dims);
+
+    size_t workitem_size[3];
+    clGetDeviceInfo(devices[d], CL_DEVICE_MAX_WORK_ITEM_SIZES, sizeof(workitem_size), &workitem_size, NULL);
+    printf("|  MAX_WORK_ITEM_SIZES:\t\t%lu / %lu / %lu \n", workitem_size[0], workitem_size[1], workitem_size[2]);
+
+    size_t workgroup_size;
+    clGetDeviceInfo(devices[d], CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(workgroup_size), &workgroup_size, NULL);
+    printf("|  MAX_WORK_GROUP_SIZE:\t\t%lu\n", workgroup_size);
+
+    cl_ulong max_mem_alloc_size;
+    clGetDeviceInfo(devices[d], CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(max_mem_alloc_size), &max_mem_alloc_size, NULL);
+    printf("|  MAX_MEM_ALLOC_SIZE:\t\t%u MByte\n", (unsigned int)(max_mem_alloc_size / (1024 * 1024)));
+
+    cl_ulong mem_size;
+    clGetDeviceInfo(devices[d], CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(mem_size), &mem_size, NULL);
+    printf("|  GLOBAL_MEM_SIZE:\t\t%u MByte\n", (unsigned int)(mem_size / (1024 * 1024)));
+
+    cl_bool error_correction_support;
+    clGetDeviceInfo(devices[d], CL_DEVICE_ERROR_CORRECTION_SUPPORT, sizeof(error_correction_support), &error_correction_support, NULL);
+    printf("|  ERROR_CORRECTION_SUPPORT:\t%s\n", error_correction_support == CL_TRUE ? "yes" : "no");
+
+    cl_device_local_mem_type local_mem_type;
+    clGetDeviceInfo(devices[d], CL_DEVICE_LOCAL_MEM_TYPE, sizeof(local_mem_type), &local_mem_type, NULL);
+    printf("|  LOCAL_MEM_TYPE:\t\t%s\n", local_mem_type == 1 ? "local" : "global");
+
+    clGetDeviceInfo(devices[d], CL_DEVICE_LOCAL_MEM_SIZE, sizeof(mem_size), &mem_size, NULL);
+    printf("|  LOCAL_MEM_SIZE:\t\t%u KByte\n", (unsigned int)(mem_size / 1024));
+
+    clGetDeviceInfo(devices[d], CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE, sizeof(mem_size), &mem_size, NULL);
+    printf("|  MAX_CONSTANT_BUFFER_SIZE:\t%u KByte\n", (unsigned int)(mem_size / 1024));
+    printf(" ------------------------------------------------\n\n");
   }
   printf("\n");
 
