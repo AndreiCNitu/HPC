@@ -1,3 +1,49 @@
+/*
+  ------------------------------------------------
+ |  Tesla K20m                                    |
+  ------------------------------------------------
+ |  MAX_COMPUTE_UNITS:         13                 |
+ |  MAX_WORK_ITEM_DIMENSIONS:  3                  |
+ |  MAX_WORK_ITEM_SIZES:       1024 / 1024 / 64   |
+ |  MAX_WORK_GROUP_SIZE:       1024               |
+ |  MAX_MEM_ALLOC_SIZE:        1199 MByte         |
+ |  GLOBAL_MEM_SIZE:           4799 MByte         |
+ |  ERROR_CORRECTION_SUPPORT:  yes                |
+ |  LOCAL_MEM_TYPE:            local              |
+ |  LOCAL_MEM_SIZE:            48 KByte           |
+ |  MAX_CONSTANT_BUFFER_SIZE:  64 KByte           |
+  ------------------------------------------------
+
+  ------------------------------------------------
+ |  Intel(R) Core(TM) i5-5257U CPU @ 2.70GHz      |
+  ------------------------------------------------
+ |  MAX_COMPUTE_UNITS:		    4                 |
+ |  MAX_WORK_ITEM_DIMENSIONS:	3                 |
+ |  MAX_WORK_ITEM_SIZES:		1024 / 1 / 1      |
+ |  MAX_WORK_GROUP_SIZE:		1024              |
+ |  MAX_MEM_ALLOC_SIZE:		    2048 MByte        |
+ |  GLOBAL_MEM_SIZE:		    8192 MByte        |
+ |  ERROR_CORRECTION_SUPPORT:	no                |
+ |  LOCAL_MEM_TYPE:		        global            |
+ |  LOCAL_MEM_SIZE:		        32 KByte          |
+ |  MAX_CONSTANT_BUFFER_SIZE:	64 KByte          |
+  ------------------------------------------------
+
+  ------------------------------------------------
+ |  Intel(R) Iris(TM) Graphics 6100               |
+  ------------------------------------------------
+ |  MAX_COMPUTE_UNITS:		    48                |
+ |  MAX_WORK_ITEM_DIMENSIONS:	3                 |
+ |  MAX_WORK_ITEM_SIZES:		256 / 256 / 256   |
+ |  MAX_WORK_GROUP_SIZE:		256               |
+ |  MAX_MEM_ALLOC_SIZE:		    384 MByte         |
+ |  GLOBAL_MEM_SIZE:		    1536 MByte        |
+ |  ERROR_CORRECTION_SUPPORT:	no                |
+ |  LOCAL_MEM_TYPE:		        local             |
+ |  LOCAL_MEM_SIZE:		        64 KByte          |
+ |  MAX_CONSTANT_BUFFER_SIZE:	64 KByte          |
+  ------------------------------------------------
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -840,48 +886,8 @@ cl_device_id selectOpenCLDevice() {
   // Print list of devices
   printf("\nAvailable OpenCL devices:\n");
   for (cl_uint d = 0; d < total_devices; d++) {
-    printf(" ------------------------------------------------\n");
     clGetDeviceInfo(devices[d], CL_DEVICE_NAME, MAX_DEVICE_NAME, name, NULL);
-    printf("| %2d: %-42.42s |\n", d, name);
-    printf(" ------------------------------------------------\n");
-    cl_uint compute_units;
-    clGetDeviceInfo(devices[d], CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(compute_units), &compute_units, NULL);
-    printf("|  MAX_COMPUTE_UNITS:\t\t%u\n", compute_units);
-
-    size_t workitem_dims;
-    clGetDeviceInfo(devices[d], CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS, sizeof(workitem_dims), &workitem_dims, NULL);
-    printf("|  MAX_WORK_ITEM_DIMENSIONS:\t%u\n", workitem_dims);
-
-    size_t workitem_size[3];
-    clGetDeviceInfo(devices[d], CL_DEVICE_MAX_WORK_ITEM_SIZES, sizeof(workitem_size), &workitem_size, NULL);
-    printf("|  MAX_WORK_ITEM_SIZES:\t\t%lu / %lu / %lu \n", workitem_size[0], workitem_size[1], workitem_size[2]);
-
-    size_t workgroup_size;
-    clGetDeviceInfo(devices[d], CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(workgroup_size), &workgroup_size, NULL);
-    printf("|  MAX_WORK_GROUP_SIZE:\t\t%lu\n", workgroup_size);
-
-    cl_ulong max_mem_alloc_size;
-    clGetDeviceInfo(devices[d], CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(max_mem_alloc_size), &max_mem_alloc_size, NULL);
-    printf("|  MAX_MEM_ALLOC_SIZE:\t\t%u MByte\n", (unsigned int)(max_mem_alloc_size / (1024 * 1024)));
-
-    cl_ulong mem_size;
-    clGetDeviceInfo(devices[d], CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(mem_size), &mem_size, NULL);
-    printf("|  GLOBAL_MEM_SIZE:\t\t%u MByte\n", (unsigned int)(mem_size / (1024 * 1024)));
-
-    cl_bool error_correction_support;
-    clGetDeviceInfo(devices[d], CL_DEVICE_ERROR_CORRECTION_SUPPORT, sizeof(error_correction_support), &error_correction_support, NULL);
-    printf("|  ERROR_CORRECTION_SUPPORT:\t%s\n", error_correction_support == CL_TRUE ? "yes" : "no");
-
-    cl_device_local_mem_type local_mem_type;
-    clGetDeviceInfo(devices[d], CL_DEVICE_LOCAL_MEM_TYPE, sizeof(local_mem_type), &local_mem_type, NULL);
-    printf("|  LOCAL_MEM_TYPE:\t\t%s\n", local_mem_type == 1 ? "local" : "global");
-
-    clGetDeviceInfo(devices[d], CL_DEVICE_LOCAL_MEM_SIZE, sizeof(mem_size), &mem_size, NULL);
-    printf("|  LOCAL_MEM_SIZE:\t\t%u KByte\n", (unsigned int)(mem_size / 1024));
-
-    clGetDeviceInfo(devices[d], CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE, sizeof(mem_size), &mem_size, NULL);
-    printf("|  MAX_CONSTANT_BUFFER_SIZE:\t%u KByte\n", (unsigned int)(mem_size / 1024));
-    printf(" ------------------------------------------------\n\n");
+    printf("%2d: %s\n", d, name);
   }
   printf("\n");
 
