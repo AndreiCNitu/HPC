@@ -13,9 +13,6 @@
 ***
 #### __Port rebound & collision to kernels__
 
-+ `gcc -O3`
-+ `-cl-opt-disable`
-
 | Size      | 128 x 128 | 128 x 256 | 256 x 256 | 1024 x 1024 |
 | --------- |:---------:|:---------:|:---------:|:-----------:|
 | **Time**  | 48.0s     | 87s       | 300s      | 1200s       |
@@ -23,9 +20,23 @@
 ***
 #### __Port av_vels to kernel, simple reduction in host__
 
-+ `gcc -O3`
-+ `-cl-opt-disable`
-
 | Size      | 128 x 128 | 128 x 256 | 256 x 256 | 1024 x 1024 |
 | --------- |:---------:|:---------:|:---------:|:-----------:|
 | **Time**  | 56.4s     | 103s      | 418s      | 3097s       |
+
+***
+#### __Remove intermediate data transfers between host and device__
+
+| Size      | 128 x 128 | 128 x 256 | 256 x 256 | 1024 x 1024 |
+| --------- |:---------:|:---------:|:---------:|:-----------:|
+| **Time**  | 50.4s     | 97s       | 300s      | 735s        |
+
+***
+#### __Optimisation flags__
+
++ `icc -O3`
++ `-cl-strict-aliasing -cl-fast-relaxed-math`
+
+| Size      | 128 x 128 | 128 x 256 | 256 x 256 | 1024 x 1024 |
+| --------- |:---------:|:---------:|:---------:|:-----------:|
+| **Time**  | 18.0s     | 28.5s     | 94s       | 314s        |

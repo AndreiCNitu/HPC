@@ -3,7 +3,7 @@
 SRC=d2q9-bgk
 EXE=d2q9-bgk
 
-CC=gcc
+CC=icc
 CFLAGS= -std=c99 -Wall -O3
 LIBS = -lm
 
