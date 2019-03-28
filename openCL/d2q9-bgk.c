@@ -869,7 +869,7 @@ cl_device_id selectOpenCLDevice() {
     checkError(err, "getting device name", __LINE__);
     total_devices += num_devices;
   }
-
+  /*
   // Print list of devices
   printf("\nAvailable OpenCL devices:\n");
   for (cl_uint d = 0; d < total_devices; d++) {
@@ -877,6 +877,7 @@ cl_device_id selectOpenCLDevice() {
     printf("%2d: %s\n", d, name);
   }
   printf("\n");
+  */
 
   // Use first device unless OCL_DEVICE environment variable used
   cl_uint device_index = 0;
