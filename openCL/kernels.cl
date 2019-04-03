@@ -48,17 +48,16 @@ kernel void accelerate_flow(global float* cells_speed_0,
 kernel void reduce_vels( global float* partial_tot_u,
                          global int*   partial_tot_cells,
                          global float* av_vels,
+                         private int num_wrks,
                          private int tt) {
 
-  if (get_global_id(0) == 0) {
     float total_u = 0.0f;
     int total_cells = 0;
-    for (unsigned long i = 0; i < get_global_size(0); i++) {
+    for (unsigned long i = 0; i < num_wrks; i++) {
       total_u += partial_tot_u[i];
       total_cells += partial_tot_cells[i];
     }
     av_vels[tt] = total_u / (float)total_cells;
-  }
 }
 
 kernel void prop_rebound_collision_avels(global float* cells_speed_0,

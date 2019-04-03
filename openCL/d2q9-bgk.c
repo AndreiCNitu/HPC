@@ -64,8 +64,8 @@
 #define AVVELSFILE      "av_vels.dat"
 #define OCLFILE         "kernels.cl"
 
-#define LOCAL_NX 16
-#define LOCAL_NY 16
+#define LOCAL_NX 32
+#define LOCAL_NY 2
 
 /* struct to hold the parameter values */
 typedef struct {
@@ -87,6 +87,7 @@ typedef struct {
   cl_program program;
   cl_kernel  accelerate_flow;
   cl_kernel  prop_rebound_collision_avels;
+  cl_kernel reduce_vels;
 
   cl_mem cells_speed_0;
   cl_mem cells_speed_1;
@@ -148,7 +149,6 @@ int finalise(const t_param* params, t_soa** cells_ptr, t_soa** tmp_cells_ptr,
 float total_density(const t_param params, t_soa* cells);
 
 /* compute average velocity */
-float av_velocity(const t_param params, t_soa* cells, int* obstacles, t_ocl ocl);
 float av_velocity_reynolds(const t_param params, t_soa* cells, int* obstacles);
 
 /* calculate Reynolds number */
@@ -287,6 +287,12 @@ int main(int argc, char* argv[]) {
     ocl.queue, ocl.cells_speed_8, CL_TRUE, 0,
     sizeof(cl_float) * params.nx * params.ny, cells->speed_8, 0, NULL, NULL);
   checkError(err, "reading cells_speed_8 data", __LINE__);
+
+  // Read av_vels from device
+  err = clEnqueueReadBuffer(
+    ocl.queue, ocl.av_vels, CL_TRUE, 0,
+    sizeof(cl_float) * params.maxIters, av_vels, 0, NULL, NULL);
+  checkError(err, "reading av_vels data", __LINE__);
 
   gettimeofday(&timstr, NULL);
   toc = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
@@ -483,28 +489,26 @@ int timestep(const t_param params, float* av_vels, const int tt, t_ocl ocl) {
     err = clFinish(ocl.queue);
     checkError(err, "waiting for prop_rebound_collision_avels kernel", __LINE__);
 
-    int* h_partial_tot_cells = malloc(sizeof(int)   *  num_wrks);
-    float* h_partial_tot_u   = malloc(sizeof(float) *  num_wrks);
+    err = clSetKernelArg(ocl.reduce_vels, 0, sizeof(cl_mem), &ocl.partial_tot_u);
+    checkError(err, "setting reduce_vels arg 0", __LINE__);
+    err = clSetKernelArg(ocl.reduce_vels, 1, sizeof(cl_mem), &ocl.partial_tot_cells);
+    checkError(err, "setting reduce_vels arg 1", __LINE__);
+    err = clSetKernelArg(ocl.reduce_vels, 2, sizeof(cl_mem), &ocl.av_vels);
+    checkError(err, "setting reduce_vels arg 2", __LINE__);
+    err = clSetKernelArg(ocl.reduce_vels, 3, sizeof(cl_int), &num_wrks);
+    checkError(err, "setting reduce_vels arg 3", __LINE__);
+    err = clSetKernelArg(ocl.reduce_vels, 4, sizeof(cl_int), &tt);
+    checkError(err, "setting reduce_vels arg 4", __LINE__);
 
-    // Read partial_tot_u from device
-    err = clEnqueueReadBuffer(
-      ocl.queue, ocl.partial_tot_u, CL_TRUE, 0,
-      sizeof(float) * num_wrks, h_partial_tot_u, 0, NULL, NULL);
-    checkError(err, "reading partial_tot_u data", __LINE__);
-
-    // Read partial_tot_cells from device
-    err = clEnqueueReadBuffer(
-      ocl.queue, ocl.partial_tot_cells, CL_TRUE, 0,
-      sizeof(int) * num_wrks, h_partial_tot_cells, 0, NULL, NULL);
-    checkError(err, "reading partial_tot_cells data", __LINE__);
-
-    float tot_u = 0.0f; /* accumulated magnitudes of velocity for each cell */
-    int tot_cells = 0;  /* no. of cells used in calculation */
-    for (int i = 0; i < num_wrks; i++) {
-        tot_cells += h_partial_tot_cells[i];
-        tot_u += h_partial_tot_u[i];
-    }
-    av_vels[tt] = tot_u / (float)tot_cells;
+    // Enqueue kernel
+    size_t single[1] = {1};
+    err = clEnqueueNDRangeKernel(ocl.queue, ocl.reduce_vels,
+                                 1, NULL, single, NULL, 0, NULL, NULL);
+    checkError(err, "enqueueing reduce_vels kernel", __LINE__);
+                                                              
+    // Wait for kernel to finish
+    err = clFinish(ocl.queue);
+    checkError(err, "waiting for reduce_vels kernel", __LINE__);
 
     return EXIT_SUCCESS;
 }
@@ -783,6 +787,8 @@ int initialise(const char* paramfile, const char* obstaclefile,
   checkError(err, "creating accelerate_flow kernel", __LINE__);
   ocl->prop_rebound_collision_avels = clCreateKernel(ocl->program, "prop_rebound_collision_avels", &err);
   checkError(err, "creating prop_rebound_collision_avels kernel", __LINE__);
+  ocl->reduce_vels = clCreateKernel(ocl->program, "reduce_vels", &err);
+  checkError(err, "creating reduce_vels kernel", __LINE__);
 
   // Allocate OpenCL buffers
   ocl->cells_speed_0 = clCreateBuffer(
@@ -919,6 +925,7 @@ int finalise(const t_param* params, t_soa** cells_ptr, t_soa** tmp_cells_ptr,
   clReleaseMemObject(ocl.obstacles);
   clReleaseKernel(ocl.accelerate_flow);
   clReleaseKernel(ocl.prop_rebound_collision_avels);
+  clReleaseKernel(ocl.reduce_vels);
   clReleaseProgram(ocl.program);
   clReleaseCommandQueue(ocl.queue);
   clReleaseContext(ocl.context);
