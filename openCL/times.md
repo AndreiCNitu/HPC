@@ -44,6 +44,9 @@
 ***
 #### __All in one kernel__
 
++ `Code from optimised openMP version`
++ `Pointer swap`
+
 | Size      | 128 x 128 | 128 x 256 | 256 x 256 | 1024 x 1024 |
 | --------- |:---------:|:---------:|:---------:|:-----------:|
-| **Time**  | s     | s     | s       | s        |
+| **Time**  | 14.2s     | 21.9s     | 59s       | 166s        |
