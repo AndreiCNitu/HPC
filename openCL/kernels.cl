@@ -43,6 +43,7 @@ kernel void accelerate_flow(global float* restrict cells_speed_0,
     cells_speed_6[ii + jj*nx] -= w2;
     cells_speed_7[ii + jj*nx] -= w2;
   }
+
 }
 
 kernel void reduce_vels( global float* partial_tot_u,

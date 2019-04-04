@@ -288,7 +288,7 @@ int main(int argc, char* argv[]) {
     sizeof(cl_float) * params.nx * params.ny, cells->speed_8, 0, NULL, NULL);
   checkError(err, "reading cells_speed_8 data", __LINE__);
 
-  /*
+  /* 
   // Read av_vels from device
   err = clEnqueueReadBuffer(
     ocl.queue, ocl.av_vels, CL_TRUE, 0,
@@ -380,8 +380,8 @@ int timestep(const t_param params, float* av_vels, const int tt, t_ocl ocl) {
     checkError(err, "enqueueing accelerate_flow kernel", __LINE__);
 
     // Wait for kernel to finish
-    err = clFinish(ocl.queue);
-    checkError(err, "waiting for accelerate_flow kernel", __LINE__);
+    //err = clFinish(ocl.queue);
+    //checkError(err, "waiting for accelerate_flow kernel", __LINE__);
 
     /* --- BIG KERNEL --- */
     int num_wrks = (global_2D[0] / local[0]) * (global_2D[1] / local[1]);
@@ -488,9 +488,9 @@ int timestep(const t_param params, float* av_vels, const int tt, t_ocl ocl) {
     checkError(err, "enqueueing prop_rebound_collision_avels kernel", __LINE__);
 
     // Wait for kernel to finish
-    err = clFinish(ocl.queue);
-    checkError(err, "waiting for prop_rebound_collision_avels kernel", __LINE__);
-
+    //err = clFinish(ocl.queue);
+    //checkError(err, "waiting for prop_rebound_collision_avels kernel", __LINE__);
+    
     int* h_partial_tot_cells = malloc(sizeof(int)   *  num_wrks);
     float* h_partial_tot_u   = malloc(sizeof(float) *  num_wrks);
 
@@ -504,15 +504,15 @@ int timestep(const t_param params, float* av_vels, const int tt, t_ocl ocl) {
       sizeof(int) * num_wrks, h_partial_tot_cells, 0, NULL, NULL);
     checkError(err, "reading partial_tot_cells data", __LINE__);
 
-    float tot_u = 0.0f; /* accumulated magnitudes of velocity for each cell */
-    int tot_cells = 0;  /* no. of cells used in calculation */
+    float tot_u = 0.0f; // accumulated magnitudes of velocity for each cell 
+    int tot_cells = 0;  // no. of cells used in calculation 
     for (int i = 0; i < num_wrks; i++) {
       tot_cells += h_partial_tot_cells[i];
       tot_u += h_partial_tot_u[i];
     }
     av_vels[tt] = tot_u / (float)tot_cells;
-
-    /*
+    
+    /* 
     err = clSetKernelArg(ocl.reduce_vels, 0, sizeof(cl_mem), &ocl.partial_tot_u);
     checkError(err, "setting reduce_vels arg 0", __LINE__);
     err = clSetKernelArg(ocl.reduce_vels, 1, sizeof(cl_mem), &ocl.partial_tot_cells);
