@@ -87,7 +87,7 @@ typedef struct {
   cl_program program;
   cl_kernel  accelerate_flow;
   cl_kernel  prop_rebound_collision_avels;
-  cl_kernel reduce_vels;
+  cl_kernel  reduce_vels;
 
   cl_mem cells_speed_0;
   cl_mem cells_speed_1;
@@ -288,7 +288,7 @@ int main(int argc, char* argv[]) {
     sizeof(cl_float) * params.nx * params.ny, cells->speed_8, 0, NULL, NULL);
   checkError(err, "reading cells_speed_8 data", __LINE__);
 
-  /* 
+  /*
   // Read av_vels from device
   err = clEnqueueReadBuffer(
     ocl.queue, ocl.av_vels, CL_TRUE, 0,
@@ -379,9 +379,6 @@ int timestep(const t_param params, float* av_vels, const int tt, t_ocl ocl) {
                                  1, NULL, global_1D, NULL, 0, NULL, NULL);
     checkError(err, "enqueueing accelerate_flow kernel", __LINE__);
 
-    // Wait for kernel to finish
-    //err = clFinish(ocl.queue);
-    //checkError(err, "waiting for accelerate_flow kernel", __LINE__);
 
     /* --- BIG KERNEL --- */
     int num_wrks = (global_2D[0] / local[0]) * (global_2D[1] / local[1]);
@@ -487,10 +484,7 @@ int timestep(const t_param params, float* av_vels, const int tt, t_ocl ocl) {
                                  2, NULL, global_2D, local, 0, NULL, NULL);
     checkError(err, "enqueueing prop_rebound_collision_avels kernel", __LINE__);
 
-    // Wait for kernel to finish
-    //err = clFinish(ocl.queue);
-    //checkError(err, "waiting for prop_rebound_collision_avels kernel", __LINE__);
-    
+
     int* h_partial_tot_cells = malloc(sizeof(int)   *  num_wrks);
     float* h_partial_tot_u   = malloc(sizeof(float) *  num_wrks);
 
@@ -504,15 +498,15 @@ int timestep(const t_param params, float* av_vels, const int tt, t_ocl ocl) {
       sizeof(int) * num_wrks, h_partial_tot_cells, 0, NULL, NULL);
     checkError(err, "reading partial_tot_cells data", __LINE__);
 
-    float tot_u = 0.0f; // accumulated magnitudes of velocity for each cell 
-    int tot_cells = 0;  // no. of cells used in calculation 
+    float tot_u = 0.0f; // accumulated magnitudes of velocity for each cell
+    int tot_cells = 0;  // no. of cells used in calculation
     for (int i = 0; i < num_wrks; i++) {
       tot_cells += h_partial_tot_cells[i];
       tot_u += h_partial_tot_u[i];
     }
     av_vels[tt] = tot_u / (float)tot_cells;
-    
-    /* 
+
+    /*
     err = clSetKernelArg(ocl.reduce_vels, 0, sizeof(cl_mem), &ocl.partial_tot_u);
     checkError(err, "setting reduce_vels arg 0", __LINE__);
     err = clSetKernelArg(ocl.reduce_vels, 1, sizeof(cl_mem), &ocl.partial_tot_cells);
@@ -529,7 +523,7 @@ int timestep(const t_param params, float* av_vels, const int tt, t_ocl ocl) {
     err = clEnqueueNDRangeKernel(ocl.queue, ocl.reduce_vels,
                                  1, NULL, single, NULL, 0, NULL, NULL);
     checkError(err, "enqueueing reduce_vels kernel", __LINE__);
-                                                              
+
     // Wait for kernel to finish
     err = clFinish(ocl.queue);
     checkError(err, "waiting for reduce_vels kernel", __LINE__);
