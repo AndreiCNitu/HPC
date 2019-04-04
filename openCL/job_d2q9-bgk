@@ -30,16 +30,12 @@ echo "########################################"
 echo "----------------------------------------"
 echo 128 x 128
 ./d2q9-bgk input_128x128.params obstacles_128x128.dat
-make check-small
 echo "----------------------------------------"
 echo 128 x 256
 ./d2q9-bgk input_128x256.params obstacles_128x256.dat
-make check-medium-odd
 echo "----------------------------------------"
 echo 256 x 256
 ./d2q9-bgk input_256x256.params obstacles_256x256.dat
-make check-medium
 echo "----------------------------------------"
 echo 1024 x 1024
 ./d2q9-bgk input_1024x1024.params obstacles_1024x1024.dat
-make check-large

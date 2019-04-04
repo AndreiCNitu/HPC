@@ -137,7 +137,8 @@ int initialise(const char* paramfile, const char* obstaclefile,
 ** timestep calls, in order, the functions:
 ** accelerate_flow(), propagate(), rebound() & collision()
 */
-int timestep(const t_param params, float* av_vels, const int tt, t_ocl ocl);
+int timestep(const t_param params, float* av_vels, const int tt, t_ocl ocl,
+             int* h_partial_tot_cells, float* h_partial_tot_u);
 int write_values(const t_param params, t_soa* cells, int* obstacles, float* av_vels);
 
 /* finalise, including freeing up allocated memory */
@@ -241,8 +242,18 @@ int main(int argc, char* argv[]) {
     sizeof(cl_int) * params.nx * params.ny, obstacles, 0, NULL, NULL);
   checkError(err, "writing obstacles data", __LINE__);
 
+  size_t global_2D[2] = {params.nx, params.ny};
+  size_t global_1D[1] = {params.nx};
+  size_t local[2]     = {LOCAL_NX, LOCAL_NY};
+
+  int num_wrks = (global_2D[0] / local[0]) * (global_2D[1] / local[1]);
+  int wrk_size = local[0] * local[1];
+
+  int* h_partial_tot_cells = malloc(sizeof(int) * num_wrks);
+  float* h_partial_tot_u = malloc(sizeof(float) * num_wrks);
+
   for (int tt = 0; tt < params.maxIters; tt++) {
-    timestep(params, av_vels, tt, ocl);
+    timestep(params, av_vels, tt, ocl, h_partial_tot_cells, h_partial_tot_u);
 #ifdef DEBUG
     printf("==timestep: %d==\n", tt);
     printf("av velocity: %.12E\n", av_vels[tt]);
@@ -316,7 +327,8 @@ int main(int argc, char* argv[]) {
   return EXIT_SUCCESS;
 }
 
-int timestep(const t_param params, float* av_vels, const int tt, t_ocl ocl) {
+int timestep(const t_param params, float* av_vels, const int tt, t_ocl ocl,
+             int* h_partial_tot_cells, float* h_partial_tot_u) {
     cl_int err;
     size_t global_2D[2] = {params.nx, params.ny};
     size_t global_1D[1] = {params.nx};
@@ -484,9 +496,6 @@ int timestep(const t_param params, float* av_vels, const int tt, t_ocl ocl) {
                                  2, NULL, global_2D, local, 0, NULL, NULL);
     checkError(err, "enqueueing prop_rebound_collision_avels kernel", __LINE__);
 
-
-    int* h_partial_tot_cells = malloc(sizeof(int)   *  num_wrks);
-    float* h_partial_tot_u   = malloc(sizeof(float) *  num_wrks);
 
     // Read partial_tot_u from device
     err = clEnqueueReadBuffer(ocl.queue, ocl.partial_tot_u, CL_TRUE, 0,
