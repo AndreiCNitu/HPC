@@ -20,9 +20,10 @@ kernel void accelerate_flow(global float* restrict cells_speed_0,
                             global int*   restrict obstacles,
                             int nx, int ny,
                             float density, float accel) {
+
   /* compute weighting factors */
-  float w1 = density * accel / 9.0;
-  float w2 = density * accel / 36.0;
+  const float w1 = density * accel / 9.0;
+  const float w2 = density * accel / 36.0;
 
   /* modify the 2nd row of the grid */
   int jj = ny - 2;
