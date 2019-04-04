@@ -64,8 +64,8 @@
 #define AVVELSFILE      "av_vels.dat"
 #define OCLFILE         "kernels.cl"
 
-#define LOCAL_NX 32
-#define LOCAL_NY 2
+#define LOCAL_NX 64
+#define LOCAL_NY 1
 
 /* struct to hold the parameter values */
 typedef struct {
@@ -288,11 +288,13 @@ int main(int argc, char* argv[]) {
     sizeof(cl_float) * params.nx * params.ny, cells->speed_8, 0, NULL, NULL);
   checkError(err, "reading cells_speed_8 data", __LINE__);
 
+  /*
   // Read av_vels from device
   err = clEnqueueReadBuffer(
     ocl.queue, ocl.av_vels, CL_TRUE, 0,
     sizeof(cl_float) * params.maxIters, av_vels, 0, NULL, NULL);
   checkError(err, "reading av_vels data", __LINE__);
+  */
 
   gettimeofday(&timstr, NULL);
   toc = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
@@ -489,6 +491,28 @@ int timestep(const t_param params, float* av_vels, const int tt, t_ocl ocl) {
     err = clFinish(ocl.queue);
     checkError(err, "waiting for prop_rebound_collision_avels kernel", __LINE__);
 
+    int* h_partial_tot_cells = malloc(sizeof(int)   *  num_wrks);
+    float* h_partial_tot_u   = malloc(sizeof(float) *  num_wrks);
+
+    // Read partial_tot_u from device
+    err = clEnqueueReadBuffer(ocl.queue, ocl.partial_tot_u, CL_TRUE, 0,
+      sizeof(float) * num_wrks, h_partial_tot_u, 0, NULL, NULL);
+    checkError(err, "reading partial_tot_u data", __LINE__);
+
+    // Read partial_tot_cells from device
+    err = clEnqueueReadBuffer(ocl.queue, ocl.partial_tot_cells, CL_TRUE, 0,
+      sizeof(int) * num_wrks, h_partial_tot_cells, 0, NULL, NULL);
+    checkError(err, "reading partial_tot_cells data", __LINE__);
+
+    float tot_u = 0.0f; /* accumulated magnitudes of velocity for each cell */
+    int tot_cells = 0;  /* no. of cells used in calculation */
+    for (int i = 0; i < num_wrks; i++) {
+      tot_cells += h_partial_tot_cells[i];
+      tot_u += h_partial_tot_u[i];
+    }
+    av_vels[tt] = tot_u / (float)tot_cells;
+
+    /*
     err = clSetKernelArg(ocl.reduce_vels, 0, sizeof(cl_mem), &ocl.partial_tot_u);
     checkError(err, "setting reduce_vels arg 0", __LINE__);
     err = clSetKernelArg(ocl.reduce_vels, 1, sizeof(cl_mem), &ocl.partial_tot_cells);
@@ -509,6 +533,7 @@ int timestep(const t_param params, float* av_vels, const int tt, t_ocl ocl) {
     // Wait for kernel to finish
     err = clFinish(ocl.queue);
     checkError(err, "waiting for reduce_vels kernel", __LINE__);
+    */
 
     return EXIT_SUCCESS;
 }
