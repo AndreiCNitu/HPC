@@ -213,13 +213,17 @@ kernel void prop_rebound_collision_avels(global float* restrict cells_speed_0,
   tmp_cells_speed_7[ii + jj*nx] = t7;
   tmp_cells_speed_8[ii + jj*nx] = t8;
 
-  if (get_local_id(0) == 0 && get_local_id(1) == 0) {
-      partial_tot_u[g_ii + g_jj * get_num_groups(0)] = 0.0f;
-      partial_tot_cells[g_ii + g_jj * get_num_groups(0)] = 0;
-      for (unsigned long i = 0; i < get_local_size(0) * get_local_size(1); i++ ) {
-          partial_tot_u[g_ii + g_jj * get_num_groups(0)] += local_tot_u[i];
-          partial_tot_cells[g_ii + g_jj * get_num_groups(0)] += local_tot_cells[i];
-      }
+  const int item_id = l_ii + get_local_size(1) * l_jj;
+  for (int stride = 1; stride <= get_local_size(0) * get_local_size(1) / 2; stride *= 2) {
+    if (item_id < ((get_local_size(0) * get_local_size(1)) / (2 * stride))) {
+      local_tot_u[item_id * 2 * stride]     += local_tot_u[(item_id * 2 + 1) * stride];
+      local_tot_cells[item_id * 2 * stride] += local_tot_cells[(item_id * 2 + 1) * stride];
+    }
+    barrier(CLK_LOCAL_MEM_FENCE);
   }
 
+  if (get_local_id(0) == 0 * get_local_id(1) == 0) {
+    partial_tot_u[g_ii + g_jj * get_num_groups(0)] = local_tot_u[0];
+    partial_tot_cells[g_ii + g_jj * get_num_groups(0)] = local_tot_cells[0];
+  }
 }
