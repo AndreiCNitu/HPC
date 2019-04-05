@@ -18,18 +18,18 @@ kernel void accelerate_flow(global float* restrict cells_speed_0,
                             global float* restrict cells_speed_7,
                             global float* restrict cells_speed_8,
                             global int*   restrict obstacles,
-                            int nx, int ny,
-                            float density, float accel) {
+                            const int nx, const int ny,
+                            const float density, const float accel) {
 
   /* compute weighting factors */
   const float w1 = density * accel / 9.0;
   const float w2 = density * accel / 36.0;
 
   /* modify the 2nd row of the grid */
-  int jj = ny - 2;
+  const int jj = ny - 2;
 
   /* get column index */
-  int ii = get_global_id(0);
+  const int ii = get_global_id(0);
 
   /* if the cell is not occupied and
   ** we don't send a negative density */
@@ -54,8 +54,8 @@ kernel void accelerate_flow(global float* restrict cells_speed_0,
 kernel void reduce_vels( global float* partial_tot_u,
                          global int*   partial_tot_cells,
                          global float* av_vels,
-                         private int num_wrks,
-                         private int tt) {
+                         const int num_wrks,
+                         const int tt) {
 
     float total_u = 0.0f;
     int total_cells = 0;
@@ -85,7 +85,7 @@ kernel void prop_rebound_collision_avels(global float* restrict cells_speed_0,
                                          global float* restrict tmp_cells_speed_7,
                                          global float* restrict tmp_cells_speed_8,
                                          global int*   restrict obstacles,
-                                         int nx, int ny, float omega,
+                                         const int nx, const int ny, const float omega,
                                          global float* restrict partial_tot_u,
                                          global int*   restrict partial_tot_cells,
                                          local  float* restrict local_tot_u,
@@ -93,12 +93,12 @@ kernel void prop_rebound_collision_avels(global float* restrict cells_speed_0,
 
 
   /* get column and row indices */
-  int ii = get_global_id(0);
-  int jj = get_global_id(1);
-  int l_ii = get_local_id(0);
-  int l_jj = get_local_id(1);
-  int g_ii = get_group_id(0);
-  int g_jj = get_group_id(1);
+  const int ii = get_global_id(0);
+  const int jj = get_global_id(1);
+  const int l_ii = get_local_id(0);
+  const int l_jj = get_local_id(1);
+  const int g_ii = get_group_id(0);
+  const int g_jj = get_group_id(1);
 
   // PROPAGATION STEP:
   /* determine indices of axis-direction neighbours
