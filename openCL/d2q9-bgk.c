@@ -242,15 +242,9 @@ int main(int argc, char* argv[]) {
     sizeof(cl_int) * params.nx * params.ny, obstacles, 0, NULL, NULL);
   checkError(err, "writing obstacles data", __LINE__);
 
-  size_t global_2D[2] = {params.nx, params.ny};
-  size_t global_1D[1] = {params.nx};
-  size_t local[2]     = {LOCAL_NX, LOCAL_NY};
-
-  int num_wrks = (global_2D[0] / local[0]) * (global_2D[1] / local[1]);
-  int wrk_size = local[0] * local[1];
-
-  int* h_partial_tot_cells = malloc(sizeof(int) * num_wrks);
-  float* h_partial_tot_u = malloc(sizeof(float) * num_wrks);
+  int num_wrks = (params.nx / LOCAL_NX) * (params.ny / LOCAL_NY);
+  int*   h_partial_tot_cells = malloc(sizeof(int)   * num_wrks);
+  float* h_partial_tot_u     = malloc(sizeof(float) * num_wrks);
 
   for (int tt = 0; tt < params.maxIters; tt++) {
     timestep(params, av_vels, tt, ocl, h_partial_tot_cells, h_partial_tot_u);
