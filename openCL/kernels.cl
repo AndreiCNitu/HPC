@@ -100,6 +100,9 @@ kernel void prop_rebound_collision_avels(global float* restrict cells_speed_0,
   const int g_ii = get_group_id(0);
   const int g_jj = get_group_id(1);
 
+  const int local_nx = get_local_size(0);
+  const int local_ny = get_local_size(1);
+
   // PROPAGATION STEP:
   /* determine indices of axis-direction neighbours
   ** respecting periodic boundary conditions (wrap around) */
@@ -197,9 +200,9 @@ kernel void prop_rebound_collision_avels(global float* restrict cells_speed_0,
   const float u_y_v = (t2 + t5 + t6 - (t4 + t7 + t8)) / local_density_v;
 
   /* accumulate the norm of x- and y- velocity components */
-  local_tot_u[l_ii + l_jj * get_local_size(0)] = (obstacles[jj*nx + ii] != 0) ? 0 : sqrt((u_x_v * u_x_v) + (u_y_v * u_y_v));
+  local_tot_u[l_ii + l_jj * local_nx] = (obstacles[jj*nx + ii] != 0) ? 0 : sqrt((u_x_v * u_x_v) + (u_y_v * u_y_v));
   /* increase counter of inspected cells */
-  local_tot_cells[l_ii + l_jj * get_local_size(0)] = (obstacles[jj*nx + ii] != 0) ? 0 : 1;
+  local_tot_cells[l_ii + l_jj * local_nx] = (obstacles[jj*nx + ii] != 0) ? 0 : 1;
 
   barrier(CLK_LOCAL_MEM_FENCE);
 
@@ -213,16 +216,16 @@ kernel void prop_rebound_collision_avels(global float* restrict cells_speed_0,
   tmp_cells_speed_7[ii + jj*nx] = t7;
   tmp_cells_speed_8[ii + jj*nx] = t8;
 
-  const int item_id = l_ii + get_local_size(1) * l_jj;
-  for (int stride = 1; stride <= get_local_size(0) * get_local_size(1) / 2; stride *= 2) {
-    if (item_id < ((get_local_size(0) * get_local_size(1)) / (2 * stride))) {
-      local_tot_u[item_id * 2 * stride]     += local_tot_u[(item_id * 2 + 1) * stride];
-      local_tot_cells[item_id * 2 * stride] += local_tot_cells[(item_id * 2 + 1) * stride];
+  const int item_id = l_ii + local_nx * l_jj;
+  for (int offset = local_nx * local_ny / 2; offset > 0; offset /= 2) { //??!! replace / with >> 
+    if (item_id < offset) {
+      local_tot_u[item_id]     += local_tot_u[item_id + offset];
+      local_tot_cells[item_id] += local_tot_cells[item_id + offset];
     }
     barrier(CLK_LOCAL_MEM_FENCE);
   }
 
-  if (get_local_id(0) == 0 * get_local_id(1) == 0) {
+  if (item_id == 0) {
     partial_tot_u[g_ii + g_jj * get_num_groups(0)] = local_tot_u[0];
     partial_tot_cells[g_ii + g_jj * get_num_groups(0)] = local_tot_cells[0];
   }

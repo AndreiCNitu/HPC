@@ -64,7 +64,7 @@
 #define AVVELSFILE      "av_vels.dat"
 #define OCLFILE         "kernels.cl"
 
-#define LOCAL_NX 64
+#define LOCAL_NX 128
 #define LOCAL_NY 1
 
 /* struct to hold the parameter values */
