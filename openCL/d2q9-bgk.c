@@ -304,6 +304,7 @@ int main(int argc, char* argv[]) {
   checkError(err, "reading partial_tot_cells data", __LINE__);
 
   // Compute average velocities at each step
+  #pragma omp parallel for
   for (int iter = 0; iter < params.maxIters; iter++) {
     float tot_u = 0.0f; // accumulated magnitudes of velocity for each cell
     int tot_cells = 0;  // no. of cells used in calculation
