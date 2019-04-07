@@ -137,8 +137,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
 ** timestep calls, in order, the functions:
 ** accelerate_flow(), propagate(), rebound() & collision()
 */
-int timestep(const t_param params, float* av_vels, const int tt, t_ocl ocl,
-             int* h_partial_tot_cells, float* h_partial_tot_u);
+int timestep(const t_param params, const int tt, t_ocl ocl);
 int write_values(const t_param params, t_soa* cells, int* obstacles, float* av_vels);
 
 /* finalise, including freeing up allocated memory */
@@ -242,12 +241,8 @@ int main(int argc, char* argv[]) {
     sizeof(cl_int) * params.nx * params.ny, obstacles, 0, NULL, NULL);
   checkError(err, "writing obstacles data", __LINE__);
 
-  int num_wrks = (params.nx / LOCAL_NX) * (params.ny / LOCAL_NY);
-  int*   h_partial_tot_cells = malloc(sizeof(int)   * num_wrks);
-  float* h_partial_tot_u     = malloc(sizeof(float) * num_wrks);
-
   for (int tt = 0; tt < params.maxIters; tt++) {
-    timestep(params, av_vels, tt, ocl, h_partial_tot_cells, h_partial_tot_u);
+    timestep(params, tt, ocl);
 #ifdef DEBUG
     printf("==timestep: %d==\n", tt);
     printf("av velocity: %.12E\n", av_vels[tt]);
@@ -293,13 +288,31 @@ int main(int argc, char* argv[]) {
     sizeof(cl_float) * params.nx * params.ny, cells->speed_8, 0, NULL, NULL);
   checkError(err, "reading cells_speed_8 data", __LINE__);
 
-  /*
-  // Read av_vels from device
-  err = clEnqueueReadBuffer(
-    ocl.queue, ocl.av_vels, CL_TRUE, 0,
-    sizeof(cl_float) * params.maxIters, av_vels, 0, NULL, NULL);
-  checkError(err, "reading av_vels data", __LINE__);
-  */
+  // Read back partial sums
+  int num_wrks = (params.nx / LOCAL_NX) * (params.ny / LOCAL_NY);
+  int*   h_partial_tot_cells = malloc(sizeof(int)   * num_wrks * params.maxIters);
+  float* h_partial_tot_u     = malloc(sizeof(float) * num_wrks * params.maxIters);
+
+  // Read partial_tot_u from device
+  err = clEnqueueReadBuffer(ocl.queue, ocl.partial_tot_u, CL_TRUE, 0,
+    sizeof(float) * num_wrks * params.maxIters, h_partial_tot_u, 0, NULL, NULL);
+  checkError(err, "reading partial_tot_u data", __LINE__);
+
+  // Read partial_tot_cells from device
+  err = clEnqueueReadBuffer(ocl.queue, ocl.partial_tot_cells, CL_TRUE, 0,
+    sizeof(int) * num_wrks * params.maxIters, h_partial_tot_cells, 0, NULL, NULL);
+  checkError(err, "reading partial_tot_cells data", __LINE__);
+
+  // Compute average velocities at each step
+  for (int iter = 0; iter < params.maxIters; iter++) {
+    float tot_u = 0.0f; // accumulated magnitudes of velocity for each cell
+    int tot_cells = 0;  // no. of cells used in calculation
+    for (int i = iter * num_wrks; i < (iter + 1) * num_wrks; i++) {
+      tot_cells += h_partial_tot_cells[i];
+      tot_u += h_partial_tot_u[i];
+    }
+    av_vels[iter] = tot_u / (float)tot_cells;
+  }
 
   gettimeofday(&timstr, NULL);
   toc = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
@@ -321,8 +334,7 @@ int main(int argc, char* argv[]) {
   return EXIT_SUCCESS;
 }
 
-int timestep(const t_param params, float* av_vels, const int tt, t_ocl ocl,
-             int* h_partial_tot_cells, float* h_partial_tot_u) {
+int timestep(const t_param params, const int tt, t_ocl ocl) {
     cl_int err;
     size_t global_2D[2] = {params.nx, params.ny};
     size_t global_1D[1] = {params.nx};
@@ -474,63 +486,24 @@ int timestep(const t_param params, float* av_vels, const int tt, t_ocl ocl,
     checkError(err, "setting prop_rebound_collision_avels arg 19", __LINE__);
     err = clSetKernelArg(ocl.prop_rebound_collision_avels, 20, sizeof(cl_int), &params.ny);
     checkError(err, "setting prop_rebound_collision_avels arg 20", __LINE__);
-    err = clSetKernelArg(ocl.prop_rebound_collision_avels, 21, sizeof(cl_float), &params.omega);
+    err = clSetKernelArg(ocl.prop_rebound_collision_avels, 21, sizeof(cl_int), &tt);
     checkError(err, "setting prop_rebound_collision_avels arg 21", __LINE__);
-    err = clSetKernelArg(ocl.prop_rebound_collision_avels, 22, sizeof(cl_mem), &ocl.partial_tot_u);
+    err = clSetKernelArg(ocl.prop_rebound_collision_avels, 22, sizeof(cl_float), &params.omega);
     checkError(err, "setting prop_rebound_collision_avels arg 22", __LINE__);
-    err = clSetKernelArg(ocl.prop_rebound_collision_avels, 23, sizeof(cl_mem), &ocl.partial_tot_cells);
+    err = clSetKernelArg(ocl.prop_rebound_collision_avels, 23, sizeof(cl_mem), &ocl.partial_tot_u);
     checkError(err, "setting prop_rebound_collision_avels arg 23", __LINE__);
-    err = clSetKernelArg(ocl.prop_rebound_collision_avels, 24, sizeof(cl_float) * wrk_size, NULL);
+    err = clSetKernelArg(ocl.prop_rebound_collision_avels, 24, sizeof(cl_mem), &ocl.partial_tot_cells);
     checkError(err, "setting prop_rebound_collision_avels arg 24", __LINE__);
-    err = clSetKernelArg(ocl.prop_rebound_collision_avels, 25, sizeof(cl_int)   * wrk_size, NULL);
+    err = clSetKernelArg(ocl.prop_rebound_collision_avels, 25, sizeof(cl_float) * wrk_size, NULL);
     checkError(err, "setting prop_rebound_collision_avels arg 25", __LINE__);
+    err = clSetKernelArg(ocl.prop_rebound_collision_avels, 26, sizeof(cl_int)   * wrk_size, NULL);
+    checkError(err, "setting prop_rebound_collision_avels arg 26", __LINE__);
 
     // Enqueue kernel
     err = clEnqueueNDRangeKernel(ocl.queue, ocl.prop_rebound_collision_avels,
                                  2, NULL, global_2D, local, 0, NULL, NULL);
     checkError(err, "enqueueing prop_rebound_collision_avels kernel", __LINE__);
 
-
-    // Read partial_tot_u from device
-    err = clEnqueueReadBuffer(ocl.queue, ocl.partial_tot_u, CL_TRUE, 0,
-      sizeof(float) * num_wrks, h_partial_tot_u, 0, NULL, NULL);
-    checkError(err, "reading partial_tot_u data", __LINE__);
-
-    // Read partial_tot_cells from device
-    err = clEnqueueReadBuffer(ocl.queue, ocl.partial_tot_cells, CL_TRUE, 0,
-      sizeof(int) * num_wrks, h_partial_tot_cells, 0, NULL, NULL);
-    checkError(err, "reading partial_tot_cells data", __LINE__);
-
-    float tot_u = 0.0f; // accumulated magnitudes of velocity for each cell
-    int tot_cells = 0;  // no. of cells used in calculation
-    for (int i = 0; i < num_wrks; i++) {
-      tot_cells += h_partial_tot_cells[i];
-      tot_u += h_partial_tot_u[i];
-    }
-    av_vels[tt] = tot_u / (float)tot_cells;
-
-    /*
-    err = clSetKernelArg(ocl.reduce_vels, 0, sizeof(cl_mem), &ocl.partial_tot_u);
-    checkError(err, "setting reduce_vels arg 0", __LINE__);
-    err = clSetKernelArg(ocl.reduce_vels, 1, sizeof(cl_mem), &ocl.partial_tot_cells);
-    checkError(err, "setting reduce_vels arg 1", __LINE__);
-    err = clSetKernelArg(ocl.reduce_vels, 2, sizeof(cl_mem), &ocl.av_vels);
-    checkError(err, "setting reduce_vels arg 2", __LINE__);
-    err = clSetKernelArg(ocl.reduce_vels, 3, sizeof(cl_int), &num_wrks);
-    checkError(err, "setting reduce_vels arg 3", __LINE__);
-    err = clSetKernelArg(ocl.reduce_vels, 4, sizeof(cl_int), &tt);
-    checkError(err, "setting reduce_vels arg 4", __LINE__);
-
-    // Enqueue kernel
-    size_t single[1] = {1};
-    err = clEnqueueNDRangeKernel(ocl.queue, ocl.reduce_vels,
-                                 1, NULL, single, NULL, 0, NULL, NULL);
-    checkError(err, "enqueueing reduce_vels kernel", __LINE__);
-
-    // Wait for kernel to finish
-    err = clFinish(ocl.queue);
-    checkError(err, "waiting for reduce_vels kernel", __LINE__);
-    */
 
     return EXIT_SUCCESS;
 }
@@ -898,11 +871,11 @@ int initialise(const char* paramfile, const char* obstaclefile,
   int num_wrks = (params->nx / LOCAL_NX) * (params->ny / LOCAL_NY);
   ocl->partial_tot_u = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * num_wrks, NULL, &err);
+    sizeof(cl_float) * num_wrks * params->maxIters, NULL, &err);
   checkError(err, "creating partial_tot_u buffer", __LINE__);
   ocl->partial_tot_cells = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_int) * num_wrks, NULL, &err);
+    sizeof(cl_int) * num_wrks * params->maxIters, NULL, &err);
   checkError(err, "creating partial_tot_cells buffer", __LINE__);
 
   return EXIT_SUCCESS;

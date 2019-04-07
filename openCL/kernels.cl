@@ -85,7 +85,7 @@ kernel void prop_rebound_collision_avels(global float* restrict cells_speed_0,
                                          global float* restrict tmp_cells_speed_7,
                                          global float* restrict tmp_cells_speed_8,
                                          global int*   restrict obstacles,
-                                         const int nx, const int ny, const float omega,
+                                         const int nx, const int ny, const int tt, const float omega,
                                          global float* restrict partial_tot_u,
                                          global int*   restrict partial_tot_cells,
                                          local  float* restrict local_tot_u,
@@ -217,7 +217,7 @@ kernel void prop_rebound_collision_avels(global float* restrict cells_speed_0,
   tmp_cells_speed_8[ii + jj*nx] = t8;
 
   const int item_id = l_ii + local_nx * l_jj;
-  for (int offset = local_nx * local_ny / 2; offset > 0; offset /= 2) { //??!! replace / with >> 
+  for (int offset = local_nx * local_ny / 2; offset > 0; offset /= 2) { //??!! replace / with >>
     if (item_id < offset) {
       local_tot_u[item_id]     += local_tot_u[item_id + offset];
       local_tot_cells[item_id] += local_tot_cells[item_id + offset];
@@ -226,7 +226,8 @@ kernel void prop_rebound_collision_avels(global float* restrict cells_speed_0,
   }
 
   if (item_id == 0) {
-    partial_tot_u[g_ii + g_jj * get_num_groups(0)] = local_tot_u[0];
-    partial_tot_cells[g_ii + g_jj * get_num_groups(0)] = local_tot_cells[0];
+    const int base = tt * get_num_groups(0) * get_num_groups(1);
+    partial_tot_u[base + g_ii + g_jj * get_num_groups(0)] = local_tot_u[0];
+    partial_tot_cells[base + g_ii + g_jj * get_num_groups(0)] = local_tot_cells[0];
   }
 }
