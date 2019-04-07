@@ -2,12 +2,6 @@
 
 #define NSPEEDS 9
 
-#define c_sq 0.3333333333333333f  /* square of speed of sound */
-#define W0   0.4444444444444444f  /* weighting factor */
-#define W1   0.1111111111111111f  /* weighting factor */
-#define W2   0.0277777777777777f /* weighting factor */
-
-
 kernel void accelerate_flow(global float* restrict cells_speed_0,
                             global float* restrict cells_speed_1,
                             global float* restrict cells_speed_2,
@@ -103,6 +97,11 @@ kernel void prop_rebound_collision_avels(global float* restrict cells_speed_0,
   const int local_nx = get_local_size(0);
   const int local_ny = get_local_size(1);
 
+  const float c_sq = 1.f / 3.f;  /* square of speed of sound */
+  const float w0   = 4.f / 9.f;  /* weighting factor */
+  const float w1   = 1.f / 9.f;  /* weighting factor */
+  const float w2   = 1.f / 36.f; /* weighting factor *
+
   // PROPAGATION STEP:
   /* determine indices of axis-direction neighbours
   ** respecting periodic boundary conditions (wrap around) */
@@ -150,32 +149,32 @@ kernel void prop_rebound_collision_avels(global float* restrict cells_speed_0,
   /* equilibrium densities */
   float d_equ[NSPEEDS];
   /* zero velocity density: weight w0 */
-  d_equ[0] = W0 * local_density
+  d_equ[0] = w0 * local_density
               * (1.f - u_sq / (2.f * c_sq));
   /* axis speeds: weight w1 */
-  d_equ[1] = W1 * local_density * (1.f + u[1] / c_sq
+  d_equ[1] = w1 * local_density * (1.f + u[1] / c_sq
                                     + (u[1] * u[1]) / (2.f * c_sq * c_sq)
                                     - u_sq / (2.f * c_sq));
-  d_equ[2] = W1 * local_density * (1.f + u[2] / c_sq
+  d_equ[2] = w1 * local_density * (1.f + u[2] / c_sq
                                     + (u[2] * u[2]) / (2.f * c_sq * c_sq)
                                     - u_sq / (2.f * c_sq));
-  d_equ[3] = W1 * local_density * (1.f + u[3] / c_sq
+  d_equ[3] = w1 * local_density * (1.f + u[3] / c_sq
                                     + (u[3] * u[3]) / (2.f * c_sq * c_sq)
                                     - u_sq / (2.f * c_sq));
-  d_equ[4] = W1 * local_density * (1.f + u[4] / c_sq
+  d_equ[4] = w1 * local_density * (1.f + u[4] / c_sq
                                     + (u[4] * u[4]) / (2.f * c_sq * c_sq)
                                     - u_sq / (2.f * c_sq));
   /* diagonal speeds: weight w2 */
-  d_equ[5] = W2 * local_density * (1.f + u[5] / c_sq
+  d_equ[5] = w2 * local_density * (1.f + u[5] / c_sq
                                     + (u[5] * u[5]) / (2.f * c_sq * c_sq)
                                     - u_sq / (2.f * c_sq));
-  d_equ[6] = W2 * local_density * (1.f + u[6] / c_sq
+  d_equ[6] = w2 * local_density * (1.f + u[6] / c_sq
                                     + (u[6] * u[6]) / (2.f * c_sq * c_sq)
                                     - u_sq / (2.f * c_sq));
-  d_equ[7] = W2 * local_density * (1.f + u[7] / c_sq
+  d_equ[7] = w2 * local_density * (1.f + u[7] / c_sq
                                     + (u[7] * u[7]) / (2.f * c_sq * c_sq)
                                     - u_sq / (2.f * c_sq));
-  d_equ[8] = W2 * local_density * (1.f + u[8] / c_sq
+  d_equ[8] = w2 * local_density * (1.f + u[8] / c_sq
                                     + (u[8] * u[8]) / (2.f * c_sq * c_sq)
                                     - u_sq / (2.f * c_sq));
 
