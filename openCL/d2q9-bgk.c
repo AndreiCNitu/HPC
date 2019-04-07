@@ -87,7 +87,6 @@ typedef struct {
   cl_program program;
   cl_kernel  accelerate_flow;
   cl_kernel  prop_rebound_collision_avels;
-  cl_kernel  reduce_vels;
 
   cl_mem cells_speed_0;
   cl_mem cells_speed_1;
@@ -759,7 +758,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
   checkError(err, "creating program", __LINE__);
 
   // Build OpenCL program
-  char flags[] = "-cl-strict-aliasing -cl-fast-relaxed-math";
+  char flags[] = "-cl-denorms-are-zero -cl-strict-aliasing -cl-fast-relaxed-math";
    err = clBuildProgram(ocl->program, 1, &ocl->device, flags, NULL, NULL);
   if (err == CL_BUILD_PROGRAM_FAILURE) {
     size_t sz;
@@ -780,8 +779,6 @@ int initialise(const char* paramfile, const char* obstaclefile,
   checkError(err, "creating accelerate_flow kernel", __LINE__);
   ocl->prop_rebound_collision_avels = clCreateKernel(ocl->program, "prop_rebound_collision_avels", &err);
   checkError(err, "creating prop_rebound_collision_avels kernel", __LINE__);
-  ocl->reduce_vels = clCreateKernel(ocl->program, "reduce_vels", &err);
-  checkError(err, "creating reduce_vels kernel", __LINE__);
 
   // Allocate OpenCL buffers
   ocl->cells_speed_0 = clCreateBuffer(
@@ -918,7 +915,6 @@ int finalise(const t_param* params, t_soa** cells_ptr, t_soa** tmp_cells_ptr,
   clReleaseMemObject(ocl.obstacles);
   clReleaseKernel(ocl.accelerate_flow);
   clReleaseKernel(ocl.prop_rebound_collision_avels);
-  clReleaseKernel(ocl.reduce_vels);
   clReleaseProgram(ocl.program);
   clReleaseCommandQueue(ocl.queue);
   clReleaseContext(ocl.context);

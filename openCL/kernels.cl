@@ -42,22 +42,6 @@ kernel void accelerate_flow(global float* restrict cells_speed_0,
     cells_speed_6[ii + jj*nx] -= w2;
     cells_speed_7[ii + jj*nx] -= w2;
   }
-
-}
-
-kernel void reduce_vels( global float* partial_tot_u,
-                         global int*   partial_tot_cells,
-                         global float* av_vels,
-                         const int num_wrks,
-                         const int tt) {
-
-    float total_u = 0.0f;
-    int total_cells = 0;
-    for (unsigned long i = 0; i < num_wrks; i++) {
-      total_u += partial_tot_u[i];
-      total_cells += partial_tot_cells[i];
-    }
-    av_vels[tt] = total_u / (float)total_cells;
 }
 
 kernel void prop_rebound_collision_avels(global float* restrict cells_speed_0,
@@ -84,7 +68,6 @@ kernel void prop_rebound_collision_avels(global float* restrict cells_speed_0,
                                          global int*   restrict partial_tot_cells,
                                          local  float* restrict local_tot_u,
                                          local  int*   restrict local_tot_cells) {
-
 
   /* get column and row indices */
   const int ii = get_global_id(0);
@@ -199,7 +182,7 @@ kernel void prop_rebound_collision_avels(global float* restrict cells_speed_0,
   const float u_y_v = (t2 + t5 + t6 - (t4 + t7 + t8)) / local_density_v;
 
   /* accumulate the norm of x- and y- velocity components */
-  local_tot_u[l_ii + l_jj * local_nx] = (obstacles[jj*nx + ii] != 0) ? 0 : sqrt((u_x_v * u_x_v) + (u_y_v * u_y_v));
+  local_tot_u[l_ii + l_jj * local_nx] = (obstacles[jj*nx + ii] != 0) ? 0 : native_sqrt((u_x_v * u_x_v) + (u_y_v * u_y_v));
   /* increase counter of inspected cells */
   local_tot_cells[l_ii + l_jj * local_nx] = (obstacles[jj*nx + ii] != 0) ? 0 : 1;
 
