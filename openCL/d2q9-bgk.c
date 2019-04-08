@@ -110,7 +110,6 @@ typedef struct {
   cl_mem obstacles;
   cl_mem av_vels;
   cl_mem partial_tot_u;
-  cl_mem partial_tot_cells;
 } t_ocl;
 
 /* struct to hold the 'speed' values */
@@ -130,6 +129,8 @@ typedef struct {
 int initialise(const char* paramfile, const char* obstaclefile,
                t_param* params, t_soa** cells_ptr, t_soa** tmp_cells_ptr,
                int** obstacles_ptr, float** av_vels_ptr, t_ocl* ocl);
+/* precompute tot_cells */
+int get_tot_cells(const t_param params, int* restrict obstacles);
 
 /*
 ** The main calculation methods.
@@ -192,7 +193,7 @@ int main(int argc, char* argv[]) {
   /* initialise our data structures and load values from file */
   initialise(paramfile, obstaclefile, &params, &cells, &tmp_cells, &obstacles, &av_vels, &ocl);
 
-  /* iterate for maxIters timesteps */
+  /* ----- iterate for maxIters timesteps ---------------------------------- */
   gettimeofday(&timstr, NULL);
   tic = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
 
@@ -289,30 +290,24 @@ int main(int argc, char* argv[]) {
 
   // Read back partial sums
   int num_wrks = (params.nx / LOCAL_NX) * (params.ny / LOCAL_NY);
-  int*   h_partial_tot_cells = malloc(sizeof(int)   * num_wrks * params.maxIters);
-  float* h_partial_tot_u     = malloc(sizeof(float) * num_wrks * params.maxIters);
+  float* h_partial_tot_u = malloc(sizeof(float) * num_wrks * params.maxIters);
 
   // Read partial_tot_u from device
   err = clEnqueueReadBuffer(ocl.queue, ocl.partial_tot_u, CL_TRUE, 0,
     sizeof(float) * num_wrks * params.maxIters, h_partial_tot_u, 0, NULL, NULL);
   checkError(err, "reading partial_tot_u data", __LINE__);
 
-  // Read partial_tot_cells from device
-  err = clEnqueueReadBuffer(ocl.queue, ocl.partial_tot_cells, CL_TRUE, 0,
-    sizeof(int) * num_wrks * params.maxIters, h_partial_tot_cells, 0, NULL, NULL);
-  checkError(err, "reading partial_tot_cells data", __LINE__);
-
   // Compute average velocities at each step
+  float tot_cells = (float) get_tot_cells(params, obstacles);
   for (int iter = 0; iter < params.maxIters; iter++) {
     float tot_u = 0.0f; // accumulated magnitudes of velocity for each cell
-    int tot_cells = 0;  // no. of cells used in calculation
     for (int i = iter * num_wrks; i < (iter + 1) * num_wrks; i++) {
-      tot_cells += h_partial_tot_cells[i];
       tot_u += h_partial_tot_u[i];
     }
-    av_vels[iter] = tot_u / (float)tot_cells;
+    av_vels[iter] = tot_u / tot_cells;
   }
 
+  /* ----------------------------------------------------------------------- */
   gettimeofday(&timstr, NULL);
   toc = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
   getrusage(RUSAGE_SELF, &ru);
@@ -491,12 +486,8 @@ int timestep(const t_param params, const int tt, t_ocl ocl) {
     checkError(err, "setting prop_rebound_collision_avels arg 22", __LINE__);
     err = clSetKernelArg(ocl.prop_rebound_collision_avels, 23, sizeof(cl_mem), &ocl.partial_tot_u);
     checkError(err, "setting prop_rebound_collision_avels arg 23", __LINE__);
-    err = clSetKernelArg(ocl.prop_rebound_collision_avels, 24, sizeof(cl_mem), &ocl.partial_tot_cells);
+    err = clSetKernelArg(ocl.prop_rebound_collision_avels, 24, sizeof(cl_float) * wrk_size, NULL);
     checkError(err, "setting prop_rebound_collision_avels arg 24", __LINE__);
-    err = clSetKernelArg(ocl.prop_rebound_collision_avels, 25, sizeof(cl_float) * wrk_size, NULL);
-    checkError(err, "setting prop_rebound_collision_avels arg 25", __LINE__);
-    err = clSetKernelArg(ocl.prop_rebound_collision_avels, 26, sizeof(cl_int)   * wrk_size, NULL);
-    checkError(err, "setting prop_rebound_collision_avels arg 26", __LINE__);
 
     // Enqueue kernel
     err = clEnqueueNDRangeKernel(ocl.queue, ocl.prop_rebound_collision_avels,
@@ -555,6 +546,16 @@ float av_velocity_reynolds(const t_param params, t_soa* cells, int* obstacles) {
     }
 
     return tot_u / (float)tot_cells;
+}
+
+int get_tot_cells(const t_param params, int* restrict obstacles) {
+    int tot_cells  = 0;
+    for (int jj = 0; jj < params.ny; jj++) {
+      for (int ii = 0; ii < params.nx; ii++) {
+        tot_cells += (obstacles[jj*params.nx + ii] != 0) ? 0 : 1;
+      }
+    }
+    return tot_cells;
 }
 
 int initialise(const char* paramfile, const char* obstaclefile,
@@ -868,10 +869,6 @@ int initialise(const char* paramfile, const char* obstaclefile,
     ocl->context, CL_MEM_READ_WRITE,
     sizeof(cl_float) * num_wrks * params->maxIters, NULL, &err);
   checkError(err, "creating partial_tot_u buffer", __LINE__);
-  ocl->partial_tot_cells = clCreateBuffer(
-    ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_int) * num_wrks * params->maxIters, NULL, &err);
-  checkError(err, "creating partial_tot_cells buffer", __LINE__);
 
   return EXIT_SUCCESS;
 }

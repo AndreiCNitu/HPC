@@ -65,9 +65,7 @@ kernel void prop_rebound_collision_avels(global float* restrict cells_speed_0,
                                          global int*   restrict obstacles,
                                          const int nx, const int ny, const int tt, const float omega,
                                          global float* restrict partial_tot_u,
-                                         global int*   restrict partial_tot_cells,
-                                         local  float* restrict local_tot_u,
-                                         local  int*   restrict local_tot_cells) {
+                                         local  float* restrict local_tot_u) {
 
   /* get column and row indices */
   const int ii = get_global_id(0);
@@ -183,8 +181,6 @@ kernel void prop_rebound_collision_avels(global float* restrict cells_speed_0,
 
   /* accumulate the norm of x- and y- velocity components */
   local_tot_u[l_ii + l_jj * local_nx] = (obstacles[jj*nx + ii] != 0) ? 0 : native_sqrt((u_x_v * u_x_v) + (u_y_v * u_y_v));
-  /* increase counter of inspected cells */
-  local_tot_cells[l_ii + l_jj * local_nx] = (obstacles[jj*nx + ii] != 0) ? 0 : 1;
 
   barrier(CLK_LOCAL_MEM_FENCE);
 
@@ -199,10 +195,9 @@ kernel void prop_rebound_collision_avels(global float* restrict cells_speed_0,
   tmp_cells_speed_8[ii + jj*nx] = t8;
 
   const int item_id = l_ii + local_nx * l_jj;
-  for (int offset = local_nx * local_ny / 2; offset > 0; offset /= 2) { //??!! replace / with >>
+  for (int offset = local_nx * local_ny / 2; offset > 0; offset /= 2) {
     if (item_id < offset) {
-      local_tot_u[item_id]     += local_tot_u[item_id + offset];
-      local_tot_cells[item_id] += local_tot_cells[item_id + offset];
+      local_tot_u[item_id] += local_tot_u[item_id + offset];
     }
     barrier(CLK_LOCAL_MEM_FENCE);
   }
@@ -210,6 +205,5 @@ kernel void prop_rebound_collision_avels(global float* restrict cells_speed_0,
   if (item_id == 0) {
     const int base = tt * get_num_groups(0) * get_num_groups(1);
     partial_tot_u[base + g_ii + g_jj * get_num_groups(0)] = local_tot_u[0];
-    partial_tot_cells[base + g_ii + g_jj * get_num_groups(0)] = local_tot_cells[0];
   }
 }
