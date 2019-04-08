@@ -195,7 +195,7 @@ kernel void prop_rebound_collision_avels(global float* restrict cells_speed_0,
   tmp_cells_speed_8[ii + jj*nx] = t8;
 
   const int item_id = l_ii + local_nx * l_jj;
-  for (int offset = local_nx * local_ny / 2; offset > 0; offset /= 2) {
+  for (int offset = local_nx * local_ny / 2; offset > 0; offset >>= 1) {
     if (item_id < offset) {
       local_tot_u[item_id] += local_tot_u[item_id + offset];
     }
