@@ -11,18 +11,18 @@ cd "$PBS_O_WORKDIR"
 
 module load cuda/toolkit/7.5.18
 module load languages/python-2.7.6
+# module load languages/intel-compiler-16-u2
+# module load languages/intel-opencl-1.2-4
 
-# Select the GPU that we've been allocated
-device=$(cat $PBS_GPUFILE)
-device=${device#*gpu}
-export OCL_DEVICE=$device
+# Select a device (CPU / GPU)
+export OCL_DEVICE=0
 
 echo "Running on host: $(hostname)"
 echo "Time is: $(date)"
 echo "Directory is: $(pwd)"
 echo "PBS job ID is: $PBS_JOBID"
 echo "This jobs runs on the following machines: $(cat "$PBS_NODEFILE" | uniq)"
-echo "GPU selected: $OCL_DEVICE"
+echo "Device selected: $OCL_DEVICE"
 echo
 
 # Run the executable

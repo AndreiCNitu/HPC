@@ -1077,7 +1077,6 @@ cl_device_id selectOpenCLDevice() {
   }
   printf("\n");
   */
-
   // Use first device unless OCL_DEVICE environment variable used
   cl_uint device_index = 0;
   char *dev_env = getenv("OCL_DEVICE");
