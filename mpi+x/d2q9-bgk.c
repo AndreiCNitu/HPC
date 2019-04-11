@@ -214,14 +214,7 @@ int main(int argc, char* argv[]) {
   MPI_Comm_size(MPI_COMM_WORLD, &size);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-  // Only use 1 process per node
-  if (rank % 16 != 0) {
-    return EXIT_SUCCESS;
-  } else {
-    // Change 0,16,32,48 to 0,1,2,3
-    rank /= 16;
-    printf("Host %s: process %d of %d\n", hostname, rank, size);
-  }
+  printf("Host %s: process %d of %d\n", hostname, rank, size);
 
   /* initialise our data structures and load values from file */
   initialise(paramfile, obstaclefile, &params, &cells, &tmp_cells, &obstacles, &av_vels, &ocl, rank);
