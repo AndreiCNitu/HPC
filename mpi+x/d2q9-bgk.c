@@ -52,6 +52,7 @@
 #include <string.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <mpi.h>
 
 #ifdef __APPLE__
 #include <OpenCL/opencl.h>
@@ -128,7 +129,7 @@ typedef struct {
 /* load params, allocate memory, load obstacles & initialise fluid particle densities */
 int initialise(const char* paramfile, const char* obstaclefile,
                t_param* params, t_soa** cells_ptr, t_soa** tmp_cells_ptr,
-               int** obstacles_ptr, float** av_vels_ptr, t_ocl* ocl);
+               int** obstacles_ptr, float** av_vels_ptr, t_ocl* ocl, int rank);
 /* precompute tot_cells */
 int get_tot_cells(const t_param params, int* restrict obstacles);
 
@@ -190,8 +191,40 @@ int main(int argc, char* argv[]) {
     obstaclefile = argv[2];
   }
 
+  /* --------- MPI setup --------------------------------------------------- */
+  int rank; // Rank of process among its cohort - 0,16,32,48
+  int size; // Size of cohort (Number of processes)
+  int flag; // For checking whether MPI_Init() has been called
+  int strlen;
+  enum bool {FALSE, TRUE};
+  char hostname[MPI_MAX_PROCESSOR_NAME];
+
+  // Initialise MPI environment
+  MPI_Init( &argc, &argv );
+
+  // Check whether the initialisation was successful
+  MPI_Initialized( &flag );
+  if( flag != TRUE ) {
+    MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+  }
+
+  // Determine hostname
+  MPI_Get_processor_name(hostname, &strlen);
+
+  MPI_Comm_size(MPI_COMM_WORLD, &size);
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+  // Only use 1 process per node
+  if (rank % 16 != 0) {
+    return EXIT_SUCCESS;
+  } else {
+    // Reduce 0,16,32,48 to 0,1,2,3
+    rank /= 16;
+    printf("Host %s: process %d of %d\n", hostname, rank, size);
+  }
+
   /* initialise our data structures and load values from file */
-  initialise(paramfile, obstaclefile, &params, &cells, &tmp_cells, &obstacles, &av_vels, &ocl);
+  initialise(paramfile, obstaclefile, &params, &cells, &tmp_cells, &obstacles, &av_vels, &ocl, rank);
 
   /* ----- iterate for maxIters timesteps ---------------------------------- */
   gettimeofday(&timstr, NULL);
@@ -560,7 +593,7 @@ int get_tot_cells(const t_param params, int* restrict obstacles) {
 
 int initialise(const char* paramfile, const char* obstaclefile,
                t_param* params, t_soa** cells_ptr, t_soa** tmp_cells_ptr,
-               int** obstacles_ptr, float** av_vels_ptr, t_ocl *ocl) {
+               int** obstacles_ptr, float** av_vels_ptr, t_ocl* ocl, int rank) {
   char   message[1024];  /* message buffer */
   FILE*   fp;            /* file pointer */
   int    xx, yy;         /* generic array indices */
@@ -622,10 +655,6 @@ int initialise(const char* paramfile, const char* obstaclefile,
   ** some arithmetic using the row and column
   ** coordinates, inside the square brackets, when
   ** we want to access elements of this array.
-  **
-  ** Note also that we are using a structure to
-  ** hold an array of 'speeds'.  We will allocate
-  ** a 1D array of these structs.
   */
 
   /* main grid */
@@ -665,8 +694,8 @@ int initialise(const char* paramfile, const char* obstaclefile,
 
   /* initialise densities */
   float w0 = params->density * 4.f / 9.f;
-  float w1 = params->density      / 9.f;
-  float w2 = params->density      / 36.f;
+  float w1 = params->density       / 9.f;
+  float w2 = params->density       / 36.f;
 
   for (int jj = 0; jj < params->ny; jj++) {
     for (int ii = 0; ii < params->nx; ii++) {
