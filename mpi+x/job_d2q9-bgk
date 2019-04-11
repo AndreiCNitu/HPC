@@ -4,38 +4,41 @@
 #PBS -j oe
 #PBS -o d2q9-bgk.out
 #PBS -q teaching
-#PBS -l nodes=1:ppn=16:gpus=1,walltime=00:04:00
+#PBS -l nodes=4:ppn=16:gpus=1,walltime=00:04:00
 
 # Change the working directory (default is home directory)
 cd "$PBS_O_WORKDIR"
 
 module load cuda/toolkit/7.5.18
 module load languages/python-2.7.6
-# module load languages/intel-compiler-16-u2
+module load languages/intel-compiler-16-u2
 # module load languages/intel-opencl-1.2-4
 
 # Select a device (CPU / GPU)
-export OCL_DEVICE=0
+# export OCL_DEVICE=0
 
 echo "Running on host: $(hostname)"
 echo "Time is: $(date)"
 echo "Directory is: $(pwd)"
 echo "PBS job ID is: $PBS_JOBID"
-echo "This jobs runs on the following machines: $(cat "$PBS_NODEFILE" | uniq)"
-echo "Device selected: $OCL_DEVICE"
+processes=64
+nodes=$(uniq <"$PBS_NODEFILE")
+echo "This jobs runs on the following machines: $(echo "$nodes" | tr '\n' ' ')"
+# echo "This jobs runs on the following machines: $(cat "$PBS_NODEFILE" | uniq)"
+# echo "Device selected: $OCL_DEVICE"
 echo
 
 # Run the executable
 echo "########################################"
 echo "----------------------------------------"
 echo 128 x 128
-./d2q9-bgk input_128x128.params obstacles_128x128.dat
+mpirun -np $processes ./d2q9-bgk input_128x128.params obstacles_128x128.dat
 echo "----------------------------------------"
 echo 128 x 256
-./d2q9-bgk input_128x256.params obstacles_128x256.dat
+mpirun -np $processes ./d2q9-bgk input_128x256.params obstacles_128x256.dat
 echo "----------------------------------------"
 echo 256 x 256
-./d2q9-bgk input_256x256.params obstacles_256x256.dat
+mpirun -np $processes ./d2q9-bgk input_256x256.params obstacles_256x256.dat
 echo "----------------------------------------"
 echo 1024 x 1024
-./d2q9-bgk input_1024x1024.params obstacles_1024x1024.dat
+mpirun -np $processes ./d2q9-bgk input_1024x1024.params obstacles_1024x1024.dat
