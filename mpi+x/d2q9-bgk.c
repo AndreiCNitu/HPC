@@ -218,7 +218,7 @@ int main(int argc, char* argv[]) {
   if (rank % 16 != 0) {
     return EXIT_SUCCESS;
   } else {
-    // Reduce 0,16,32,48 to 0,1,2,3
+    // Change 0,16,32,48 to 0,1,2,3
     rank /= 16;
     printf("Host %s: process %d of %d\n", hostname, rank, size);
   }
@@ -357,6 +357,8 @@ int main(int argc, char* argv[]) {
   printf("Elapsed system CPU time:\t%.6lf (s)\n", systim);
   write_values(params, cells, obstacles, av_vels);
   finalise(&params, &cells, &tmp_cells, &obstacles, &av_vels, ocl);
+
+  MPI_Finalize();
 
   return EXIT_SUCCESS;
 }
@@ -810,7 +812,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
   ocl->prop_rebound_collision_avels = clCreateKernel(ocl->program, "prop_rebound_collision_avels", &err);
   checkError(err, "creating prop_rebound_collision_avels kernel", __LINE__);
 
-  // Allocate OpenCL buffers
+  /* ---- Allocate OpenCL buffers ---- */
   ocl->cells_speed_0 = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
     sizeof(cl_float) * params->nx * params->ny, NULL, &err);
@@ -1097,7 +1099,7 @@ cl_device_id selectOpenCLDevice() {
     checkError(err, "getting device name", __LINE__);
     total_devices += num_devices;
   }
-  /*
+
   // Print list of devices
   printf("\nAvailable OpenCL devices:\n");
   for (cl_uint d = 0; d < total_devices; d++) {
@@ -1105,7 +1107,7 @@ cl_device_id selectOpenCLDevice() {
     printf("%2d: %s\n", d, name);
   }
   printf("\n");
-  */
+  
   // Use first device unless OCL_DEVICE environment variable used
   cl_uint device_index = 0;
   char *dev_env = getenv("OCL_DEVICE");
