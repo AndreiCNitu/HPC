@@ -65,8 +65,8 @@
 #define AVVELSFILE      "av_vels.dat"
 #define OCLFILE         "kernels.cl"
 
+// assume 1 row group
 #define LOCAL_NX 128
-#define LOCAL_NY 1
 
 /* struct to hold the parameter values */
 typedef struct {
@@ -74,9 +74,9 @@ typedef struct {
   int    ny;            /* no. of cells in y-direction */
   int    maxIters;      /* no. of iterations */
   int    reynolds_dim;  /* dimension for Reynolds number */
-  float density;       /* density per link */
-  float accel;         /* density redistribution */
-  float omega;         /* relaxation parameter */
+  float density;        /* density per link */
+  float accel;          /* density redistribution */
+  float omega;          /* relaxation parameter */
 } t_param;
 
 /* struct to hold OpenCL objects */
@@ -129,7 +129,8 @@ typedef struct {
 /* load params, allocate memory, load obstacles & initialise fluid particle densities */
 int initialise(const char* paramfile, const char* obstaclefile,
                t_param* params, t_soa** cells_ptr, t_soa** tmp_cells_ptr,
-               int** obstacles_ptr, float** av_vels_ptr, t_ocl* ocl, int rank);
+               int** obstacles_ptr, float** av_vels_ptr,
+               t_ocl* ocl, int rank, int d_height);
 /* precompute tot_cells */
 int get_tot_cells(const t_param params, int* restrict obstacles);
 
@@ -216,55 +217,424 @@ int main(int argc, char* argv[]) {
 
   printf("Host %s: process %d of %d\n", hostname, rank, size);
 
+  int d_height; // includes halo(s)
+  if (rank == 0 || rank == size-1) {
+    d_height = (params->ny / size) + 1;
+  } else {
+    d_height = (params->ny / size) + 2;
+  }
+
   /* initialise our data structures and load values from file */
-  initialise(paramfile, obstaclefile, &params, &cells, &tmp_cells, &obstacles, &av_vels, &ocl, rank);
+  initialise(paramfile, obstaclefile, &params,
+             &cells, &tmp_cells, &obstacles, &av_vels,
+             &ocl, rank, d_height);
 
   /* ----- iterate for maxIters timesteps ---------------------------------- */
   gettimeofday(&timstr, NULL);
   tic = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
 
   // Write cells to OpenCL buffer
-  err = clEnqueueWriteBuffer(
-    ocl.queue, ocl.cells_speed_0, CL_TRUE, 0,
-    sizeof(cl_float) * params.nx * params.ny, cells->speed_0, 0, NULL, NULL);
-  checkError(err, "writing cells_speed_0 data", __LINE__);
-  err = clEnqueueWriteBuffer(
-    ocl.queue, ocl.cells_speed_1, CL_TRUE, 0,
-    sizeof(cl_float) * params.nx * params.ny, cells->speed_1, 0, NULL, NULL);
-  checkError(err, "writing cells_speed_1 data", __LINE__);
-  err = clEnqueueWriteBuffer(
-    ocl.queue, ocl.cells_speed_2, CL_TRUE, 0,
-    sizeof(cl_float) * params.nx * params.ny, cells->speed_2, 0, NULL, NULL);
-  checkError(err, "writing cells_speed_2 data", __LINE__);
-  err = clEnqueueWriteBuffer(
-    ocl.queue, ocl.cells_speed_3, CL_TRUE, 0,
-    sizeof(cl_float) * params.nx * params.ny, cells->speed_3, 0, NULL, NULL);
-  checkError(err, "writing cells_speed_3 data", __LINE__);
-  err = clEnqueueWriteBuffer(
-    ocl.queue, ocl.cells_speed_4, CL_TRUE, 0,
-    sizeof(cl_float) * params.nx * params.ny, cells->speed_4, 0, NULL, NULL);
-  checkError(err, "writing cells_speed_4 data", __LINE__);
-  err = clEnqueueWriteBuffer(
-    ocl.queue, ocl.cells_speed_5, CL_TRUE, 0,
-    sizeof(cl_float) * params.nx * params.ny, cells->speed_5, 0, NULL, NULL);
-  checkError(err, "writing cells_speed_5 data", __LINE__);
-  err = clEnqueueWriteBuffer(
-    ocl.queue, ocl.cells_speed_6, CL_TRUE, 0,
-    sizeof(cl_float) * params.nx * params.ny, cells->speed_6, 0, NULL, NULL);
-  checkError(err, "writing cells_speed_6 data", __LINE__);
-  err = clEnqueueWriteBuffer(
-    ocl.queue, ocl.cells_speed_7, CL_TRUE, 0,
-    sizeof(cl_float) * params.nx * params.ny, cells->speed_7, 0, NULL, NULL);
-  checkError(err, "writing cells_speed_7 data", __LINE__);
-  err = clEnqueueWriteBuffer(
-    ocl.queue, ocl.cells_speed_8, CL_TRUE, 0,
-    sizeof(cl_float) * params.nx * params.ny, cells->speed_8, 0, NULL, NULL);
-  checkError(err, "writing cells_speed_8 data", __LINE__);
+  int main_ny = params->ny / size;
+  if (rank == 0) {
+      // Main block
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_0, CL_TRUE,
+        0,
+        sizeof(cl_float) * params.nx * main_ny, cells->speed_0,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_0 main block", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_1, CL_TRUE,
+        0,
+        sizeof(cl_float) * params.nx * main_ny, cells->speed_1,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_1 main block", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_2, CL_TRUE,
+        0,
+        sizeof(cl_float) * params.nx * main_ny, cells->speed_2,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_2 main block", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_3, CL_TRUE,
+        0,
+        sizeof(cl_float) * params.nx * main_ny, cells->speed_3,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_3 main block", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_4, CL_TRUE,
+        0,
+        sizeof(cl_float) * params.nx * main_ny, cells->speed_4,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_4 main block", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_5, CL_TRUE,
+        0,
+        sizeof(cl_float) * params.nx * main_ny, cells->speed_5,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_5 main block", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_6, CL_TRUE,
+        0,
+        sizeof(cl_float) * params.nx * main_ny, cells->speed_6,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_6 main block", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_7, CL_TRUE,
+        0,
+        sizeof(cl_float) * params.nx * main_ny, cells->speed_7,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_7 main block", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_8, CL_TRUE,
+        0,
+        sizeof(cl_float) * params.nx * main_ny, cells->speed_8,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_8 main block", __LINE__);
+
+      // Bottom halo
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_0, CL_TRUE,
+        sizeof(cl_float) * params.nx * ((rank + 1) * main_ny),
+        sizeof(cl_float) * params.nx, cells->speed_0,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_0 bottom halo", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_1, CL_TRUE,
+        sizeof(cl_float) * params.nx * ((rank + 1) * main_ny),
+        sizeof(cl_float) * params.nx, cells->speed_1,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_1 bottom halo", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_2, CL_TRUE,
+        sizeof(cl_float) * params.nx * ((rank + 1) * main_ny),
+        sizeof(cl_float) * params.nx, cells->speed_2,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_2 bottom halo", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_3, CL_TRUE,
+        sizeof(cl_float) * params.nx * ((rank + 1) * main_ny),
+        sizeof(cl_float) * params.nx, cells->speed_3,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_3 bottom halo", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_4, CL_TRUE,
+        sizeof(cl_float) * params.nx * ((rank + 1) * main_ny),
+        sizeof(cl_float) * params.nx, cells->speed_4,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_4 bottom halo", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_5, CL_TRUE,
+        sizeof(cl_float) * params.nx * ((rank + 1) * main_ny),
+        sizeof(cl_float) * params.nx, cells->speed_5,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_5 bottom halo", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_6, CL_TRUE,
+        sizeof(cl_float) * params.nx * ((rank + 1) * main_ny),
+        sizeof(cl_float) * params.nx, cells->speed_6,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_6 bottom halo", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_7, CL_TRUE,
+        sizeof(cl_float) * params.nx * ((rank + 1) * main_ny),
+        sizeof(cl_float) * params.nx, cells->speed_7,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_7 bottom halo", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_8, CL_TRUE,
+        sizeof(cl_float) * params.nx * ((rank + 1) * main_ny),
+        sizeof(cl_float) * params.nx, cells->speed_8,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_8 main block", __LINE__);
+  } else if (rank == size-1) {
+      // Top halo
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_0, CL_TRUE,
+        sizeof(cl_float) * params.nx * (rank * main_ny - 1),
+        sizeof(cl_float) * params.nx, cells->speed_0,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_0 top halo", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_1, CL_TRUE,
+        sizeof(cl_float) * params.nx * (rank * main_ny - 1),
+        sizeof(cl_float) * params.nx, cells->speed_1,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_1 top halo", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_2, CL_TRUE,
+        sizeof(cl_float) * params.nx * (rank * main_ny - 1),
+        sizeof(cl_float) * params.nx, cells->speed_2,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_2 top halo", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_3, CL_TRUE,
+        sizeof(cl_float) * params.nx * (rank * main_ny - 1),
+        sizeof(cl_float) * params.nx, cells->speed_3,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_3 top halo", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_4, CL_TRUE,
+        sizeof(cl_float) * params.nx * (rank * main_ny - 1),
+        sizeof(cl_float) * params.nx, cells->speed_4,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_4 top halo", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_5, CL_TRUE,
+        sizeof(cl_float) * params.nx * (rank * main_ny - 1),
+        sizeof(cl_float) * params.nx, cells->speed_5,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_5 top halo", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_6, CL_TRUE,
+        sizeof(cl_float) * params.nx * (rank * main_ny - 1),
+        sizeof(cl_float) * params.nx, cells->speed_6,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_6 top halo", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_7, CL_TRUE,
+        sizeof(cl_float) * params.nx * (rank * main_ny - 1),
+        sizeof(cl_float) * params.nx, cells->speed_7,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_7 top halo", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_8, CL_TRUE,
+        sizeof(cl_float) * params.nx * (rank * main_ny - 1),
+        sizeof(cl_float) * params.nx, cells->speed_8,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_8 top halo", __LINE__);
+
+      // Main block
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_0, CL_TRUE,
+        sizeof(cl_float) * params.nx * (rank * main_ny),
+        sizeof(cl_float) * params.nx * main_ny, cells->speed_0,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_0 main block", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_1, CL_TRUE,
+        sizeof(cl_float) * params.nx * (rank * main_ny),
+        sizeof(cl_float) * params.nx * main_ny, cells->speed_1,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_1 main block", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_2, CL_TRUE,
+        sizeof(cl_float) * params.nx * (rank * main_ny),
+        sizeof(cl_float) * params.nx * main_ny, cells->speed_2,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_2 main block", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_3, CL_TRUE,
+        sizeof(cl_float) * params.nx * (rank * main_ny),
+        sizeof(cl_float) * params.nx * main_ny, cells->speed_3,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_3 main block", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_4, CL_TRUE,
+        sizeof(cl_float) * params.nx * (rank * main_ny),
+        sizeof(cl_float) * params.nx * main_ny, cells->speed_4,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_4 main block", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_5, CL_TRUE,
+        sizeof(cl_float) * params.nx * (rank * main_ny),
+        sizeof(cl_float) * params.nx * main_ny, cells->speed_5,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_5 main block", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_6, CL_TRUE,
+        sizeof(cl_float) * params.nx * (rank * main_ny),
+        sizeof(cl_float) * params.nx * main_ny, cells->speed_6,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_6 main block", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_7, CL_TRUE,
+        sizeof(cl_float) * params.nx * (rank * main_ny),
+        sizeof(cl_float) * params.nx * main_ny, cells->speed_7,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_7 main block", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_8, CL_TRUE,
+        sizeof(cl_float) * params.nx * (rank * main_ny),
+        sizeof(cl_float) * params.nx * main_ny, cells->speed_8,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_8 main block", __LINE__);
+  } else {
+      // Top halo
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_0, CL_TRUE,
+        sizeof(cl_float) * params.nx * (rank * main_ny - 1),
+        sizeof(cl_float) * params.nx, cells->speed_0,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_0 top halo", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_1, CL_TRUE,
+        sizeof(cl_float) * params.nx * (rank * main_ny - 1),
+        sizeof(cl_float) * params.nx, cells->speed_1,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_1 top halo", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_2, CL_TRUE,
+        sizeof(cl_float) * params.nx * (rank * main_ny - 1),
+        sizeof(cl_float) * params.nx, cells->speed_2,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_2 top halo", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_3, CL_TRUE,
+        sizeof(cl_float) * params.nx * (rank * main_ny - 1),
+        sizeof(cl_float) * params.nx, cells->speed_3,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_3 top halo", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_4, CL_TRUE,
+        sizeof(cl_float) * params.nx * (rank * main_ny - 1),
+        sizeof(cl_float) * params.nx, cells->speed_4,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_4 top halo", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_5, CL_TRUE,
+        sizeof(cl_float) * params.nx * (rank * main_ny - 1),
+        sizeof(cl_float) * params.nx, cells->speed_5,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_5 top halo", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_6, CL_TRUE,
+        sizeof(cl_float) * params.nx * (rank * main_ny - 1),
+        sizeof(cl_float) * params.nx, cells->speed_6,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_6 top halo", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_7, CL_TRUE,
+        sizeof(cl_float) * params.nx * (rank * main_ny - 1),
+        sizeof(cl_float) * params.nx, cells->speed_7,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_7 top halo", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_8, CL_TRUE,
+        sizeof(cl_float) * params.nx * (rank * main_ny - 1),
+        sizeof(cl_float) * params.nx, cells->speed_8,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_8 top halo", __LINE__);
+
+      // Main block
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_0, CL_TRUE,
+        sizeof(cl_float) * params.nx * (rank * main_ny),
+        sizeof(cl_float) * params.nx * main_ny, cells->speed_0,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_0 main block", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_1, CL_TRUE,
+        sizeof(cl_float) * params.nx * (rank * main_ny),
+        sizeof(cl_float) * params.nx * main_ny, cells->speed_1,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_1 main block", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_2, CL_TRUE,
+        sizeof(cl_float) * params.nx * (rank * main_ny),
+        sizeof(cl_float) * params.nx * main_ny, cells->speed_2,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_2 main block", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_3, CL_TRUE,
+        sizeof(cl_float) * params.nx * (rank * main_ny),
+        sizeof(cl_float) * params.nx * main_ny, cells->speed_3,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_3 main block", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_4, CL_TRUE,
+        sizeof(cl_float) * params.nx * (rank * main_ny),
+        sizeof(cl_float) * params.nx * main_ny, cells->speed_4,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_4 main block", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_5, CL_TRUE,
+        sizeof(cl_float) * params.nx * (rank * main_ny),
+        sizeof(cl_float) * params.nx * main_ny, cells->speed_5,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_5 main block", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_6, CL_TRUE,
+        sizeof(cl_float) * params.nx * (rank * main_ny),
+        sizeof(cl_float) * params.nx * main_ny, cells->speed_6,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_6 main block", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_7, CL_TRUE,
+        sizeof(cl_float) * params.nx * (rank * main_ny),
+        sizeof(cl_float) * params.nx * main_ny, cells->speed_7,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_7 main block", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_8, CL_TRUE,
+        sizeof(cl_float) * params.nx * (rank * main_ny),
+        sizeof(cl_float) * params.nx * main_ny, cells->speed_8,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_8 main block", __LINE__);
+
+      // Bottom halo
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_0, CL_TRUE,
+        sizeof(cl_float) * params.nx * ((rank + 1) * main_ny),
+        sizeof(cl_float) * params.nx, cells->speed_0,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_0 bottom halo", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_1, CL_TRUE,
+        sizeof(cl_float) * params.nx * ((rank + 1) * main_ny),
+        sizeof(cl_float) * params.nx, cells->speed_1,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_1 bottom halo", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_2, CL_TRUE,
+        sizeof(cl_float) * params.nx * ((rank + 1) * main_ny),
+        sizeof(cl_float) * params.nx, cells->speed_2,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_2 bottom halo", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_3, CL_TRUE,
+        sizeof(cl_float) * params.nx * ((rank + 1) * main_ny),
+        sizeof(cl_float) * params.nx, cells->speed_3,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_3 bottom halo", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_4, CL_TRUE,
+        sizeof(cl_float) * params.nx * ((rank + 1) * main_ny),
+        sizeof(cl_float) * params.nx, cells->speed_4,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_4 bottom halo", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_5, CL_TRUE,
+        sizeof(cl_float) * params.nx * ((rank + 1) * main_ny),
+        sizeof(cl_float) * params.nx, cells->speed_5,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_5 bottom halo", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_6, CL_TRUE,
+        sizeof(cl_float) * params.nx * ((rank + 1) * main_ny),
+        sizeof(cl_float) * params.nx, cells->speed_6,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_6 bottom halo", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_7, CL_TRUE,
+        sizeof(cl_float) * params.nx * ((rank + 1) * main_ny),
+        sizeof(cl_float) * params.nx, cells->speed_7,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_7 bottom halo", __LINE__);
+      err = clEnqueueWriteBuffer(
+        ocl.queue, ocl.cells_speed_8, CL_TRUE,
+        sizeof(cl_float) * params.nx * ((rank + 1) * main_ny),
+        sizeof(cl_float) * params.nx, cells->speed_8,
+        0, NULL, NULL);
+      checkError(err, "writing cells_speed_8 bottom halo", __LINE__);
+  }
 
   // Write obstacles to OpenCL buffer
   err = clEnqueueWriteBuffer(
-    ocl.queue, ocl.obstacles, CL_TRUE, 0,
-    sizeof(cl_int) * params.nx * params.ny, obstacles, 0, NULL, NULL);
+    ocl.queue, ocl.obstacles, CL_TRUE,
+    sizeof(cl_float) * params.nx * ((rank * main_ny),
+    sizeof(cl_int) * params.nx * params.ny, obstacles,
+    0, NULL, NULL);
   checkError(err, "writing obstacles data", __LINE__);
 
   for (int tt = 0; tt < params.maxIters; tt++) {
@@ -276,46 +646,64 @@ int main(int argc, char* argv[]) {
 #endif
   }
 
-  // Read cells from device
+  // Read cells buffer from device
   err = clEnqueueReadBuffer(
-    ocl.queue, ocl.cells_speed_0, CL_TRUE, 0,
-    sizeof(cl_float) * params.nx * params.ny, cells->speed_0, 0, NULL, NULL);
-  checkError(err, "reading cells_speed_0 data", __LINE__);
+    ocl.queue, ocl.cells_speed_0, CL_TRUE,
+    sizeof(cl_float) * params.nx * (rank * main_ny),
+    sizeof(cl_float) * params.nx * main_ny, cells->speed_0,
+    0, NULL, NULL);
+  checkError(err, "reading cells_speed_0 main block data", __LINE__);
   err = clEnqueueReadBuffer(
-    ocl.queue, ocl.cells_speed_1, CL_TRUE, 0,
-    sizeof(cl_float) * params.nx * params.ny, cells->speed_1, 0, NULL, NULL);
-  checkError(err, "reading cells_speed_1 data", __LINE__);
+    ocl.queue, ocl.cells_speed_1, CL_TRUE,
+    sizeof(cl_float) * params.nx * (rank * main_ny),
+    sizeof(cl_float) * params.nx * main_ny, cells->speed_1,
+    0, NULL, NULL);
+  checkError(err, "reading cells_speed_1 main block data", __LINE__);
   err = clEnqueueReadBuffer(
-    ocl.queue, ocl.cells_speed_2, CL_TRUE, 0,
-    sizeof(cl_float) * params.nx * params.ny, cells->speed_2, 0, NULL, NULL);
-  checkError(err, "reading cells_speed_2 data", __LINE__);
+    ocl.queue, ocl.cells_speed_2, CL_TRUE,
+    sizeof(cl_float) * params.nx * (rank * main_ny),
+    sizeof(cl_float) * params.nx * main_ny, cells->speed_2,
+    0, NULL, NULL);
+  checkError(err, "reading cells_speed_2 main block data", __LINE__);
   err = clEnqueueReadBuffer(
-    ocl.queue, ocl.cells_speed_3, CL_TRUE, 0,
-    sizeof(cl_float) * params.nx * params.ny, cells->speed_3, 0, NULL, NULL);
-  checkError(err, "reading cells_speed_3 data", __LINE__);
+    ocl.queue, ocl.cells_speed_3, CL_TRUE,
+    sizeof(cl_float) * params.nx * (rank * main_ny),
+    sizeof(cl_float) * params.nx * main_ny, cells->speed_3,
+    0, NULL, NULL);
+  checkError(err, "reading cells_speed_3 main block data", __LINE__);
   err = clEnqueueReadBuffer(
-    ocl.queue, ocl.cells_speed_4, CL_TRUE, 0,
-    sizeof(cl_float) * params.nx * params.ny, cells->speed_4, 0, NULL, NULL);
-  checkError(err, "reading cells_speed_4 data", __LINE__);
+    ocl.queue, ocl.cells_speed_4, CL_TRUE,
+    sizeof(cl_float) * params.nx * (rank * main_ny),
+    sizeof(cl_float) * params.nx * main_ny, cells->speed_4,
+    0, NULL, NULL);
+  checkError(err, "reading cells_speed_4 main block data", __LINE__);
   err = clEnqueueReadBuffer(
-    ocl.queue, ocl.cells_speed_5, CL_TRUE, 0,
-    sizeof(cl_float) * params.nx * params.ny, cells->speed_5, 0, NULL, NULL);
-  checkError(err, "reading cells_speed_5 data", __LINE__);
+    ocl.queue, ocl.cells_speed_5, CL_TRUE,
+    sizeof(cl_float) * params.nx * (rank * main_ny),
+    sizeof(cl_float) * params.nx * main_ny, cells->speed_5,
+    0, NULL, NULL);
+  checkError(err, "reading cells_speed_5 main block data", __LINE__);
   err = clEnqueueReadBuffer(
-    ocl.queue, ocl.cells_speed_6, CL_TRUE, 0,
-    sizeof(cl_float) * params.nx * params.ny, cells->speed_6, 0, NULL, NULL);
-  checkError(err, "reading cells_speed_6 data", __LINE__);
+    ocl.queue, ocl.cells_speed_6, CL_TRUE,
+    sizeof(cl_float) * params.nx * (rank * main_ny),
+    sizeof(cl_float) * params.nx * main_ny, cells->speed_6,
+    0, NULL, NULL);
+  checkError(err, "reading cells_speed_6 main block data", __LINE__);
   err = clEnqueueReadBuffer(
-    ocl.queue, ocl.cells_speed_7, CL_TRUE, 0,
-    sizeof(cl_float) * params.nx * params.ny, cells->speed_7, 0, NULL, NULL);
-  checkError(err, "reading cells_speed_7 data", __LINE__);
+    ocl.queue, ocl.cells_speed_7, CL_TRUE,
+    sizeof(cl_float) * params.nx * (rank * main_ny),
+    sizeof(cl_float) * params.nx * main_ny, cells->speed_7,
+    0, NULL, NULL);
+  checkError(err, "reading cells_speed_7 main block data", __LINE__);
   err = clEnqueueReadBuffer(
-    ocl.queue, ocl.cells_speed_8, CL_TRUE, 0,
-    sizeof(cl_float) * params.nx * params.ny, cells->speed_8, 0, NULL, NULL);
-  checkError(err, "reading cells_speed_8 data", __LINE__);
+    ocl.queue, ocl.cells_speed_8, CL_TRUE,
+    sizeof(cl_float) * params.nx * (rank * main_ny),
+    sizeof(cl_float) * params.nx * main_ny, cells->speed_8,
+    0, NULL, NULL);
+  checkError(err, "reading cells_speed_8 main block data", __LINE__);
 
   // Read back partial sums
-  int num_wrks = (params.nx / LOCAL_NX) * (params.ny / LOCAL_NY);
+  int num_wrks = (params.nx / LOCAL_NX) * main_ny;
   float* h_partial_tot_u = malloc(sizeof(float) * num_wrks * params.maxIters);
 
   // Read partial_tot_u from device
@@ -588,7 +976,8 @@ int get_tot_cells(const t_param params, int* restrict obstacles) {
 
 int initialise(const char* paramfile, const char* obstaclefile,
                t_param* params, t_soa** cells_ptr, t_soa** tmp_cells_ptr,
-               int** obstacles_ptr, float** av_vels_ptr, t_ocl* ocl, int rank) {
+               int** obstacles_ptr, float** av_vels_ptr,
+               t_ocl* ocl, int rank, int d_height) {
   char   message[1024];  /* message buffer */
   FILE*   fp;            /* file pointer */
   int    xx, yy;         /* generic array indices */
@@ -806,93 +1195,97 @@ int initialise(const char* paramfile, const char* obstaclefile,
   checkError(err, "creating prop_rebound_collision_avels kernel", __LINE__);
 
   /* ---- Allocate OpenCL buffers ---- */
-  ocl->cells_speed_0 = clCreateBuffer(
-    ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->nx * params->ny, NULL, &err);
-  checkError(err, "creating cells_speed_0 buffer", __LINE__);
-  ocl->cells_speed_1 = clCreateBuffer(
-    ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->nx * params->ny, NULL, &err);
-  checkError(err, "creating cells_speed_1 buffer", __LINE__);
-  ocl->cells_speed_2 = clCreateBuffer(
-    ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->nx * params->ny, NULL, &err);
-  checkError(err, "creating cells_speed_2 buffer", __LINE__);
-  ocl->cells_speed_3 = clCreateBuffer(
-    ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->nx * params->ny, NULL, &err);
-  checkError(err, "creating cells_speed_3 buffer", __LINE__);
-  ocl->cells_speed_4 = clCreateBuffer(
-    ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->nx * params->ny, NULL, &err);
-  checkError(err, "creating cells_speed_4 buffer", __LINE__);
-  ocl->cells_speed_5 = clCreateBuffer(
-    ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->nx * params->ny, NULL, &err);
-  checkError(err, "creating cells_speed_5 buffer", __LINE__);
-  ocl->cells_speed_6 = clCreateBuffer(
-    ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->nx * params->ny, NULL, &err);
-  checkError(err, "creating cells_speed_6 buffer", __LINE__);
-  ocl->cells_speed_7 = clCreateBuffer(
-    ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->nx * params->ny, NULL, &err);
-  checkError(err, "creating cells_speed_7 buffer", __LINE__);
-  ocl->cells_speed_8 = clCreateBuffer(
-    ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->nx * params->ny, NULL, &err);
-  checkError(err, "creating cells_speed_8 buffer", __LINE__);
+  int main_height; // without halo(s)
+  if (rank == 0 || rank == size-1) {
+    main_height = d_height - 1;
+  } else {
+    main_height = d_height - 2;
+  }
+  int num_wrks = (params->nx / LOCAL_NX) * main_height;
 
-  ocl->tmp_cells_speed_0 = clCreateBuffer(
-    ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->nx * params->ny, NULL, &err);
-  checkError(err, "creating tmp_cells_speed_0 buffer", __LINE__);
-  ocl->tmp_cells_speed_1 = clCreateBuffer(
-    ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->nx * params->ny, NULL, &err);
-  checkError(err, "creating tmp_cells_speed_1 buffer", __LINE__);
-  ocl->tmp_cells_speed_2 = clCreateBuffer(
-    ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->nx * params->ny, NULL, &err);
-  checkError(err, "creating tmp_cells_speed_2 buffer", __LINE__);
-  ocl->tmp_cells_speed_3 = clCreateBuffer(
-    ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->nx * params->ny, NULL, &err);
-  checkError(err, "creating tmp_cells_speed_3 buffer", __LINE__);
-  ocl->tmp_cells_speed_4 = clCreateBuffer(
-    ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->nx * params->ny, NULL, &err);
-  checkError(err, "creating tmp_cells_speed_4 buffer", __LINE__);
-  ocl->tmp_cells_speed_5 = clCreateBuffer(
-    ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->nx * params->ny, NULL, &err);
-  checkError(err, "creating tmp_cells_speed_5 buffer", __LINE__);
-  ocl->tmp_cells_speed_6 = clCreateBuffer(
-    ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->nx * params->ny, NULL, &err);
-  checkError(err, "creating tmp_cells_speed_6 buffer", __LINE__);
-  ocl->tmp_cells_speed_7 = clCreateBuffer(
-    ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->nx * params->ny, NULL, &err);
-  checkError(err, "creating tmp_cells_speed_7 buffer", __LINE__);
-  ocl->tmp_cells_speed_8 = clCreateBuffer(
-    ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->nx * params->ny, NULL, &err);
-  checkError(err, "creating tmp_cells_speed_8 buffer", __LINE__);
-
-  ocl->obstacles = clCreateBuffer(
-    ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_int) * params->nx * params->ny, NULL, &err);
-  checkError(err, "creating obstacles buffer", __LINE__);
-  ocl->av_vels = clCreateBuffer(
-    ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->maxIters, NULL, &err);
-  checkError(err, "creating av_vels buffer", __LINE__);
-  int num_wrks = (params->nx / LOCAL_NX) * (params->ny / LOCAL_NY);
   ocl->partial_tot_u = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
     sizeof(cl_float) * num_wrks * params->maxIters, NULL, &err);
   checkError(err, "creating partial_tot_u buffer", __LINE__);
+
+  ocl->obstacles = clCreateBuffer(
+    ocl->context, CL_MEM_READ_WRITE,
+    sizeof(cl_float) * params->nx * main_height, NULL, &err);
+  checkError(err, "creating obstacles buffer", __LINE__);
+
+  ocl->cells_speed_0 = clCreateBuffer(
+    ocl->context, CL_MEM_READ_WRITE,
+    sizeof(cl_float) * params->nx * d_height, NULL, &err);
+  checkError(err, "creating cells_speed_0 buffer", __LINE__);
+  ocl->cells_speed_1 = clCreateBuffer(
+    ocl->context, CL_MEM_READ_WRITE,
+    sizeof(cl_float) * params->nx * d_height, NULL, &err);
+  checkError(err, "creating cells_speed_1 buffer", __LINE__);
+  ocl->cells_speed_2 = clCreateBuffer(
+    ocl->context, CL_MEM_READ_WRITE,
+    sizeof(cl_float) * params->nx * d_height, NULL, &err);
+  checkError(err, "creating cells_speed_2 buffer", __LINE__);
+  ocl->cells_speed_3 = clCreateBuffer(
+    ocl->context, CL_MEM_READ_WRITE,
+    sizeof(cl_float) * params->nx * d_height, NULL, &err);
+  checkError(err, "creating cells_speed_3 buffer", __LINE__);
+  ocl->cells_speed_4 = clCreateBuffer(
+    ocl->context, CL_MEM_READ_WRITE,
+    sizeof(cl_float) * params->nx * d_height, NULL, &err);
+  checkError(err, "creating cells_speed_4 buffer", __LINE__);
+  ocl->cells_speed_5 = clCreateBuffer(
+    ocl->context, CL_MEM_READ_WRITE,
+    sizeof(cl_float) * params->nx * d_height, NULL, &err);
+  checkError(err, "creating cells_speed_5 buffer", __LINE__);
+  ocl->cells_speed_6 = clCreateBuffer(
+    ocl->context, CL_MEM_READ_WRITE,
+    sizeof(cl_float) * params->nx * d_height, NULL, &err);
+  checkError(err, "creating cells_speed_6 buffer", __LINE__);
+  ocl->cells_speed_7 = clCreateBuffer(
+    ocl->context, CL_MEM_READ_WRITE,
+    sizeof(cl_float) * params->nx * d_height, NULL, &err);
+  checkError(err, "creating cells_speed_7 buffer", __LINE__);
+  ocl->cells_speed_8 = clCreateBuffer(
+    ocl->context, CL_MEM_READ_WRITE,
+    sizeof(cl_float) * params->nx * d_height->, NULL, &err);
+  checkError(err, "creating cells_speed_8 buffer", __LINE__);
+
+  ocl->tmp_cells_speed_0 = clCreateBuffer(
+    ocl->context, CL_MEM_READ_WRITE,
+    sizeof(cl_float) * params->nx * d_height, NULL, &err);
+  checkError(err, "creating tmp_cells_speed_0 buffer", __LINE__);
+  ocl->tmp_cells_speed_1 = clCreateBuffer(
+    ocl->context, CL_MEM_READ_WRITE,
+    sizeof(cl_float) * params->nx * d_height, NULL, &err);
+  checkError(err, "creating tmp_cells_speed_1 buffer", __LINE__);
+  ocl->tmp_cells_speed_2 = clCreateBuffer(
+    ocl->context, CL_MEM_READ_WRITE,
+    sizeof(cl_float) * params->nx * d_height, NULL, &err);
+  checkError(err, "creating tmp_cells_speed_2 buffer", __LINE__);
+  ocl->tmp_cells_speed_3 = clCreateBuffer(
+    ocl->context, CL_MEM_READ_WRITE,
+    sizeof(cl_float) * params->nx * d_height, NULL, &err);
+  checkError(err, "creating tmp_cells_speed_3 buffer", __LINE__);
+  ocl->tmp_cells_speed_4 = clCreateBuffer(
+    ocl->context, CL_MEM_READ_WRITE,
+    sizeof(cl_float) * params->nx * d_height, NULL, &err);
+  checkError(err, "creating tmp_cells_speed_4 buffer", __LINE__);
+  ocl->tmp_cells_speed_5 = clCreateBuffer(
+    ocl->context, CL_MEM_READ_WRITE,
+    sizeof(cl_float) * params->nx * d_height, NULL, &err);
+  checkError(err, "creating tmp_cells_speed_5 buffer", __LINE__);
+  ocl->tmp_cells_speed_6 = clCreateBuffer(
+    ocl->context, CL_MEM_READ_WRITE,
+    sizeof(cl_float) * params->nx * d_height, NULL, &err);
+  checkError(err, "creating tmp_cells_speed_6 buffer", __LINE__);
+  ocl->tmp_cells_speed_7 = clCreateBuffer(
+    ocl->context, CL_MEM_READ_WRITE,
+    sizeof(cl_float) * params->nx * d_height, NULL, &err);
+  checkError(err, "creating tmp_cells_speed_7 buffer", __LINE__);
+  ocl->tmp_cells_speed_8 = clCreateBuffer(
+    ocl->context, CL_MEM_READ_WRITE,
+    sizeof(cl_float) * params->nx * d_height, NULL, &err);
+  checkError(err, "creating tmp_cells_speed_8 buffer", __LINE__);
 
   return EXIT_SUCCESS;
 }
@@ -973,11 +1366,11 @@ float total_density(const t_param params, t_soa* cells) {
 int write_values(const t_param params, t_soa* cells, int* obstacles, float* av_vels) {
   FILE* fp;                     /* file pointer */
   const float c_sq = 1.f / 3.f; /* sq. of speed of sound */
-  float local_density;         /* per grid cell sum of densities */
-  float pressure;              /* fluid pressure in grid cell */
-  float u_x;                   /* x-component of velocity in grid cell */
-  float u_y;                   /* y-component of velocity in grid cell */
-  float u;                     /* norm--root of summed squares--of u_x and u_y */
+  float local_density;          /* per grid cell sum of densities */
+  float pressure;               /* fluid pressure in grid cell */
+  float u_x;                    /* x-component of velocity in grid cell */
+  float u_y;                    /* y-component of velocity in grid cell */
+  float u;                      /* norm--root of summed squares--of u_x and u_y */
 
   fp = fopen(FINALSTATEFILE, "w");
 
@@ -1092,7 +1485,7 @@ cl_device_id selectOpenCLDevice() {
     checkError(err, "getting device name", __LINE__);
     total_devices += num_devices;
   }
-
+  /*
   // Print list of devices
   printf("\nAvailable OpenCL devices:\n");
   for (cl_uint d = 0; d < total_devices; d++) {
@@ -1100,7 +1493,7 @@ cl_device_id selectOpenCLDevice() {
     printf("%2d: %s\n", d, name);
   }
   printf("\n");
-  
+  */
   // Use first device unless OCL_DEVICE environment variable used
   cl_uint device_index = 0;
   char *dev_env = getenv("OCL_DEVICE");
