@@ -1,2 +1,7 @@
-stencil: stencil.c
-	icc -g -O3 -qopt-report=5 -xAVX -fp-model fast=2 -ansi-alias -std=c99 -Wall $^ -o $@
+stencil: stencil.cpp
+	syclcc -std=c++14 -O3 --hipsycl-gpu-arch=sm_75 --hipsycl-platform=cuda $^ -o $@
+
+.PHONY: all check clean
+
+clean:
+	rm -f stencil
