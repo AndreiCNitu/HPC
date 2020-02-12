@@ -31,9 +31,9 @@ do
   echo $cores CORES
   echo "########################################"
   echo 128 x 128
-  ./d2q9-bgk input_128x128.params obstacles_128x128.dat
+  ./lbm input_128x128.params obstacles_128x128.dat
   echo 256 x 256
-  ./d2q9-bgk input_256x256.params obstacles_256x256.dat
+  ./lbm input_256x256.params obstacles_256x256.dat
   echo 1024 x 1024
-  ./d2q9-bgk input_1024x1024.params obstacles_1024x1024.dat
+  ./lbm input_1024x1024.params obstacles_1024x1024.dat
 done

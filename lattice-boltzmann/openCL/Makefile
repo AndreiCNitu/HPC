@@ -1,7 +1,7 @@
 # Makefile
 
-SRC=d2q9-bgk
-EXE=d2q9-bgk
+SRC=lbm
+EXE=lbm
 
 CC=icc
 CFLAGS= -std=c99 -Wall -O3

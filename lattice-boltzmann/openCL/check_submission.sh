@@ -9,7 +9,7 @@
 
 set -eu
 
-EXE=d2q9-bgk
+EXE=lbm
 ENV=env.sh
 
 module list |& tail -n +2
