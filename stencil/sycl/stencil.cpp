@@ -42,18 +42,18 @@ int main(int argc, char* argv[]) {
 
   double tic = wtime(); 
   {
-    cl::sycl::buffer<float, 1> img_sycl(image, cl::sycl::range<1>((1024+2) * (1024+2)));
-    cl::sycl::buffer<float, 1> tmp_img_sycl(tmp_image, cl::sycl::range<1>((1024+2) * (1024+2)));
+    cl::sycl::buffer<float, 1> img_sycl(image, cl::sycl::range<1>((nx + 2) * (ny + 2)));
+    cl::sycl::buffer<float, 1> tmp_img_sycl(tmp_image, cl::sycl::range<1>((nx + 2) * (ny + 2)));
 
     for(int t = 0; t < niters; ++t) {
       queue.submit([&] (cl::sycl::handler& cgh) {
         auto img_acc = img_sycl.get_access<cl::sycl::access::mode::read_write>(cgh);
         auto tmp_img_acc = tmp_img_sycl.get_access<cl::sycl::access::mode::read_write>(cgh);
 
-        cgh.parallel_for<class stencil_op1>(cl::sycl::range<2>(1024, 1024), [=](cl::sycl::item<2> item) {
+        cgh.parallel_for<class stencil_op1>(cl::sycl::range<2>(nx, ny), [=](cl::sycl::item<2> item) {
           int i = item.get_id(0) + 1;
           int j = item.get_id(1) + 1;
-          int sz = 1024 + 2;
+          int sz = nx + 2;
           
           tmp_img_acc[ j + i * sz ] = img_acc[ j + i * sz ] * 0.6f +
                                     ( img_acc[ j - 1 + i * sz ]    +
@@ -61,10 +61,10 @@ int main(int argc, char* argv[]) {
                                       img_acc[ j + (i - 1) * sz ]  +
                                       img_acc[ j + (i + 1) * sz ] ) * 0.1f;
         });
-        cgh.parallel_for<class stencil_op2>(cl::sycl::range<2>(1024, 1024), [=](cl::sycl::item<2> item) {
+        cgh.parallel_for<class stencil_op2>(cl::sycl::range<2>(nx, ny), [=](cl::sycl::item<2> item) {
           int i = item.get_id(0) + 1;
           int j = item.get_id(1) + 1;
-          int sz = 1024 + 2;
+          int sz = nx + 2;
           
           img_acc[ j + i * sz ] = tmp_img_acc[ j + i * sz ] * 0.6f +
                                 ( tmp_img_acc[ j - 1 + i * sz ]    +
@@ -74,12 +74,6 @@ int main(int argc, char* argv[]) {
         });
       });
     }
-/*
-    for (int t = 0; t < niters; ++t) {
-      stencil(nx+2, ny+2, image, tmp_image);
-      stencil(nx+2, ny+2, tmp_image, image);
-    }
-*/
   } 
   double toc = wtime();
 
@@ -93,21 +87,6 @@ int main(int argc, char* argv[]) {
   
    
   return 0;
-}
-
-void stencil(const int nx, const int ny, float* image, float* tmp_image) {
-  for( int i = 1; i < nx-1; i++ ) {
-    #pragma simd
-    //#pragma vector nontemporal (tmp_image) 
-    #pragma unroll 4
-    for( int j = 1; j < ny-1; j++ ) {
-      tmp_image[ j + i * ny ]  = image[ j + i * ny ] * 0.6f +
-                               ( image[ j - 1 + i * ny ]    +
-                                 image[ j + 1 + i * ny ]    +
-                                 image[ j + (i - 1) * ny ]  +
-                                 image[ j + (i + 1) * ny ] ) * 0.1f;
-    }
-  }
 }
 
 // Create the input image
