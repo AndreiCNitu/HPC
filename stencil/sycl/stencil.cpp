@@ -1,44 +1,87 @@
-
-#include <stdio.h>
-#include <stdlib.h>
+#include <iostream>
+#include <CL/sycl.hpp>
 #include <sys/time.h>
+
+class stencil_op1;
+class stencil_op2;
 
 // Define output file name
 #define OUTPUT_FILE "stencil.pgm"
 
-void stencil(const int nx, const int ny, float * restrict image, float * restrict tmp_image);
-void init_image(const int nx, const int ny, float * image, float * tmp_image);
-void output_image(const char * file_name, const int nx, const int ny, float *image);
+void init_image(const int nx, const int ny, float* image, float* tmp_image);
+void stencil(const int nx, const int ny, float* image, float* tmp_image);
+void output_image(const char* file_name, const int nx, const int ny, float* image);
 double wtime(void);
 
-int main(int argc, char *argv[]) {
-
+int main(int argc, char* argv[]) {
+  
   // Check usage
   if (argc != 4) {
     fprintf(stderr, "Usage: %s nx ny niters\n", argv[0]);
     exit(EXIT_FAILURE);
   }
-
+  
   // Initiliase problem dimensions from command line arguments
   int nx = atoi(argv[1]);
   int ny = atoi(argv[2]);
   int niters = atoi(argv[3]);
-
-  // Allocate the image
-  float *image     = _mm_malloc(sizeof(float)*(nx+2)*(ny+2), 64);
-  float *tmp_image = _mm_malloc(sizeof(float)*(nx+2)*(ny+2), 64);
-
+   
+  // Allocate the image TODO: _mm_malloc, why cast?
+  float* image     = (float*) malloc(sizeof(float)*(nx+2)*(ny+2));
+  float* tmp_image = (float*) malloc(sizeof(float)*(nx+2)*(ny+2));
+  
   // Set the input image
   init_image(nx+2, ny+2, image, tmp_image);
 
-  // Call the stencil kernel
-  double tic = wtime();
-  for (int t = 0; t < niters; ++t) {
-    stencil(nx+2, ny+2, image, tmp_image);
-    stencil(nx+2, ny+2, tmp_image, image);
-  }
-  double toc = wtime();
+  cl::sycl::default_selector device_selector;
 
+  cl::sycl::queue queue(device_selector);
+  std::cout << "Running on "
+            << queue.get_device().get_info<cl::sycl::info::device::name>()
+            << "\n";
+
+  double tic = wtime(); 
+  {
+    cl::sycl::buffer<float, 1> img_sycl(image, cl::sycl::range<1>((1024+2) * (1024+2)));
+    cl::sycl::buffer<float, 1> tmp_img_sycl(tmp_image, cl::sycl::range<1>((1024+2) * (1024+2)));
+
+    for(int t = 0; t < niters; ++t) {
+      queue.submit([&] (cl::sycl::handler& cgh) {
+        auto img_acc = img_sycl.get_access<cl::sycl::access::mode::read_write>(cgh);
+        auto tmp_img_acc = tmp_img_sycl.get_access<cl::sycl::access::mode::read_write>(cgh);
+
+        cgh.parallel_for<class stencil_op1>(cl::sycl::range<2>(1024, 1024), [=](cl::sycl::item<2> item) {
+          int i = item.get_id(0) + 1;
+          int j = item.get_id(1) + 1;
+          int sz = 1024 + 2;
+          
+          tmp_img_acc[ j + i * sz ] = img_acc[ j + i * sz ] * 0.6f +
+                                    ( img_acc[ j - 1 + i * sz ]    +
+                                      img_acc[ j + 1 + i * sz ]    +
+                                      img_acc[ j + (i - 1) * sz ]  +
+                                      img_acc[ j + (i + 1) * sz ] ) * 0.1f;
+        });
+        cgh.parallel_for<class stencil_op2>(cl::sycl::range<2>(1024, 1024), [=](cl::sycl::item<2> item) {
+          int i = item.get_id(0) + 1;
+          int j = item.get_id(1) + 1;
+          int sz = 1024 + 2;
+          
+          img_acc[ j + i * sz ] = tmp_img_acc[ j + i * sz ] * 0.6f +
+                                ( tmp_img_acc[ j - 1 + i * sz ]    +
+                                  tmp_img_acc[ j + 1 + i * sz ]    +
+                                  tmp_img_acc[ j + (i - 1) * sz ]  +
+                                  tmp_img_acc[ j + (i + 1) * sz ] ) * 0.1f;
+        });
+      });
+    }
+/*
+    for (int t = 0; t < niters; ++t) {
+      stencil(nx+2, ny+2, image, tmp_image);
+      stencil(nx+2, ny+2, tmp_image, image);
+    }
+*/
+  } 
+  double toc = wtime();
 
   // Output
   printf("----------------------------------------\n");
@@ -46,20 +89,17 @@ int main(int argc, char *argv[]) {
   printf(" memory bandwidth: %lf GB/s\n", (4 * 6 * (nx / 1024) * (ny / 1024) * 2 * niters) / ((toc - tic) * 1024) );
   printf("----------------------------------------\n");
   output_image(OUTPUT_FILE, nx+2, ny+2, image);
-  _mm_free(image);
+  free(image);
+  
+   
+  return 0;
 }
 
-void stencil(const int nx, const int ny, float * restrict image, float * restrict tmp_image) {
+void stencil(const int nx, const int ny, float* image, float* tmp_image) {
   for( int i = 1; i < nx-1; i++ ) {
-    __assume_aligned(tmp_image, 64);
-    __assume_aligned(    image, 64);
-    __assume( ((i - 1) * ny) % 16 == 0 );
-    __assume( ((i + 1) * ny) % 16 == 0 );
-    __assume( (-1 + i * ny)  % 16 == 0 );
-    __assume( ( 1 + i * ny)  % 16 == 0 );
     #pragma simd
     //#pragma vector nontemporal (tmp_image) 
-    #pragma unroll (4)
+    #pragma unroll 4
     for( int j = 1; j < ny-1; j++ ) {
       tmp_image[ j + i * ny ]  = image[ j + i * ny ] * 0.6f +
                                ( image[ j - 1 + i * ny ]    +
@@ -71,7 +111,7 @@ void stencil(const int nx, const int ny, float * restrict image, float * restric
 }
 
 // Create the input image
-void init_image(const int nx, const int ny, float * image, float * tmp_image) {
+void init_image(const int nx, const int ny, float* image, float* tmp_image) {
   // Zero everything
   for (int j = 0; j < ny; ++j) {
     for (int i = 0; i < nx; ++i) {
@@ -99,7 +139,7 @@ void init_image(const int nx, const int ny, float * image, float * tmp_image) {
 }
 
 // Routine to output the image in Netpbm grayscale binary image format
-void output_image(const char * file_name, const int nx, const int ny, float *image) {
+void output_image(const char* file_name, const int nx, const int ny, float* image) {
 
   // Open output file
   FILE *fp = fopen(file_name, "w");

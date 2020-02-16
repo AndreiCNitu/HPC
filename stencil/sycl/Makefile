@@ -1,5 +1,5 @@
 stencil: stencil.cpp
-	syclcc -std=c++14 -O3 --hipsycl-gpu-arch=sm_75 --hipsycl-platform=cuda $^ -o $@
+	syclcc -std=c++14 -O3 --hipsycl-gpu-arch=sm_61 --hipsycl-platform=cuda $^ -o $@
 
 .PHONY: all check clean
 
