@@ -4,7 +4,7 @@ d2q9-bgk
 d2q9-bgk.out
 final_state.dat
 av_vels.dat
-stencil
+stencil/sycl/stencil
 lbm
 stream
 stream_*
