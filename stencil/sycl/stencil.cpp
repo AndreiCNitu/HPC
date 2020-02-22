@@ -26,7 +26,7 @@ int main(int argc, char* argv[]) {
   int ny = atoi(argv[2]);
   int niters = atoi(argv[3]);
    
-  // Allocate the image TODO: _mm_malloc, why cast?
+  // Allocate the image
   float* image     = (float*) malloc(sizeof(float)*(nx+2)*(ny+2));
   float* tmp_image = (float*) malloc(sizeof(float)*(nx+2)*(ny+2));
   
