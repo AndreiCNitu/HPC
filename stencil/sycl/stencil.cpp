@@ -51,8 +51,8 @@ int main(int argc, char* argv[]) {
         auto tmp_img_acc = tmp_img_sycl.get_access<cl::sycl::access::mode::read_write>(cgh);
 
         cgh.parallel_for<class stencil_op1>(cl::sycl::range<2>(nx, ny), [=](cl::sycl::item<2> item) {
-          int i = item.get_id(0) + 1;
-          int j = item.get_id(1) + 1;
+          int i = item[0] + 1;
+          int j = item[1] + 1;
           int sz = nx + 2;
           
           tmp_img_acc[ j + i * sz ] = img_acc[ j + i * sz ] * 0.6f +
@@ -62,8 +62,8 @@ int main(int argc, char* argv[]) {
                                       img_acc[ j + (i + 1) * sz ] ) * 0.1f;
         });
         cgh.parallel_for<class stencil_op2>(cl::sycl::range<2>(nx, ny), [=](cl::sycl::item<2> item) {
-          int i = item.get_id(0) + 1;
-          int j = item.get_id(1) + 1;
+          int i = item[0] + 1;
+          int j = item[1] + 1;
           int sz = nx + 2;
           
           img_acc[ j + i * sz ] = tmp_img_acc[ j + i * sz ] * 0.6f +
