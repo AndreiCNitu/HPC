@@ -1,11 +1,11 @@
 SRC=lbm.cpp
 EXE=lbm
 
-build-1080ti :
-	syclcc -std=c++14 -O3 --hipsycl-gpu-arch=sm_61 --hipsycl-platform=cuda $(SRC) -o $(EXE)
-
 build-2080ti :
 	syclcc -std=c++14 -O3 --hipsycl-gpu-arch=sm_75 --hipsycl-platform=cuda $(SRC) -o $(EXE)
+
+build-1080ti :
+	syclcc -std=c++14 -O3 --hipsycl-gpu-arch=sm_61 --hipsycl-platform=cuda $(SRC) -o $(EXE)
 
 build-radeonvii :
 	syclcc -std=c++14 -O3 --hipsycl-gpu-arch=gfx906 --hipsycl-platform=rocm $(SRC) -o $(EXE)
