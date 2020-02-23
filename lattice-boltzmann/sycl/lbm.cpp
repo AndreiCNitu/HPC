@@ -99,7 +99,6 @@ __host__ __device__ inline void lbm_computation(
   accessor_t tmp_speeds_8_acc,
   iread_accessor_t obstacles_acc,
   accessor_t tot_u_acc,
-  accessor_t av_vels_acc, 
   sycl::item<2> item,
   const t_param params);
 
@@ -245,7 +244,7 @@ int main(int argc, char* argv[]) {
                           tmp_speeds_0_acc, tmp_speeds_1_acc, tmp_speeds_2_acc,
                           tmp_speeds_3_acc, tmp_speeds_4_acc, tmp_speeds_5_acc,
                           tmp_speeds_6_acc, tmp_speeds_7_acc, tmp_speeds_8_acc,
-                          obstacles_acc, tot_u_acc, av_vels_acc, item, params);
+                          obstacles_acc, tot_u_acc, item, params);
         });
         cgh.single_task<class vels_reduction_cells>( [=]() {   
           float tot_u = 0.0f;
@@ -271,7 +270,7 @@ int main(int argc, char* argv[]) {
                           speeds_0_acc, speeds_1_acc, speeds_2_acc,
                           speeds_3_acc, speeds_4_acc, speeds_5_acc,
                           speeds_6_acc, speeds_7_acc, speeds_8_acc,
-                          obstacles_acc, tot_u_acc, av_vels_acc, item, params);
+                          obstacles_acc, tot_u_acc, item, params);
         });
         cgh.single_task<class vels_reduction_tmp_c>( [=]() {   
           float tot_u = 0.0f;
@@ -366,7 +365,6 @@ __host__ __device__ inline void lbm_computation(
   accessor_t tmp_speeds_8_acc,
   iread_accessor_t obstacles_acc,
   accessor_t tot_u_acc,
-  accessor_t av_vels_acc, 
   sycl::item<2> item,
   const t_param params)
 {
