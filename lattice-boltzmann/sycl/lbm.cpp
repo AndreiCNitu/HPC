@@ -99,7 +99,7 @@ __host__ __device__ inline void lbm_computation(
   accessor_t tmp_speeds_8_acc,
   iread_accessor_t obstacles_acc,
   accessor_t tot_u_acc,
-  sycl::item<2> item,
+  sycl::nd_item<2> item,
   const t_param params);
 
 /* load params, allocate memory, load obstacles & initialise fluid particle densities */
@@ -236,7 +236,10 @@ int main(int argc, char* argv[]) {
                           speeds_6_acc, speeds_7_acc, speeds_8_acc,
                           obstacles_acc, item, params);
         });
-        cgh.parallel_for<class lbm_computation_cells>(sycl::range<2>(cols, rows), [=](sycl::item<2> item) {
+        cgh.parallel_for<class lbm_computation_cells>(sycl::nd_range<2>{
+                                                          sycl::range<2>{(size_t) cols, (size_t) rows}, 
+                                                          sycl::range<2>{128, 1}}, 
+                                                      [=](sycl::nd_item<2> item) {
 
           lbm_computation(speeds_0_acc, speeds_1_acc, speeds_2_acc,
                           speeds_3_acc, speeds_4_acc, speeds_5_acc,
@@ -262,7 +265,10 @@ int main(int argc, char* argv[]) {
                           tmp_speeds_6_acc, tmp_speeds_7_acc, tmp_speeds_8_acc,
                           obstacles_acc, item, params);
         });
-        cgh.parallel_for<class lbm_computation_tmp_c>(sycl::range<2>(cols, rows), [=](sycl::item<2> item) {
+        cgh.parallel_for<class lbm_computation_tmp_c>(sycl::nd_range<2>{
+                                                          sycl::range<2>{(size_t) cols, (size_t) rows}, 
+                                                          sycl::range<2>{128, 1}}, 
+                                                      [=](sycl::nd_item<2> item) {
         
           lbm_computation(tmp_speeds_0_acc, tmp_speeds_1_acc, tmp_speeds_2_acc,
                           tmp_speeds_3_acc, tmp_speeds_4_acc, tmp_speeds_5_acc,
@@ -365,11 +371,11 @@ __host__ __device__ inline void lbm_computation(
   accessor_t tmp_speeds_8_acc,
   iread_accessor_t obstacles_acc,
   accessor_t tot_u_acc,
-  sycl::item<2> item,
+  sycl::nd_item<2> item,
   const t_param params)
 {
-  int ii = item[0];
-  int jj = item[1];
+  int ii = item.get_global_id(0);
+  int jj = item.get_global_id(1);
 
   const float c_sq = 1.f / 3.f;  /* square of speed of sound */
   const float w0   = 4.f / 9.f;  /* weighting factor */
