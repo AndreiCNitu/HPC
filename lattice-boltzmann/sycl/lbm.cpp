@@ -199,7 +199,6 @@ int main(int argc, char* argv[]) {
     sycl::buffer<int, 1> obstacles_sycl(obstacles, sycl::range<1>(rows * cols));
 
     sycl::buffer<float, 1> partial_tot_u_sycl(partial_tot_u_h, sycl::range<1>(num_wrks * iters));
-    sycl::buffer<float, 1> av_vels_sycl(av_vels, sycl::range<1>(iters));
 
     for(int tt = 0; tt < iters / 2; tt++) {
       queue.submit([&] (sycl::handler& cgh) {
@@ -228,7 +227,6 @@ int main(int argc, char* argv[]) {
         
         local_accessor_t local_tot_u_acc(sycl::range<1>(LOCAL_NX * LOCAL_NY), cgh);
         auto partial_tot_u_acc = partial_tot_u_sycl.get_access<sycl::access::mode::read_write>(cgh);
-        auto av_vels_acc = av_vels_sycl.get_access<sycl::access::mode::read_write>(cgh);
 
         cgh.parallel_for<class accelerate_flow_cells>(sycl::range<1>(cols), [=](sycl::item<1> item) {
           
