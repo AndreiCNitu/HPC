@@ -37,6 +37,9 @@ using local_accessor_t =
 #define FINALSTATEFILE  "final_state.dat"
 #define AVVELSFILE      "av_vels.dat"
 
+#define LOCAL_NX 128
+#define LOCAL_NY 1
+
 // Define output file name
 #define OUTPUT_FILE "stencil.pgm"
 
@@ -98,9 +101,11 @@ __host__ __device__ inline void lbm_computation(
   accessor_t tmp_speeds_7_acc,
   accessor_t tmp_speeds_8_acc,
   iread_accessor_t obstacles_acc,
-  accessor_t tot_u_acc,
+  local_accessor_t local_tot_u_acc,
+  accessor_t partial_tot_u_acc,
   sycl::nd_item<2> item,
-  const t_param params);
+  const t_param params,
+  const int tt);
 
 /* load params, allocate memory, load obstacles & initialise fluid particle densities */
 int initialise(const char* paramfile, const char* obstaclefile,
@@ -153,14 +158,9 @@ int main(int argc, char* argv[]) {
   /* initialise our data structures and load values from file */
   initialise(paramfile, obstaclefile, &params, &cells, &tmp_cells, &obstacles, &av_vels);
 
-  /* Precompute total cells*/
-  int tot_cells  = 0;
-  for (int jj = 0; jj < params.ny; jj++) {
-    for (int ii = 0; ii < params.nx; ii++) {
-      tot_cells += (obstacles[ jj * params.nx + ii] != 0) ? 0 : 1;
-    }
-  }
-
+  int num_wrks = (params.nx / LOCAL_NX) * (params.ny / LOCAL_NY);
+  float* partial_tot_u_h = (float*) malloc(sizeof(float) * num_wrks * params.maxIters);
+  
   sycl::default_selector device_selector;
 
   sycl::queue queue(device_selector);
@@ -198,7 +198,7 @@ int main(int argc, char* argv[]) {
     
     sycl::buffer<int, 1> obstacles_sycl(obstacles, sycl::range<1>(rows * cols));
 
-    sycl::buffer<float, 1> tot_u_sycl(sycl::range<1>(rows * cols));
+    sycl::buffer<float, 1> partial_tot_u_sycl(partial_tot_u_h, sycl::range<1>(num_wrks * iters));
     sycl::buffer<float, 1> av_vels_sycl(av_vels, sycl::range<1>(iters));
 
     for(int tt = 0; tt < iters / 2; tt++) {
@@ -226,7 +226,8 @@ int main(int argc, char* argv[]) {
        
         auto obstacles_acc = obstacles_sycl.get_access<sycl::access::mode::read>(cgh);
         
-        auto tot_u_acc = tot_u_sycl.get_access<sycl::access::mode::read_write>(cgh);
+        local_accessor_t local_tot_u_acc(sycl::range<1>(LOCAL_NX * LOCAL_NY), cgh);
+        auto partial_tot_u_acc = partial_tot_u_sycl.get_access<sycl::access::mode::read_write>(cgh);
         auto av_vels_acc = av_vels_sycl.get_access<sycl::access::mode::read_write>(cgh);
 
         cgh.parallel_for<class accelerate_flow_cells>(sycl::range<1>(cols), [=](sycl::item<1> item) {
@@ -238,7 +239,7 @@ int main(int argc, char* argv[]) {
         });
         cgh.parallel_for<class lbm_computation_cells>(sycl::nd_range<2>{
                                                           sycl::range<2>{(size_t) cols, (size_t) rows}, 
-                                                          sycl::range<2>{128, 1}}, 
+                                                          sycl::range<2>{LOCAL_NX, LOCAL_NY}}, 
                                                       [=](sycl::nd_item<2> item) {
 
           lbm_computation(speeds_0_acc, speeds_1_acc, speeds_2_acc,
@@ -247,17 +248,8 @@ int main(int argc, char* argv[]) {
                           tmp_speeds_0_acc, tmp_speeds_1_acc, tmp_speeds_2_acc,
                           tmp_speeds_3_acc, tmp_speeds_4_acc, tmp_speeds_5_acc,
                           tmp_speeds_6_acc, tmp_speeds_7_acc, tmp_speeds_8_acc,
-                          obstacles_acc, tot_u_acc, item, params);
+                          obstacles_acc, local_tot_u_acc, partial_tot_u_acc, item, params, 2 * tt);
         });
-        cgh.single_task<class vels_reduction_cells>( [=]() {   
-          float tot_u = 0.0f;
-          for (int jj = 0; jj < rows; jj++) {
-            for (int ii = 0; ii < cols; ii++) {
-              tot_u += tot_u_acc[jj * cols + ii];
-            }
-          }
-          av_vels_acc[2 * tt] = tot_u / (float) tot_cells;
-        });    
         cgh.parallel_for<class accelerate_flow_tmp_c>(sycl::range<1>(cols), [=](sycl::item<1> item) {
         
           accelerate_flow(tmp_speeds_0_acc, tmp_speeds_1_acc, tmp_speeds_2_acc,
@@ -267,7 +259,7 @@ int main(int argc, char* argv[]) {
         });
         cgh.parallel_for<class lbm_computation_tmp_c>(sycl::nd_range<2>{
                                                           sycl::range<2>{(size_t) cols, (size_t) rows}, 
-                                                          sycl::range<2>{128, 1}}, 
+                                                          sycl::range<2>{LOCAL_NX, LOCAL_NY}}, 
                                                       [=](sycl::nd_item<2> item) {
         
           lbm_computation(tmp_speeds_0_acc, tmp_speeds_1_acc, tmp_speeds_2_acc,
@@ -276,19 +268,27 @@ int main(int argc, char* argv[]) {
                           speeds_0_acc, speeds_1_acc, speeds_2_acc,
                           speeds_3_acc, speeds_4_acc, speeds_5_acc,
                           speeds_6_acc, speeds_7_acc, speeds_8_acc,
-                          obstacles_acc, tot_u_acc, item, params);
+                          obstacles_acc, local_tot_u_acc, partial_tot_u_acc, item, params, 2 * tt + 1);
         });
-        cgh.single_task<class vels_reduction_tmp_c>( [=]() {   
-          float tot_u = 0.0f;
-          for (int jj = 0; jj < rows; jj++) {
-            for (int ii = 0; ii < cols; ii++) {
-              tot_u += tot_u_acc[jj * cols + ii];
-            }
-          }
-          av_vels_acc[2 * tt + 1] = tot_u / (float) tot_cells;
-        });    
       });
     }
+  }
+  
+  /* Precompute total cells*/
+  int tot_cells  = 0;
+  for (int jj = 0; jj < params.ny; jj++) {
+    for (int ii = 0; ii < params.nx; ii++) {
+      tot_cells += (obstacles[jj * params.nx + ii] != 0) ? 0 : 1;
+    }
+  }
+
+  /* Compute average velocities at each step */
+  for (int iter = 0; iter < params.maxIters; iter++) {
+    float tot_u = 0.0f; // accumulated magnitudes of velocity for each cell
+    for (int i = iter * num_wrks; i < (iter + 1) * num_wrks; i++) {
+      tot_u += partial_tot_u_h[i];
+    }
+    av_vels[iter] = tot_u / (float) tot_cells;
   }
 
   gettimeofday(&timstr, NULL);
@@ -370,18 +370,23 @@ __host__ __device__ inline void lbm_computation(
   accessor_t tmp_speeds_7_acc,
   accessor_t tmp_speeds_8_acc,
   iread_accessor_t obstacles_acc,
-  accessor_t tot_u_acc,
+  local_accessor_t local_tot_u_acc,
+  accessor_t partial_tot_u_acc,
   sycl::nd_item<2> item,
-  const t_param params)
+  const t_param params,
+  const int tt)
 {
-  int ii = item.get_global_id(0);
-  int jj = item.get_global_id(1);
-
+  const int ii = item.get_global_id(0);
+  const int jj = item.get_global_id(1);
+  const int l_ii = item.get_local_id(0);
+  const int l_jj = item.get_local_id(1);
+  const int g_ii = item.get_group(0);
+  const int g_jj = item.get_group(1);
+  
   const float c_sq = 1.f / 3.f;  /* square of speed of sound */
   const float w0   = 4.f / 9.f;  /* weighting factor */
   const float w1   = 1.f / 9.f;  /* weighting factor */
   const float w2   = 1.f / 36.f; /* weighting factor */
-  int   tot_cells  = 0;   /* no. of cells used in calculation */
   float tot_u      = 0.f; /* accumulated magnitudes of velocity for each cell */
 
   /**** PROPAGATION STEP ****/
@@ -482,7 +487,7 @@ __host__ __device__ inline void lbm_computation(
   const float u_y_v = (t2 + t5 + t6 - (t4 + t7 + t8)) / local_density_v;
 
   /* accumulate the norm of x- and y- velocity components */
-  tot_u_acc[jj * params.nx + ii] = (obstacles_acc[jj * params.nx + ii] != 0) ? 0 : sqrtf((u_x_v * u_x_v) + (u_y_v * u_y_v));
+  local_tot_u_acc[l_jj * LOCAL_NX + l_ii] = (obstacles_acc[jj * params.nx + ii] != 0) ? 0 : sqrtf((u_x_v * u_x_v) + (u_y_v * u_y_v));
 
   tmp_speeds_0_acc[jj * params.nx + ii] = t0;
   tmp_speeds_1_acc[jj * params.nx + ii] = t1;
@@ -493,6 +498,21 @@ __host__ __device__ inline void lbm_computation(
   tmp_speeds_6_acc[jj * params.nx + ii] = t6;
   tmp_speeds_7_acc[jj * params.nx + ii] = t7;
   tmp_speeds_8_acc[jj * params.nx + ii] = t8;
+  
+  item.barrier(sycl::access::fence_space::local_space);
+
+  const int item_id = l_ii + LOCAL_NX * l_jj;
+  for (int offset = LOCAL_NX * LOCAL_NY / 2; offset > 0; offset >>= 1) {
+    if (item_id < offset) {
+      local_tot_u_acc[item_id] += local_tot_u_acc[item_id + offset];
+    }
+    item.barrier(sycl::access::fence_space::local_space);
+  }
+
+  if (item_id == 0) {
+    const int base = tt * (params.nx / LOCAL_NX) * (params.ny / LOCAL_NY);
+    partial_tot_u_acc[base + g_ii + g_jj * (params.nx / LOCAL_NX)] = local_tot_u_acc[0];
+  }
 }
 
 float av_velocity(const t_param params, t_soa* cells, int* obstacles) {
