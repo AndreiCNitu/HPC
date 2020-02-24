@@ -298,11 +298,10 @@ int main(int argc, char* argv[]) {
   systim = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
 
   /* write final values and free memory */
-  printf("==done==\n");
-  printf("Reynolds number:\t\t%.12E\n", calc_reynolds(params, cells, obstacles));
-  printf("Elapsed time:\t\t\t%.6lf (s)\n", toc - tic);
-  printf("Elapsed user CPU time:\t\t%.6lf (s)\n", usrtim);
-  printf("Elapsed system CPU time:\t%.6lf (s)\n", systim);
+  // printf("Reynolds number: %.12E\n\n", calc_reynolds(params, cells, obstacles));
+  printf("                /----------\\\n");
+  printf("Elapsed time:  | %.4lf (s) |\n", toc - tic);
+  printf("                \\----------/\n");
   write_values(params, cells, obstacles, av_vels);
   finalise(&params, &cells, &tmp_cells, &obstacles, &av_vels);
 
@@ -485,7 +484,7 @@ __host__ __device__ inline void lbm_computation(
   const float u_y_v = (t2 + t5 + t6 - (t4 + t7 + t8)) / local_density_v;
 
   /* accumulate the norm of x- and y- velocity components */
-  local_tot_u_acc[l_jj * LOCAL_NX + l_ii] = (obstacles_acc[jj * params.nx + ii] != 0) ? 0 : sqrtf((u_x_v * u_x_v) + (u_y_v * u_y_v));
+  local_tot_u_acc[l_jj * LOCAL_NX + l_ii] = (obstacles_acc[jj * params.nx + ii] != 0) ? 0 : sycl::sqrt((u_x_v * u_x_v) + (u_y_v * u_y_v));
 
   tmp_speeds_0_acc[jj * params.nx + ii] = t0;
   tmp_speeds_1_acc[jj * params.nx + ii] = t1;
