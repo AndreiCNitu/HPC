@@ -67,7 +67,7 @@ typedef struct {
   float* speed_8;
 } t_soa;
 
-__host__ __device__ inline void accelerate_flow(
+inline void accelerate_flow(
   accessor_t speeds_0_acc,
   accessor_t speeds_1_acc,
   accessor_t speeds_2_acc,
@@ -81,7 +81,7 @@ __host__ __device__ inline void accelerate_flow(
   sycl::item<1> item,
   const t_param params);
 
-__host__ __device__ inline void lbm_computation(
+inline void lbm_computation(
   accessor_t speeds_0_acc,
   accessor_t speeds_1_acc,
   accessor_t speeds_2_acc,
@@ -307,7 +307,7 @@ int main(int argc, char* argv[]) {
   return EXIT_SUCCESS;
 }
 
-__host__ __device__ inline void accelerate_flow(
+inline void accelerate_flow(
   accessor_t speeds_0_acc,
   accessor_t speeds_1_acc,
   accessor_t speeds_2_acc,
@@ -346,7 +346,7 @@ __host__ __device__ inline void accelerate_flow(
   }
 }
 
-__host__ __device__ inline void lbm_computation(
+inline void lbm_computation(
   accessor_t speeds_0_acc,
   accessor_t speeds_1_acc,
   accessor_t speeds_2_acc,

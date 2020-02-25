@@ -6,6 +6,9 @@ EXTRA_FLAGS=
 computecpp : lbm.o lbm.sycl
 	$(CXX) -O3 -std=c++11 -DSYCL lbm.o $(EXTRA_FLAGS) -L$(COMPUTECPP_PACKAGE_ROOT_DIR)/lib -lComputeCpp -lOpenCL -Wl,--rpath=$(COMPUTECPP_PACKAGE_ROOT_DIR)/lib/ -o $(EXE)
 
+llvm-sycl : 
+	clang++ -fsycl $(SRC) -o $(EXE)
+
 lbm.o : lbm.cpp lbm.sycl
 	$(CXX) -O3 -std=c++11 -DSYCL lbm.cpp -c -I$(COMPUTECPP_PACKAGE_ROOT_DIR)/include -include lbm.sycl $(EXTRA_FLAGS) -o $@
 
