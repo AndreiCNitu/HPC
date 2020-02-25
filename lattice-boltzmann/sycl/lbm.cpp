@@ -109,13 +109,13 @@ __host__ __device__ inline void lbm_computation(
 
 /* load params, allocate memory, load obstacles & initialise fluid particle densities */
 int initialise(const char* paramfile, const char* obstaclefile,
-               t_param* params, t_soa** cells_ptr, t_soa** tmp_cells_ptr,
+               t_param* params, t_soa** cells_ptr,
                int** obstacles_ptr, float** av_vels_ptr);
 
 int write_values(const t_param params, t_soa* cells, int* obstacles, float* av_vels);
 
 /* finalise, including freeing up allocated memory */
-int finalise(const t_param* params, t_soa** cells_ptr, t_soa** tmp_cells_ptr,
+int finalise(const t_param* params, t_soa** cells_ptr,
              int** obstacles_ptr, float** av_vels_ptr);
 
 /* Sum all the densities in the grid.
@@ -138,7 +138,6 @@ int main(int argc, char* argv[]) {
   char*   obstaclefile = NULL;   /* name of a the input obstacle file */
   t_param params;                /* struct to hold parameter values */
   t_soa*  cells     = NULL;      /* grid containing fluid densities */
-  t_soa*  tmp_cells = NULL;      /* scratch space */
   int*    obstacles = NULL;      /* grid indicating which cells are blocked */
   float*  av_vels   = NULL;      /* a record of the av. velocity computed for each timestep */
   struct  timeval timstr;        /* structure to hold elapsed time */
@@ -156,7 +155,7 @@ int main(int argc, char* argv[]) {
   }
 
   /* initialise our data structures and load values from file */
-  initialise(paramfile, obstaclefile, &params, &cells, &tmp_cells, &obstacles, &av_vels);
+  initialise(paramfile, obstaclefile, &params, &cells, &obstacles, &av_vels);
 
   int num_wrks = (params.nx / LOCAL_NX) * (params.ny / LOCAL_NY);
   float* partial_tot_u_h = (float*) malloc(sizeof(float) * num_wrks * params.maxIters);
@@ -186,15 +185,15 @@ int main(int argc, char* argv[]) {
     sycl::buffer<float, 1> speeds_7_sycl(cells->speed_7, sycl::range<1>(rows * cols));
     sycl::buffer<float, 1> speeds_8_sycl(cells->speed_8, sycl::range<1>(rows * cols));
     
-    sycl::buffer<float, 1> tmp_speeds_0_sycl(tmp_cells->speed_0, sycl::range<1>(rows * cols));
-    sycl::buffer<float, 1> tmp_speeds_1_sycl(tmp_cells->speed_1, sycl::range<1>(rows * cols));
-    sycl::buffer<float, 1> tmp_speeds_2_sycl(tmp_cells->speed_2, sycl::range<1>(rows * cols));
-    sycl::buffer<float, 1> tmp_speeds_3_sycl(tmp_cells->speed_3, sycl::range<1>(rows * cols));
-    sycl::buffer<float, 1> tmp_speeds_4_sycl(tmp_cells->speed_4, sycl::range<1>(rows * cols));
-    sycl::buffer<float, 1> tmp_speeds_5_sycl(tmp_cells->speed_5, sycl::range<1>(rows * cols));
-    sycl::buffer<float, 1> tmp_speeds_6_sycl(tmp_cells->speed_6, sycl::range<1>(rows * cols));
-    sycl::buffer<float, 1> tmp_speeds_7_sycl(tmp_cells->speed_7, sycl::range<1>(rows * cols));
-    sycl::buffer<float, 1> tmp_speeds_8_sycl(tmp_cells->speed_8, sycl::range<1>(rows * cols));
+    sycl::buffer<float, 1> tmp_speeds_0_sycl(sycl::range<1>(rows * cols));
+    sycl::buffer<float, 1> tmp_speeds_1_sycl(sycl::range<1>(rows * cols));
+    sycl::buffer<float, 1> tmp_speeds_2_sycl(sycl::range<1>(rows * cols));
+    sycl::buffer<float, 1> tmp_speeds_3_sycl(sycl::range<1>(rows * cols));
+    sycl::buffer<float, 1> tmp_speeds_4_sycl(sycl::range<1>(rows * cols));
+    sycl::buffer<float, 1> tmp_speeds_5_sycl(sycl::range<1>(rows * cols));
+    sycl::buffer<float, 1> tmp_speeds_6_sycl(sycl::range<1>(rows * cols));
+    sycl::buffer<float, 1> tmp_speeds_7_sycl(sycl::range<1>(rows * cols));
+    sycl::buffer<float, 1> tmp_speeds_8_sycl(sycl::range<1>(rows * cols));
     
     sycl::buffer<int, 1> obstacles_sycl(obstacles, sycl::range<1>(rows * cols));
 
@@ -303,7 +302,7 @@ int main(int argc, char* argv[]) {
   printf("Elapsed time:  | %.4lf (s) |\n", toc - tic);
   printf("                \\----------/\n");
   write_values(params, cells, obstacles, av_vels);
-  finalise(&params, &cells, &tmp_cells, &obstacles, &av_vels);
+  finalise(&params, &cells, &obstacles, &av_vels);
 
   return EXIT_SUCCESS;
 }
@@ -564,7 +563,7 @@ float av_velocity(const t_param params, t_soa* cells, int* obstacles) {
 }
 
 int initialise(const char* paramfile, const char* obstaclefile,
-               t_param* params, t_soa** cells_ptr, t_soa** tmp_cells_ptr,
+               t_param* params, t_soa** cells_ptr,
                int** obstacles_ptr, float** av_vels_ptr) {
   char   message[1024];  /* message buffer */
   FILE*  fp;            /* file pointer */
@@ -646,21 +645,6 @@ int initialise(const char* paramfile, const char* obstaclefile,
   (*cells_ptr)->speed_7 = (float*) malloc(sizeof(float) * (params->ny * params->nx));
   (*cells_ptr)->speed_8 = (float*) malloc(sizeof(float) * (params->ny * params->nx));
 
-  /* 'helper' grid, used as scratch space */
-  *tmp_cells_ptr = (t_soa*) malloc(sizeof(t_soa));
-
-  if (*tmp_cells_ptr == NULL) die("cannot allocate memory for tmp_cells", __LINE__, __FILE__);
-
-  (*tmp_cells_ptr)->speed_0 = (float*) malloc(sizeof(float) * (params->ny * params->nx));
-  (*tmp_cells_ptr)->speed_1 = (float*) malloc(sizeof(float) * (params->ny * params->nx));
-  (*tmp_cells_ptr)->speed_2 = (float*) malloc(sizeof(float) * (params->ny * params->nx));
-  (*tmp_cells_ptr)->speed_3 = (float*) malloc(sizeof(float) * (params->ny * params->nx));
-  (*tmp_cells_ptr)->speed_4 = (float*) malloc(sizeof(float) * (params->ny * params->nx));
-  (*tmp_cells_ptr)->speed_5 = (float*) malloc(sizeof(float) * (params->ny * params->nx));
-  (*tmp_cells_ptr)->speed_6 = (float*) malloc(sizeof(float) * (params->ny * params->nx));
-  (*tmp_cells_ptr)->speed_7 = (float*) malloc(sizeof(float) * (params->ny * params->nx));
-  (*tmp_cells_ptr)->speed_8 = (float*) malloc(sizeof(float) * (params->ny * params->nx));
-
   /* the map of obstacles */
   *obstacles_ptr = (int*) malloc(sizeof(int) * (params->ny * params->nx));
 
@@ -730,7 +714,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
   return EXIT_SUCCESS;
 }
 
-int finalise(const t_param* params, t_soa** cells_ptr, t_soa** tmp_cells_ptr,
+int finalise(const t_param* params, t_soa** cells_ptr,
              int** obstacles_ptr, float** av_vels_ptr) {
 
   free(*obstacles_ptr);
