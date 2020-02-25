@@ -6,6 +6,8 @@ final_state.dat
 av_vels.dat
 stencil/sycl/stencil
 lbm
+*.o
+*.sycl
 stream
 stream_*
 *.pages
