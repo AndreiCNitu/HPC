@@ -51,3 +51,5 @@ check-large :
 
 clean:
 	rm -f lbm
+	rm -f lbm.o
+	rm -f lbm.sycl

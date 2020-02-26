@@ -27,6 +27,10 @@ using read_accessor_t =
   sycl::accessor<float, 1,
                  sycl::access::mode::read,
                  sycl::access::target::global_buffer>;
+using discard_accessor_t =
+  sycl::accessor<float, 1,
+                 sycl::access::mode::discard_write,
+                 sycl::access::target::global_buffer>;
 using write_accessor_t =
   sycl::accessor<float, 1,
                  sycl::access::mode::write,
@@ -79,24 +83,24 @@ inline void accelerate_flow(
   const t_param params);
 
 inline void lbm_computation(
-  accessor_t speeds_0_acc,
-  accessor_t speeds_1_acc,
-  accessor_t speeds_2_acc,
-  accessor_t speeds_3_acc,
-  accessor_t speeds_4_acc,
-  accessor_t speeds_5_acc,
-  accessor_t speeds_6_acc,
-  accessor_t speeds_7_acc,
-  accessor_t speeds_8_acc,
-  accessor_t tmp_speeds_0_acc,
-  accessor_t tmp_speeds_1_acc,
-  accessor_t tmp_speeds_2_acc,
-  accessor_t tmp_speeds_3_acc,
-  accessor_t tmp_speeds_4_acc,
-  accessor_t tmp_speeds_5_acc,
-  accessor_t tmp_speeds_6_acc,
-  accessor_t tmp_speeds_7_acc,
-  accessor_t tmp_speeds_8_acc,
+  read_accessor_t speeds_0_acc,
+  read_accessor_t speeds_1_acc,
+  read_accessor_t speeds_2_acc,
+  read_accessor_t speeds_3_acc,
+  read_accessor_t speeds_4_acc,
+  read_accessor_t speeds_5_acc,
+  read_accessor_t speeds_6_acc,
+  read_accessor_t speeds_7_acc,
+  read_accessor_t speeds_8_acc,
+  discard_accessor_t tmp_speeds_0_acc,
+  discard_accessor_t tmp_speeds_1_acc,
+  discard_accessor_t tmp_speeds_2_acc,
+  discard_accessor_t tmp_speeds_3_acc,
+  discard_accessor_t tmp_speeds_4_acc,
+  discard_accessor_t tmp_speeds_5_acc,
+  discard_accessor_t tmp_speeds_6_acc,
+  discard_accessor_t tmp_speeds_7_acc,
+  discard_accessor_t tmp_speeds_8_acc,
   iread_accessor_t obstacles_acc,
   local_accessor_t local_tot_u_acc,
   accessor_t partial_tot_u_acc,
@@ -221,20 +225,7 @@ int main(int argc, char* argv[]) {
           auto speeds_7_acc = speeds_7_sycl.get_access<sycl::access::mode::read_write>(cgh);
           auto speeds_8_acc = speeds_8_sycl.get_access<sycl::access::mode::read_write>(cgh);
 
-          auto tmp_speeds_0_acc = tmp_speeds_0_sycl.get_access<sycl::access::mode::read_write>(cgh);
-          auto tmp_speeds_1_acc = tmp_speeds_1_sycl.get_access<sycl::access::mode::read_write>(cgh);
-          auto tmp_speeds_2_acc = tmp_speeds_2_sycl.get_access<sycl::access::mode::read_write>(cgh);
-          auto tmp_speeds_3_acc = tmp_speeds_3_sycl.get_access<sycl::access::mode::read_write>(cgh);
-          auto tmp_speeds_4_acc = tmp_speeds_4_sycl.get_access<sycl::access::mode::read_write>(cgh);
-          auto tmp_speeds_5_acc = tmp_speeds_5_sycl.get_access<sycl::access::mode::read_write>(cgh);
-          auto tmp_speeds_6_acc = tmp_speeds_6_sycl.get_access<sycl::access::mode::read_write>(cgh);
-          auto tmp_speeds_7_acc = tmp_speeds_7_sycl.get_access<sycl::access::mode::read_write>(cgh);
-          auto tmp_speeds_8_acc = tmp_speeds_8_sycl.get_access<sycl::access::mode::read_write>(cgh);
-
           auto obstacles_acc = obstacles_sycl.get_access<sycl::access::mode::read>(cgh);
-
-          local_accessor_t local_tot_u_acc(sycl::range<1>(LOCAL_NX * LOCAL_NY), cgh);
-          auto partial_tot_u_acc = partial_tot_u_sycl.get_access<sycl::access::mode::read_write>(cgh);
 
           cgh.parallel_for<class accelerate_flow_cells>(sycl::range<1>(cols), [=](sycl::item<1> item) {
 
@@ -243,6 +234,40 @@ int main(int argc, char* argv[]) {
                           speeds_6_acc, speeds_7_acc, speeds_8_acc,
                           obstacles_acc, item, params);
           });
+        });
+      } catch (const cl::sycl::exception& e) {
+        std::cout << "Caught SYCL exception when running accelerate_flow_cells kernel:"
+                  << std::endl << e.what() << std::endl;
+      }
+
+      try {
+        queue.submit([&] (sycl::handler& cgh) {
+
+          auto speeds_0_acc = speeds_0_sycl.get_access<sycl::access::mode::read>(cgh);
+          auto speeds_1_acc = speeds_1_sycl.get_access<sycl::access::mode::read>(cgh);
+          auto speeds_2_acc = speeds_2_sycl.get_access<sycl::access::mode::read>(cgh);
+          auto speeds_3_acc = speeds_3_sycl.get_access<sycl::access::mode::read>(cgh);
+          auto speeds_4_acc = speeds_4_sycl.get_access<sycl::access::mode::read>(cgh);
+          auto speeds_5_acc = speeds_5_sycl.get_access<sycl::access::mode::read>(cgh);
+          auto speeds_6_acc = speeds_6_sycl.get_access<sycl::access::mode::read>(cgh);
+          auto speeds_7_acc = speeds_7_sycl.get_access<sycl::access::mode::read>(cgh);
+          auto speeds_8_acc = speeds_8_sycl.get_access<sycl::access::mode::read>(cgh);
+
+          auto tmp_speeds_0_acc = tmp_speeds_0_sycl.get_access<sycl::access::mode::discard_write>(cgh);
+          auto tmp_speeds_1_acc = tmp_speeds_1_sycl.get_access<sycl::access::mode::discard_write>(cgh);
+          auto tmp_speeds_2_acc = tmp_speeds_2_sycl.get_access<sycl::access::mode::discard_write>(cgh);
+          auto tmp_speeds_3_acc = tmp_speeds_3_sycl.get_access<sycl::access::mode::discard_write>(cgh);
+          auto tmp_speeds_4_acc = tmp_speeds_4_sycl.get_access<sycl::access::mode::discard_write>(cgh);
+          auto tmp_speeds_5_acc = tmp_speeds_5_sycl.get_access<sycl::access::mode::discard_write>(cgh);
+          auto tmp_speeds_6_acc = tmp_speeds_6_sycl.get_access<sycl::access::mode::discard_write>(cgh);
+          auto tmp_speeds_7_acc = tmp_speeds_7_sycl.get_access<sycl::access::mode::discard_write>(cgh);
+          auto tmp_speeds_8_acc = tmp_speeds_8_sycl.get_access<sycl::access::mode::discard_write>(cgh);
+
+          auto obstacles_acc = obstacles_sycl.get_access<sycl::access::mode::read>(cgh);
+
+          local_accessor_t local_tot_u_acc(sycl::range<1>(LOCAL_NX * LOCAL_NY), cgh);
+          auto partial_tot_u_acc = partial_tot_u_sycl.get_access<sycl::access::mode::read_write>(cgh);
+
           cgh.parallel_for<class lbm_computation_cells>(sycl::nd_range<2>{
                                                             sycl::range<2>{(size_t) cols, (size_t) rows},
                                                             sycl::range<2>{LOCAL_NX, LOCAL_NY}},
@@ -256,6 +281,27 @@ int main(int argc, char* argv[]) {
                             tmp_speeds_6_acc, tmp_speeds_7_acc, tmp_speeds_8_acc,
                             obstacles_acc, local_tot_u_acc, partial_tot_u_acc, item, params, 2 * tt);
           });
+        });
+      } catch (const cl::sycl::exception& e) {
+        std::cout << "Caught SYCL exception when running lbm_computation_cells kernel:"
+                  << std::endl << e.what() << std::endl;
+      }
+
+      try {
+        queue.submit([&] (sycl::handler& cgh) {
+
+          auto tmp_speeds_0_acc = tmp_speeds_0_sycl.get_access<sycl::access::mode::read_write>(cgh);
+          auto tmp_speeds_1_acc = tmp_speeds_1_sycl.get_access<sycl::access::mode::read_write>(cgh);
+          auto tmp_speeds_2_acc = tmp_speeds_2_sycl.get_access<sycl::access::mode::read_write>(cgh);
+          auto tmp_speeds_3_acc = tmp_speeds_3_sycl.get_access<sycl::access::mode::read_write>(cgh);
+          auto tmp_speeds_4_acc = tmp_speeds_4_sycl.get_access<sycl::access::mode::read_write>(cgh);
+          auto tmp_speeds_5_acc = tmp_speeds_5_sycl.get_access<sycl::access::mode::read_write>(cgh);
+          auto tmp_speeds_6_acc = tmp_speeds_6_sycl.get_access<sycl::access::mode::read_write>(cgh);
+          auto tmp_speeds_7_acc = tmp_speeds_7_sycl.get_access<sycl::access::mode::read_write>(cgh);
+          auto tmp_speeds_8_acc = tmp_speeds_8_sycl.get_access<sycl::access::mode::read_write>(cgh);
+
+          auto obstacles_acc = obstacles_sycl.get_access<sycl::access::mode::read>(cgh);
+
           cgh.parallel_for<class accelerate_flow_tmp_c>(sycl::range<1>(cols), [=](sycl::item<1> item) {
 
             accelerate_flow(tmp_speeds_0_acc, tmp_speeds_1_acc, tmp_speeds_2_acc,
@@ -263,6 +309,40 @@ int main(int argc, char* argv[]) {
                             tmp_speeds_6_acc, tmp_speeds_7_acc, tmp_speeds_8_acc,
                             obstacles_acc, item, params);
           });
+        });
+      } catch (const cl::sycl::exception& e) {
+        std::cout << "Caught SYCL exception when running accelerate_flow_tmp kernel:"
+                  << std::endl << e.what() << std::endl;
+      }
+
+      try {
+        queue.submit([&] (sycl::handler& cgh) {
+
+          auto speeds_0_acc = speeds_0_sycl.get_access<sycl::access::mode::discard_write>(cgh);
+          auto speeds_1_acc = speeds_1_sycl.get_access<sycl::access::mode::discard_write>(cgh);
+          auto speeds_2_acc = speeds_2_sycl.get_access<sycl::access::mode::discard_write>(cgh);
+          auto speeds_3_acc = speeds_3_sycl.get_access<sycl::access::mode::discard_write>(cgh);
+          auto speeds_4_acc = speeds_4_sycl.get_access<sycl::access::mode::discard_write>(cgh);
+          auto speeds_5_acc = speeds_5_sycl.get_access<sycl::access::mode::discard_write>(cgh);
+          auto speeds_6_acc = speeds_6_sycl.get_access<sycl::access::mode::discard_write>(cgh);
+          auto speeds_7_acc = speeds_7_sycl.get_access<sycl::access::mode::discard_write>(cgh);
+          auto speeds_8_acc = speeds_8_sycl.get_access<sycl::access::mode::discard_write>(cgh);
+
+          auto tmp_speeds_0_acc = tmp_speeds_0_sycl.get_access<sycl::access::mode::read>(cgh);
+          auto tmp_speeds_1_acc = tmp_speeds_1_sycl.get_access<sycl::access::mode::read>(cgh);
+          auto tmp_speeds_2_acc = tmp_speeds_2_sycl.get_access<sycl::access::mode::read>(cgh);
+          auto tmp_speeds_3_acc = tmp_speeds_3_sycl.get_access<sycl::access::mode::read>(cgh);
+          auto tmp_speeds_4_acc = tmp_speeds_4_sycl.get_access<sycl::access::mode::read>(cgh);
+          auto tmp_speeds_5_acc = tmp_speeds_5_sycl.get_access<sycl::access::mode::read>(cgh);
+          auto tmp_speeds_6_acc = tmp_speeds_6_sycl.get_access<sycl::access::mode::read>(cgh);
+          auto tmp_speeds_7_acc = tmp_speeds_7_sycl.get_access<sycl::access::mode::read>(cgh);
+          auto tmp_speeds_8_acc = tmp_speeds_8_sycl.get_access<sycl::access::mode::read>(cgh);
+
+          auto obstacles_acc = obstacles_sycl.get_access<sycl::access::mode::read>(cgh);
+
+          local_accessor_t local_tot_u_acc(sycl::range<1>(LOCAL_NX * LOCAL_NY), cgh);
+          auto partial_tot_u_acc = partial_tot_u_sycl.get_access<sycl::access::mode::read_write>(cgh);
+
           cgh.parallel_for<class lbm_computation_tmp_c>(sycl::nd_range<2>{
                                                             sycl::range<2>{(size_t) cols, (size_t) rows},
                                                             sycl::range<2>{LOCAL_NX, LOCAL_NY}},
@@ -278,7 +358,7 @@ int main(int argc, char* argv[]) {
           });
         });
       } catch (const cl::sycl::exception& e) {
-        std::cout << "Caught SYCL exception when running lattice-boltzmann kernel:" 
+        std::cout << "Caught SYCL exception when running lbm_computation_tmp_c kernel:"
                   << std::endl << e.what() << std::endl;
       }
     }
@@ -367,24 +447,24 @@ inline void accelerate_flow(
 }
 
 inline void lbm_computation(
-  accessor_t speeds_0_acc,
-  accessor_t speeds_1_acc,
-  accessor_t speeds_2_acc,
-  accessor_t speeds_3_acc,
-  accessor_t speeds_4_acc,
-  accessor_t speeds_5_acc,
-  accessor_t speeds_6_acc,
-  accessor_t speeds_7_acc,
-  accessor_t speeds_8_acc,
-  accessor_t tmp_speeds_0_acc,
-  accessor_t tmp_speeds_1_acc,
-  accessor_t tmp_speeds_2_acc,
-  accessor_t tmp_speeds_3_acc,
-  accessor_t tmp_speeds_4_acc,
-  accessor_t tmp_speeds_5_acc,
-  accessor_t tmp_speeds_6_acc,
-  accessor_t tmp_speeds_7_acc,
-  accessor_t tmp_speeds_8_acc,
+  read_accessor_t speeds_0_acc,
+  read_accessor_t speeds_1_acc,
+  read_accessor_t speeds_2_acc,
+  read_accessor_t speeds_3_acc,
+  read_accessor_t speeds_4_acc,
+  read_accessor_t speeds_5_acc,
+  read_accessor_t speeds_6_acc,
+  read_accessor_t speeds_7_acc,
+  read_accessor_t speeds_8_acc,
+  discard_accessor_t tmp_speeds_0_acc,
+  discard_accessor_t tmp_speeds_1_acc,
+  discard_accessor_t tmp_speeds_2_acc,
+  discard_accessor_t tmp_speeds_3_acc,
+  discard_accessor_t tmp_speeds_4_acc,
+  discard_accessor_t tmp_speeds_5_acc,
+  discard_accessor_t tmp_speeds_6_acc,
+  discard_accessor_t tmp_speeds_7_acc,
+  discard_accessor_t tmp_speeds_8_acc,
   iread_accessor_t obstacles_acc,
   local_accessor_t local_tot_u_acc,
   accessor_t partial_tot_u_acc,
