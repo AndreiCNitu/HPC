@@ -13,23 +13,23 @@ class vels_reduction_cells;
 class vels_reduction_tmp_c;
 
 using accessor_t =
-  sycl::accessor<float, 1, 
-                 sycl::access::mode::read_write, 
+  sycl::accessor<float, 1,
+                 sycl::access::mode::read_write,
                  sycl::access::target::global_buffer>;
 using read_accessor_t =
-  sycl::accessor<float, 1, 
-                 sycl::access::mode::read, 
+  sycl::accessor<float, 1,
+                 sycl::access::mode::read,
                  sycl::access::target::global_buffer>;
 using write_accessor_t =
-  sycl::accessor<float, 1, 
-                 sycl::access::mode::write, 
+  sycl::accessor<float, 1,
+                 sycl::access::mode::write,
                  sycl::access::target::global_buffer>;
 using iread_accessor_t =
-  sycl::accessor<int, 1, 
-                 sycl::access::mode::read, 
+  sycl::accessor<int, 1,
+                 sycl::access::mode::read,
                  sycl::access::target::global_buffer>;
 using local_accessor_t =
-  sycl::accessor<float, 1, 
+  sycl::accessor<float, 1,
                  sycl::access::mode::read_write,
                  sycl::access::target::local>;
 
@@ -91,7 +91,7 @@ inline void lbm_computation(
   accessor_t speeds_6_acc,
   accessor_t speeds_7_acc,
   accessor_t speeds_8_acc,
-  accessor_t tmp_speeds_0_acc,   
+  accessor_t tmp_speeds_0_acc,
   accessor_t tmp_speeds_1_acc,
   accessor_t tmp_speeds_2_acc,
   accessor_t tmp_speeds_3_acc,
@@ -133,7 +133,7 @@ void die(const char* message, const int line, const char* file);
 void usage(const char* exe);
 
 int main(int argc, char* argv[]) {
-  
+
   char*   paramfile = NULL;      /* name of the input parameter file */
   char*   obstaclefile = NULL;   /* name of a the input obstacle file */
   t_param params;                /* struct to hold parameter values */
@@ -159,7 +159,7 @@ int main(int argc, char* argv[]) {
 
   int num_wrks = (params.nx / LOCAL_NX) * (params.ny / LOCAL_NY);
   float* partial_tot_u_h = (float*) malloc(sizeof(float) * num_wrks * params.maxIters);
-  
+
   sycl::default_selector device_selector;
 
   auto exception_handler = [] (sycl::exception_list exceptions) {
@@ -195,7 +195,7 @@ int main(int argc, char* argv[]) {
     sycl::buffer<float, 1> speeds_6_sycl(cells->speed_6, sycl::range<1>(rows * cols));
     sycl::buffer<float, 1> speeds_7_sycl(cells->speed_7, sycl::range<1>(rows * cols));
     sycl::buffer<float, 1> speeds_8_sycl(cells->speed_8, sycl::range<1>(rows * cols));
-    
+
     sycl::buffer<float, 1> tmp_speeds_0_sycl(sycl::range<1>(rows * cols));
     sycl::buffer<float, 1> tmp_speeds_1_sycl(sycl::range<1>(rows * cols));
     sycl::buffer<float, 1> tmp_speeds_2_sycl(sycl::range<1>(rows * cols));
@@ -205,15 +205,15 @@ int main(int argc, char* argv[]) {
     sycl::buffer<float, 1> tmp_speeds_6_sycl(sycl::range<1>(rows * cols));
     sycl::buffer<float, 1> tmp_speeds_7_sycl(sycl::range<1>(rows * cols));
     sycl::buffer<float, 1> tmp_speeds_8_sycl(sycl::range<1>(rows * cols));
-    
+
     sycl::buffer<int, 1> obstacles_sycl(obstacles, sycl::range<1>(rows * cols));
 
     sycl::buffer<float, 1> partial_tot_u_sycl(partial_tot_u_h, sycl::range<1>(num_wrks * iters));
- 
+
     for(int tt = 0; tt < iters / 2; tt++) {
       try {
         queue.submit([&] (sycl::handler& cgh) {
-   
+
           auto speeds_0_acc = speeds_0_sycl.get_access<sycl::access::mode::read_write>(cgh);
           auto speeds_1_acc = speeds_1_sycl.get_access<sycl::access::mode::read_write>(cgh);
           auto speeds_2_acc = speeds_2_sycl.get_access<sycl::access::mode::read_write>(cgh);
@@ -223,7 +223,7 @@ int main(int argc, char* argv[]) {
           auto speeds_6_acc = speeds_6_sycl.get_access<sycl::access::mode::read_write>(cgh);
           auto speeds_7_acc = speeds_7_sycl.get_access<sycl::access::mode::read_write>(cgh);
           auto speeds_8_acc = speeds_8_sycl.get_access<sycl::access::mode::read_write>(cgh);
-        
+
           auto tmp_speeds_0_acc = tmp_speeds_0_sycl.get_access<sycl::access::mode::read_write>(cgh);
           auto tmp_speeds_1_acc = tmp_speeds_1_sycl.get_access<sycl::access::mode::read_write>(cgh);
           auto tmp_speeds_2_acc = tmp_speeds_2_sycl.get_access<sycl::access::mode::read_write>(cgh);
@@ -233,22 +233,22 @@ int main(int argc, char* argv[]) {
           auto tmp_speeds_6_acc = tmp_speeds_6_sycl.get_access<sycl::access::mode::read_write>(cgh);
           auto tmp_speeds_7_acc = tmp_speeds_7_sycl.get_access<sycl::access::mode::read_write>(cgh);
           auto tmp_speeds_8_acc = tmp_speeds_8_sycl.get_access<sycl::access::mode::read_write>(cgh);
-       
+
           auto obstacles_acc = obstacles_sycl.get_access<sycl::access::mode::read>(cgh);
-        
+
           local_accessor_t local_tot_u_acc(sycl::range<1>(LOCAL_NX * LOCAL_NY), cgh);
           auto partial_tot_u_acc = partial_tot_u_sycl.get_access<sycl::access::mode::read_write>(cgh);
 
           cgh.parallel_for<class accelerate_flow_cells>(sycl::range<1>(cols), [=](sycl::item<1> item) {
-          
+
           accelerate_flow(speeds_0_acc, speeds_1_acc, speeds_2_acc,
                           speeds_3_acc, speeds_4_acc, speeds_5_acc,
                           speeds_6_acc, speeds_7_acc, speeds_8_acc,
                           obstacles_acc, item, params);
           });
           cgh.parallel_for<class lbm_computation_cells>(sycl::nd_range<2>{
-                                                            sycl::range<2>{(size_t) cols, (size_t) rows}, 
-                                                            sycl::range<2>{LOCAL_NX, LOCAL_NY}}, 
+                                                            sycl::range<2>{(size_t) cols, (size_t) rows},
+                                                            sycl::range<2>{LOCAL_NX, LOCAL_NY}},
                                                         [=](sycl::nd_item<2> item) {
 
             lbm_computation(speeds_0_acc, speeds_1_acc, speeds_2_acc,
@@ -260,17 +260,17 @@ int main(int argc, char* argv[]) {
                             obstacles_acc, local_tot_u_acc, partial_tot_u_acc, item, params, 2 * tt);
           });
           cgh.parallel_for<class accelerate_flow_tmp_c>(sycl::range<1>(cols), [=](sycl::item<1> item) {
-        
+
             accelerate_flow(tmp_speeds_0_acc, tmp_speeds_1_acc, tmp_speeds_2_acc,
                             tmp_speeds_3_acc, tmp_speeds_4_acc, tmp_speeds_5_acc,
                             tmp_speeds_6_acc, tmp_speeds_7_acc, tmp_speeds_8_acc,
                             obstacles_acc, item, params);
           });
           cgh.parallel_for<class lbm_computation_tmp_c>(sycl::nd_range<2>{
-                                                            sycl::range<2>{(size_t) cols, (size_t) rows}, 
-                                                            sycl::range<2>{LOCAL_NX, LOCAL_NY}}, 
+                                                            sycl::range<2>{(size_t) cols, (size_t) rows},
+                                                            sycl::range<2>{LOCAL_NX, LOCAL_NY}},
                                                         [=](sycl::nd_item<2> item) {
-        
+
             lbm_computation(tmp_speeds_0_acc, tmp_speeds_1_acc, tmp_speeds_2_acc,
                             tmp_speeds_3_acc, tmp_speeds_4_acc, tmp_speeds_5_acc,
                             tmp_speeds_6_acc, tmp_speeds_7_acc, tmp_speeds_8_acc,
@@ -279,7 +279,7 @@ int main(int argc, char* argv[]) {
                             speeds_6_acc, speeds_7_acc, speeds_8_acc,
                             obstacles_acc, local_tot_u_acc, partial_tot_u_acc, item, params, 2 * tt + 1);
           });
-        }); 
+        });
       } catch (const cl::sycl::exception& e) {
         std::cout << "Caught SYCL exception when running lattice-boltzmann kernel:" 
                   << std::endl << e.what() << std::endl;
@@ -293,7 +293,7 @@ int main(int argc, char* argv[]) {
                 << std::endl << e.what() << std::endl;
     }
   }
-  
+
   /* Precompute total cells*/
   int tot_cells  = 0;
   for (int jj = 0; jj < params.ny; jj++) {
@@ -379,7 +379,7 @@ inline void lbm_computation(
   accessor_t speeds_6_acc,
   accessor_t speeds_7_acc,
   accessor_t speeds_8_acc,
-  accessor_t tmp_speeds_0_acc,   
+  accessor_t tmp_speeds_0_acc,
   accessor_t tmp_speeds_1_acc,
   accessor_t tmp_speeds_2_acc,
   accessor_t tmp_speeds_3_acc,
@@ -401,7 +401,7 @@ inline void lbm_computation(
   const int l_jj = item.get_local_id(1);
   const int g_ii = item.get_group(0);
   const int g_jj = item.get_group(1);
-  
+
   const float c_sq = 1.f / 3.f;  /* square of speed of sound */
   const float w0   = 4.f / 9.f;  /* weighting factor */
   const float w1   = 1.f / 9.f;  /* weighting factor */
@@ -517,7 +517,7 @@ inline void lbm_computation(
   tmp_speeds_6_acc[jj * params.nx + ii] = t6;
   tmp_speeds_7_acc[jj * params.nx + ii] = t7;
   tmp_speeds_8_acc[jj * params.nx + ii] = t8;
-  
+
   item.barrier(sycl::access::fence_space::local_space);
 
   const int item_id = l_ii + LOCAL_NX * l_jj;
@@ -573,7 +573,7 @@ float av_velocity(const t_param params, t_soa* cells, int* obstacles) {
                   +  cells->speed_7[jj * params.nx + ii]
                   +  cells->speed_8[jj * params.nx + ii]))
                   / local_density;
- 
+
         /* accumulate the norm of x- and y- velocity components */
         tot_u += sqrtf((u_x * u_x) + (u_y * u_y));
         /* increase counter of inspected cells */
