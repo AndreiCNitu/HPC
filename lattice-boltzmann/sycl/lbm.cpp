@@ -162,10 +162,21 @@ int main(int argc, char* argv[]) {
   
   sycl::default_selector device_selector;
 
-  sycl::queue queue(device_selector);
+  auto exception_handler = [] (sycl::exception_list exceptions) {
+    for (std::exception_ptr const& e : exceptions) {
+      try {
+        std::rethrow_exception(e);
+      } catch(cl::sycl::exception const& e) {
+        std::cout << "Caught asynchronous SYCL exception:"
+                  << std::endl << e.what() << std::endl;
+      }
+    }
+  };
+
+  sycl::queue queue(device_selector, exception_handler, {});
   std::cout << "Running on "
             << queue.get_device().get_info<sycl::info::device::name>()
-            << "\n";
+            << std::endl;
 
   gettimeofday(&timstr, NULL);
   tic = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
@@ -198,76 +209,88 @@ int main(int argc, char* argv[]) {
     sycl::buffer<int, 1> obstacles_sycl(obstacles, sycl::range<1>(rows * cols));
 
     sycl::buffer<float, 1> partial_tot_u_sycl(partial_tot_u_h, sycl::range<1>(num_wrks * iters));
-
+ 
     for(int tt = 0; tt < iters / 2; tt++) {
-      queue.submit([&] (sycl::handler& cgh) {
+      try {
+        queue.submit([&] (sycl::handler& cgh) {
    
-        auto speeds_0_acc = speeds_0_sycl.get_access<sycl::access::mode::read_write>(cgh);
-        auto speeds_1_acc = speeds_1_sycl.get_access<sycl::access::mode::read_write>(cgh);
-        auto speeds_2_acc = speeds_2_sycl.get_access<sycl::access::mode::read_write>(cgh);
-        auto speeds_3_acc = speeds_3_sycl.get_access<sycl::access::mode::read_write>(cgh);
-        auto speeds_4_acc = speeds_4_sycl.get_access<sycl::access::mode::read_write>(cgh);
-        auto speeds_5_acc = speeds_5_sycl.get_access<sycl::access::mode::read_write>(cgh);
-        auto speeds_6_acc = speeds_6_sycl.get_access<sycl::access::mode::read_write>(cgh);
-        auto speeds_7_acc = speeds_7_sycl.get_access<sycl::access::mode::read_write>(cgh);
-        auto speeds_8_acc = speeds_8_sycl.get_access<sycl::access::mode::read_write>(cgh);
+          auto speeds_0_acc = speeds_0_sycl.get_access<sycl::access::mode::read_write>(cgh);
+          auto speeds_1_acc = speeds_1_sycl.get_access<sycl::access::mode::read_write>(cgh);
+          auto speeds_2_acc = speeds_2_sycl.get_access<sycl::access::mode::read_write>(cgh);
+          auto speeds_3_acc = speeds_3_sycl.get_access<sycl::access::mode::read_write>(cgh);
+          auto speeds_4_acc = speeds_4_sycl.get_access<sycl::access::mode::read_write>(cgh);
+          auto speeds_5_acc = speeds_5_sycl.get_access<sycl::access::mode::read_write>(cgh);
+          auto speeds_6_acc = speeds_6_sycl.get_access<sycl::access::mode::read_write>(cgh);
+          auto speeds_7_acc = speeds_7_sycl.get_access<sycl::access::mode::read_write>(cgh);
+          auto speeds_8_acc = speeds_8_sycl.get_access<sycl::access::mode::read_write>(cgh);
         
-        auto tmp_speeds_0_acc = tmp_speeds_0_sycl.get_access<sycl::access::mode::read_write>(cgh);
-        auto tmp_speeds_1_acc = tmp_speeds_1_sycl.get_access<sycl::access::mode::read_write>(cgh);
-        auto tmp_speeds_2_acc = tmp_speeds_2_sycl.get_access<sycl::access::mode::read_write>(cgh);
-        auto tmp_speeds_3_acc = tmp_speeds_3_sycl.get_access<sycl::access::mode::read_write>(cgh);
-        auto tmp_speeds_4_acc = tmp_speeds_4_sycl.get_access<sycl::access::mode::read_write>(cgh);
-        auto tmp_speeds_5_acc = tmp_speeds_5_sycl.get_access<sycl::access::mode::read_write>(cgh);
-        auto tmp_speeds_6_acc = tmp_speeds_6_sycl.get_access<sycl::access::mode::read_write>(cgh);
-        auto tmp_speeds_7_acc = tmp_speeds_7_sycl.get_access<sycl::access::mode::read_write>(cgh);
-        auto tmp_speeds_8_acc = tmp_speeds_8_sycl.get_access<sycl::access::mode::read_write>(cgh);
+          auto tmp_speeds_0_acc = tmp_speeds_0_sycl.get_access<sycl::access::mode::read_write>(cgh);
+          auto tmp_speeds_1_acc = tmp_speeds_1_sycl.get_access<sycl::access::mode::read_write>(cgh);
+          auto tmp_speeds_2_acc = tmp_speeds_2_sycl.get_access<sycl::access::mode::read_write>(cgh);
+          auto tmp_speeds_3_acc = tmp_speeds_3_sycl.get_access<sycl::access::mode::read_write>(cgh);
+          auto tmp_speeds_4_acc = tmp_speeds_4_sycl.get_access<sycl::access::mode::read_write>(cgh);
+          auto tmp_speeds_5_acc = tmp_speeds_5_sycl.get_access<sycl::access::mode::read_write>(cgh);
+          auto tmp_speeds_6_acc = tmp_speeds_6_sycl.get_access<sycl::access::mode::read_write>(cgh);
+          auto tmp_speeds_7_acc = tmp_speeds_7_sycl.get_access<sycl::access::mode::read_write>(cgh);
+          auto tmp_speeds_8_acc = tmp_speeds_8_sycl.get_access<sycl::access::mode::read_write>(cgh);
        
-        auto obstacles_acc = obstacles_sycl.get_access<sycl::access::mode::read>(cgh);
+          auto obstacles_acc = obstacles_sycl.get_access<sycl::access::mode::read>(cgh);
         
-        local_accessor_t local_tot_u_acc(sycl::range<1>(LOCAL_NX * LOCAL_NY), cgh);
-        auto partial_tot_u_acc = partial_tot_u_sycl.get_access<sycl::access::mode::read_write>(cgh);
+          local_accessor_t local_tot_u_acc(sycl::range<1>(LOCAL_NX * LOCAL_NY), cgh);
+          auto partial_tot_u_acc = partial_tot_u_sycl.get_access<sycl::access::mode::read_write>(cgh);
 
-        cgh.parallel_for<class accelerate_flow_cells>(sycl::range<1>(cols), [=](sycl::item<1> item) {
+          cgh.parallel_for<class accelerate_flow_cells>(sycl::range<1>(cols), [=](sycl::item<1> item) {
           
           accelerate_flow(speeds_0_acc, speeds_1_acc, speeds_2_acc,
                           speeds_3_acc, speeds_4_acc, speeds_5_acc,
                           speeds_6_acc, speeds_7_acc, speeds_8_acc,
                           obstacles_acc, item, params);
-        });
-        cgh.parallel_for<class lbm_computation_cells>(sycl::nd_range<2>{
-                                                          sycl::range<2>{(size_t) cols, (size_t) rows}, 
-                                                          sycl::range<2>{LOCAL_NX, LOCAL_NY}}, 
-                                                      [=](sycl::nd_item<2> item) {
+          });
+          cgh.parallel_for<class lbm_computation_cells>(sycl::nd_range<2>{
+                                                            sycl::range<2>{(size_t) cols, (size_t) rows}, 
+                                                            sycl::range<2>{LOCAL_NX, LOCAL_NY}}, 
+                                                        [=](sycl::nd_item<2> item) {
 
-          lbm_computation(speeds_0_acc, speeds_1_acc, speeds_2_acc,
-                          speeds_3_acc, speeds_4_acc, speeds_5_acc,
-                          speeds_6_acc, speeds_7_acc, speeds_8_acc,
-                          tmp_speeds_0_acc, tmp_speeds_1_acc, tmp_speeds_2_acc,
-                          tmp_speeds_3_acc, tmp_speeds_4_acc, tmp_speeds_5_acc,
-                          tmp_speeds_6_acc, tmp_speeds_7_acc, tmp_speeds_8_acc,
-                          obstacles_acc, local_tot_u_acc, partial_tot_u_acc, item, params, 2 * tt);
-        });
-        cgh.parallel_for<class accelerate_flow_tmp_c>(sycl::range<1>(cols), [=](sycl::item<1> item) {
+            lbm_computation(speeds_0_acc, speeds_1_acc, speeds_2_acc,
+                            speeds_3_acc, speeds_4_acc, speeds_5_acc,
+                            speeds_6_acc, speeds_7_acc, speeds_8_acc,
+                            tmp_speeds_0_acc, tmp_speeds_1_acc, tmp_speeds_2_acc,
+                            tmp_speeds_3_acc, tmp_speeds_4_acc, tmp_speeds_5_acc,
+                            tmp_speeds_6_acc, tmp_speeds_7_acc, tmp_speeds_8_acc,
+                            obstacles_acc, local_tot_u_acc, partial_tot_u_acc, item, params, 2 * tt);
+          });
+          cgh.parallel_for<class accelerate_flow_tmp_c>(sycl::range<1>(cols), [=](sycl::item<1> item) {
         
-          accelerate_flow(tmp_speeds_0_acc, tmp_speeds_1_acc, tmp_speeds_2_acc,
-                          tmp_speeds_3_acc, tmp_speeds_4_acc, tmp_speeds_5_acc,
-                          tmp_speeds_6_acc, tmp_speeds_7_acc, tmp_speeds_8_acc,
-                          obstacles_acc, item, params);
-        });
-        cgh.parallel_for<class lbm_computation_tmp_c>(sycl::nd_range<2>{
-                                                          sycl::range<2>{(size_t) cols, (size_t) rows}, 
-                                                          sycl::range<2>{LOCAL_NX, LOCAL_NY}}, 
-                                                      [=](sycl::nd_item<2> item) {
+            accelerate_flow(tmp_speeds_0_acc, tmp_speeds_1_acc, tmp_speeds_2_acc,
+                            tmp_speeds_3_acc, tmp_speeds_4_acc, tmp_speeds_5_acc,
+                            tmp_speeds_6_acc, tmp_speeds_7_acc, tmp_speeds_8_acc,
+                            obstacles_acc, item, params);
+          });
+          cgh.parallel_for<class lbm_computation_tmp_c>(sycl::nd_range<2>{
+                                                            sycl::range<2>{(size_t) cols, (size_t) rows}, 
+                                                            sycl::range<2>{LOCAL_NX, LOCAL_NY}}, 
+                                                        [=](sycl::nd_item<2> item) {
         
-          lbm_computation(tmp_speeds_0_acc, tmp_speeds_1_acc, tmp_speeds_2_acc,
-                          tmp_speeds_3_acc, tmp_speeds_4_acc, tmp_speeds_5_acc,
-                          tmp_speeds_6_acc, tmp_speeds_7_acc, tmp_speeds_8_acc,
-                          speeds_0_acc, speeds_1_acc, speeds_2_acc,
-                          speeds_3_acc, speeds_4_acc, speeds_5_acc,
-                          speeds_6_acc, speeds_7_acc, speeds_8_acc,
-                          obstacles_acc, local_tot_u_acc, partial_tot_u_acc, item, params, 2 * tt + 1);
-        });
-      });
+            lbm_computation(tmp_speeds_0_acc, tmp_speeds_1_acc, tmp_speeds_2_acc,
+                            tmp_speeds_3_acc, tmp_speeds_4_acc, tmp_speeds_5_acc,
+                            tmp_speeds_6_acc, tmp_speeds_7_acc, tmp_speeds_8_acc,
+                            speeds_0_acc, speeds_1_acc, speeds_2_acc,
+                            speeds_3_acc, speeds_4_acc, speeds_5_acc,
+                            speeds_6_acc, speeds_7_acc, speeds_8_acc,
+                            obstacles_acc, local_tot_u_acc, partial_tot_u_acc, item, params, 2 * tt + 1);
+          });
+        }); 
+      } catch (const cl::sycl::exception& e) {
+        std::cout << "Caught SYCL exception when running lattice-boltzmann kernel:" 
+                  << std::endl << e.what() << std::endl;
+      }
+    }
+
+    try {
+      queue.wait_and_throw();
+    } catch (sycl::exception const& e) {
+      std::cout << "Caught synchronous SYCL exception:"
+                << std::endl << e.what() << std::endl;
     }
   }
   
