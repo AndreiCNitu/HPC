@@ -3,11 +3,9 @@ EXE=lbm
 COMPUTECPP_FLAGS = $(shell $(COMPUTECPP_PACKAGE_ROOT_DIR)/bin/computecpp_info --dump-device-compiler-flags)
 EXTRA_FLAGS=
 
+# ComputeCpp
 computecpp : lbm.o lbm.sycl
 	$(CXX) -O3 -std=c++11 -DSYCL lbm.o $(EXTRA_FLAGS) -L$(COMPUTECPP_PACKAGE_ROOT_DIR)/lib -lComputeCpp -lOpenCL -Wl,--rpath=$(COMPUTECPP_PACKAGE_ROOT_DIR)/lib/ -o $(EXE)
-
-llvm-sycl : 
-	clang++ -fsycl $(SRC) -o $(EXE)
 
 lbm.o : lbm.cpp lbm.sycl
 	$(CXX) -O3 -std=c++11 -DSYCL lbm.cpp -c -I$(COMPUTECPP_PACKAGE_ROOT_DIR)/include -include lbm.sycl $(EXTRA_FLAGS) -o $@
@@ -15,6 +13,11 @@ lbm.o : lbm.cpp lbm.sycl
 lbm.sycl : lbm.cpp
 	$(COMPUTECPP_PACKAGE_ROOT_DIR)/bin/compute++ -DSYCL lbm.cpp $(COMPUTECPP_FLAGS) -c -I$(COMPUTECPP_PACKAGE_ROOT_DIR)/include -o $@
 
+# Intel SYCL
+intel :
+	clang++ -fsycl $(SRC) -o $(EXE)
+
+# hipSYCL
 2080ti :
 	syclcc -std=c++14 -O3 --hipsycl-gpu-arch=sm_75 --hipsycl-platform=cuda $(SRC) -o $(EXE)
 

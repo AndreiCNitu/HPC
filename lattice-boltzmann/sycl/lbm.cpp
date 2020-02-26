@@ -3,6 +3,13 @@
 #include <sys/resource.h>
 #include <CL/sycl.hpp>
 
+#define LOCAL_NX 128
+#define LOCAL_NY 1
+#define FINALSTATEFILE "final_state.dat"
+#define OUTPUT_FILE "stencil.pgm"
+#define AVVELSFILE "av_vels.dat"
+#define NSPEEDS 9
+
 namespace sycl = cl::sycl;
 
 class accelerate_flow_cells;
@@ -32,16 +39,6 @@ using local_accessor_t =
   sycl::accessor<float, 1,
                  sycl::access::mode::read_write,
                  sycl::access::target::local>;
-
-#define NSPEEDS         9
-#define FINALSTATEFILE  "final_state.dat"
-#define AVVELSFILE      "av_vels.dat"
-
-#define LOCAL_NX 128
-#define LOCAL_NY 1
-
-// Define output file name
-#define OUTPUT_FILE "stencil.pgm"
 
 /* struct to hold the parameter values */
 typedef struct {
