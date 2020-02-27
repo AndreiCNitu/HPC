@@ -206,58 +206,56 @@ inline void lbm_computation(
   const float u_sq = u_x * u_x + u_y * u_y;
 
   /* directional velocity components */
-  float u[NSPEEDS];
-  u[1] =   u_x;        /* east */
-  u[2] =         u_y;  /* north */
-  u[3] = - u_x;        /* west */
-  u[4] =       - u_y;  /* south */
-  u[5] =   u_x + u_y;  /* north-east */
-  u[6] = - u_x + u_y;  /* north-west */
-  u[7] = - u_x - u_y;  /* south-west */
-  u[8] =   u_x - u_y;  /* south-east */
+  const float u1 =   u_x;        /* east */
+  const float u2 =         u_y;  /* north */
+  const float u3 = - u_x;        /* west */
+  const float u4 =       - u_y;  /* south */
+  const float u5 =   u_x + u_y;  /* north-east */
+  const float u6 = - u_x + u_y;  /* north-west */
+  const float u7 = - u_x - u_y;  /* south-west */
+  const float u8 =   u_x - u_y;  /* south-east */
 
   /* equilibrium densities */
-  float d_equ[NSPEEDS];
   /* zero velocity density: weight w0 */
-  d_equ[0] = w0 * local_density
+  const float d_equ0 = w0 * local_density
              * (1.f - u_sq / (2.f * c_sq));
   /* axis speeds: weight w1 */
-  d_equ[1] = w1 * local_density * (1.f + u[1] / c_sq
-                                   + (u[1] * u[1]) / (2.f * c_sq * c_sq)
+  const float d_equ1 = w1 * local_density * (1.f + u1 / c_sq
+                                   + (u1 * u1) / (2.f * c_sq * c_sq)
                                    - u_sq / (2.f * c_sq));
-  d_equ[2] = w1 * local_density * (1.f + u[2] / c_sq
-                                   + (u[2] * u[2]) / (2.f * c_sq * c_sq)
+  const float d_equ2 = w1 * local_density * (1.f + u2 / c_sq
+                                   + (u2 * u2) / (2.f * c_sq * c_sq)
                                    - u_sq / (2.f * c_sq));
-  d_equ[3] = w1 * local_density * (1.f + u[3] / c_sq
-                                   + (u[3] * u[3]) / (2.f * c_sq * c_sq)
+  const float d_equ3 = w1 * local_density * (1.f + u3 / c_sq
+                                   + (u3 * u3) / (2.f * c_sq * c_sq)
                                    - u_sq / (2.f * c_sq));
-  d_equ[4] = w1 * local_density * (1.f + u[4] / c_sq
-                                   + (u[4] * u[4]) / (2.f * c_sq * c_sq)
+  const float d_equ4 = w1 * local_density * (1.f + u4 / c_sq
+                                   + (u4 * u4) / (2.f * c_sq * c_sq)
                                    - u_sq / (2.f * c_sq));
   /* diagonal speeds: weight w2 */
-  d_equ[5] = w2 * local_density * (1.f + u[5] / c_sq
-                                   + (u[5] * u[5]) / (2.f * c_sq * c_sq)
+  const float d_equ5 = w2 * local_density * (1.f + u5 / c_sq
+                                   + (u5 * u5) / (2.f * c_sq * c_sq)
                                    - u_sq / (2.f * c_sq));
-  d_equ[6] = w2 * local_density * (1.f + u[6] / c_sq
-                                   + (u[6] * u[6]) / (2.f * c_sq * c_sq)
+  const float d_equ6 = w2 * local_density * (1.f + u6 / c_sq
+                                   + (u6 * u6) / (2.f * c_sq * c_sq)
                                    - u_sq / (2.f * c_sq));
-  d_equ[7] = w2 * local_density * (1.f + u[7] / c_sq
-                                   + (u[7] * u[7]) / (2.f * c_sq * c_sq)
+  const float d_equ7 = w2 * local_density * (1.f + u7 / c_sq
+                                   + (u7 * u7) / (2.f * c_sq * c_sq)
                                    - u_sq / (2.f * c_sq));
-  d_equ[8] = w2 * local_density * (1.f + u[8] / c_sq
-                                   + (u[8] * u[8]) / (2.f * c_sq * c_sq)
+  const float d_equ8 = w2 * local_density * (1.f + u8 / c_sq
+                                   + (u8 * u8) / (2.f * c_sq * c_sq)
                                    - u_sq / (2.f * c_sq));
 
   /**** RELAXATION STEP ****/
-  const float t0 = (obstacles_acc[jj * params.nx + ii] != 0) ? s0 : (s0 + params.omega * (d_equ[0] - s0));
-  const float t1 = (obstacles_acc[jj * params.nx + ii] != 0) ? s3 : (s1 + params.omega * (d_equ[1] - s1));
-  const float t2 = (obstacles_acc[jj * params.nx + ii] != 0) ? s4 : (s2 + params.omega * (d_equ[2] - s2));
-  const float t3 = (obstacles_acc[jj * params.nx + ii] != 0) ? s1 : (s3 + params.omega * (d_equ[3] - s3));
-  const float t4 = (obstacles_acc[jj * params.nx + ii] != 0) ? s2 : (s4 + params.omega * (d_equ[4] - s4));
-  const float t5 = (obstacles_acc[jj * params.nx + ii] != 0) ? s7 : (s5 + params.omega * (d_equ[5] - s5));
-  const float t6 = (obstacles_acc[jj * params.nx + ii] != 0) ? s8 : (s6 + params.omega * (d_equ[6] - s6));
-  const float t7 = (obstacles_acc[jj * params.nx + ii] != 0) ? s5 : (s7 + params.omega * (d_equ[7] - s7));
-  const float t8 = (obstacles_acc[jj * params.nx + ii] != 0) ? s6 : (s8 + params.omega * (d_equ[8] - s8));
+  const float t0 = (obstacles_acc[jj * params.nx + ii] != 0) ? s0 : (s0 + params.omega * (d_equ0 - s0));
+  const float t1 = (obstacles_acc[jj * params.nx + ii] != 0) ? s3 : (s1 + params.omega * (d_equ1 - s1));
+  const float t2 = (obstacles_acc[jj * params.nx + ii] != 0) ? s4 : (s2 + params.omega * (d_equ2 - s2));
+  const float t3 = (obstacles_acc[jj * params.nx + ii] != 0) ? s1 : (s3 + params.omega * (d_equ3 - s3));
+  const float t4 = (obstacles_acc[jj * params.nx + ii] != 0) ? s2 : (s4 + params.omega * (d_equ4 - s4));
+  const float t5 = (obstacles_acc[jj * params.nx + ii] != 0) ? s7 : (s5 + params.omega * (d_equ5 - s5));
+  const float t6 = (obstacles_acc[jj * params.nx + ii] != 0) ? s8 : (s6 + params.omega * (d_equ6 - s6));
+  const float t7 = (obstacles_acc[jj * params.nx + ii] != 0) ? s5 : (s7 + params.omega * (d_equ7 - s7));
+  const float t8 = (obstacles_acc[jj * params.nx + ii] != 0) ? s6 : (s8 + params.omega * (d_equ8 - s8));
 
   /**** AVERAGE VELOCITIES STEP ****/
   /* local density total */
@@ -271,6 +269,8 @@ inline void lbm_computation(
   /* accumulate the norm of x- and y- velocity components */
   local_tot_u_acc[l_jj * LOCAL_NX + l_ii] = (obstacles_acc[jj * params.nx + ii] != 0) ? 0 : sycl::sqrt((u_x_v * u_x_v) + (u_y_v * u_y_v));
 
+  item.barrier(sycl::access::fence_space::local_space);
+
   tmp_speeds_0_acc[jj * params.nx + ii] = t0;
   tmp_speeds_1_acc[jj * params.nx + ii] = t1;
   tmp_speeds_2_acc[jj * params.nx + ii] = t2;
@@ -280,8 +280,6 @@ inline void lbm_computation(
   tmp_speeds_6_acc[jj * params.nx + ii] = t6;
   tmp_speeds_7_acc[jj * params.nx + ii] = t7;
   tmp_speeds_8_acc[jj * params.nx + ii] = t8;
-
-  item.barrier(sycl::access::fence_space::local_space);
 
   const int item_id = l_ii + LOCAL_NX * l_jj;
   for (int offset = LOCAL_NX * LOCAL_NY / 2; offset > 0; offset >>= 1) {
