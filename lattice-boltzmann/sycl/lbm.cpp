@@ -341,38 +341,65 @@ int main(int argc, char* argv[]) {
             << queue.get_device().get_info<sycl::info::device::name>()
             << std::endl;
 
+  const int rows  = params.ny;
+  const int cols  = params.nx;
+  const int iters = params.maxIters;
+
+  sycl::buffer<float, 1> speeds_0_sycl(cells->speed_0, sycl::range<1>(rows * cols));
+  sycl::buffer<float, 1> speeds_1_sycl(cells->speed_1, sycl::range<1>(rows * cols));
+  sycl::buffer<float, 1> speeds_2_sycl(cells->speed_2, sycl::range<1>(rows * cols));
+  sycl::buffer<float, 1> speeds_3_sycl(cells->speed_3, sycl::range<1>(rows * cols));
+  sycl::buffer<float, 1> speeds_4_sycl(cells->speed_4, sycl::range<1>(rows * cols));
+  sycl::buffer<float, 1> speeds_5_sycl(cells->speed_5, sycl::range<1>(rows * cols));
+  sycl::buffer<float, 1> speeds_6_sycl(cells->speed_6, sycl::range<1>(rows * cols));
+  sycl::buffer<float, 1> speeds_7_sycl(cells->speed_7, sycl::range<1>(rows * cols));
+  sycl::buffer<float, 1> speeds_8_sycl(cells->speed_8, sycl::range<1>(rows * cols));
+
+  sycl::buffer<float, 1> tmp_speeds_0_sycl(sycl::range<1>(rows * cols));
+  sycl::buffer<float, 1> tmp_speeds_1_sycl(sycl::range<1>(rows * cols));
+  sycl::buffer<float, 1> tmp_speeds_2_sycl(sycl::range<1>(rows * cols));
+  sycl::buffer<float, 1> tmp_speeds_3_sycl(sycl::range<1>(rows * cols));
+  sycl::buffer<float, 1> tmp_speeds_4_sycl(sycl::range<1>(rows * cols));
+  sycl::buffer<float, 1> tmp_speeds_5_sycl(sycl::range<1>(rows * cols));
+  sycl::buffer<float, 1> tmp_speeds_6_sycl(sycl::range<1>(rows * cols));
+  sycl::buffer<float, 1> tmp_speeds_7_sycl(sycl::range<1>(rows * cols));
+  sycl::buffer<float, 1> tmp_speeds_8_sycl(sycl::range<1>(rows * cols));
+
+  sycl::buffer<int, 1> obstacles_sycl(obstacles, sycl::range<1>(rows * cols));
+
+  sycl::buffer<float, 1> partial_tot_u_sycl(partial_tot_u_h, sycl::range<1>(num_wrks * iters));
+
+  try {
+    queue.submit([&] (sycl::handler& cgh) {
+
+      auto speeds_0_acc = speeds_0_sycl.get_access<sycl::access::mode::read_write>(cgh);
+      auto speeds_1_acc = speeds_1_sycl.get_access<sycl::access::mode::read_write>(cgh);
+      auto speeds_2_acc = speeds_2_sycl.get_access<sycl::access::mode::read_write>(cgh);
+      auto speeds_3_acc = speeds_3_sycl.get_access<sycl::access::mode::read_write>(cgh);
+      auto speeds_4_acc = speeds_4_sycl.get_access<sycl::access::mode::read_write>(cgh);
+      auto speeds_5_acc = speeds_5_sycl.get_access<sycl::access::mode::read_write>(cgh);
+      auto speeds_6_acc = speeds_6_sycl.get_access<sycl::access::mode::read_write>(cgh);
+      auto speeds_7_acc = speeds_7_sycl.get_access<sycl::access::mode::read_write>(cgh);
+      auto speeds_8_acc = speeds_8_sycl.get_access<sycl::access::mode::read_write>(cgh);
+
+      cgh.copy(cells->speed_0, speeds_0_acc);
+      cgh.copy(cells->speed_1, speeds_1_acc);
+      cgh.copy(cells->speed_2, speeds_2_acc);
+      cgh.copy(cells->speed_3, speeds_3_acc);
+      cgh.copy(cells->speed_4, speeds_4_acc);
+      cgh.copy(cells->speed_5, speeds_5_acc);
+      cgh.copy(cells->speed_6, speeds_6_acc);
+      cgh.copy(cells->speed_7, speeds_7_acc);
+      cgh.copy(cells->speed_8, speeds_8_acc);
+    });
+  } catch (const cl::sycl::exception& e) {
+    std::cout << "Caught SYCL exception when copying buffers to device"
+              << std::endl << e.what() << std::endl;
+  }
+
   gettimeofday(&timstr, NULL);
   tic = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
-
   {
-    const int rows  = params.ny;
-    const int cols  = params.nx;
-    const int iters = params.maxIters;
-
-    sycl::buffer<float, 1> speeds_0_sycl(cells->speed_0, sycl::range<1>(rows * cols));
-    sycl::buffer<float, 1> speeds_1_sycl(cells->speed_1, sycl::range<1>(rows * cols));
-    sycl::buffer<float, 1> speeds_2_sycl(cells->speed_2, sycl::range<1>(rows * cols));
-    sycl::buffer<float, 1> speeds_3_sycl(cells->speed_3, sycl::range<1>(rows * cols));
-    sycl::buffer<float, 1> speeds_4_sycl(cells->speed_4, sycl::range<1>(rows * cols));
-    sycl::buffer<float, 1> speeds_5_sycl(cells->speed_5, sycl::range<1>(rows * cols));
-    sycl::buffer<float, 1> speeds_6_sycl(cells->speed_6, sycl::range<1>(rows * cols));
-    sycl::buffer<float, 1> speeds_7_sycl(cells->speed_7, sycl::range<1>(rows * cols));
-    sycl::buffer<float, 1> speeds_8_sycl(cells->speed_8, sycl::range<1>(rows * cols));
-
-    sycl::buffer<float, 1> tmp_speeds_0_sycl(sycl::range<1>(rows * cols));
-    sycl::buffer<float, 1> tmp_speeds_1_sycl(sycl::range<1>(rows * cols));
-    sycl::buffer<float, 1> tmp_speeds_2_sycl(sycl::range<1>(rows * cols));
-    sycl::buffer<float, 1> tmp_speeds_3_sycl(sycl::range<1>(rows * cols));
-    sycl::buffer<float, 1> tmp_speeds_4_sycl(sycl::range<1>(rows * cols));
-    sycl::buffer<float, 1> tmp_speeds_5_sycl(sycl::range<1>(rows * cols));
-    sycl::buffer<float, 1> tmp_speeds_6_sycl(sycl::range<1>(rows * cols));
-    sycl::buffer<float, 1> tmp_speeds_7_sycl(sycl::range<1>(rows * cols));
-    sycl::buffer<float, 1> tmp_speeds_8_sycl(sycl::range<1>(rows * cols));
-
-    sycl::buffer<int, 1> obstacles_sycl(obstacles, sycl::range<1>(rows * cols));
-
-    sycl::buffer<float, 1> partial_tot_u_sycl(partial_tot_u_h, sycl::range<1>(num_wrks * iters));
-
     for(int tt = 0; tt < iters / 2; tt++) {
       try {
         queue.submit([&] (sycl::handler& cgh) {
