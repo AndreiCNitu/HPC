@@ -375,34 +375,6 @@ int main(int argc, char* argv[]) {
     sycl::buffer<int, 2> obstacles_sycl(obstacles, sycl::range<2>(rows, cols));
     sycl::buffer<float, 1> partial_tot_u_sycl(partial_tot_u_h, sycl::range<1>(num_wrks * iters));
 
-    try {
-      queue.submit([&] (sycl::handler& cgh) {
-
-        auto speeds_0_acc = speeds_0_sycl.get_access<sycl::access::mode::read_write>(cgh);
-        auto speeds_1_acc = speeds_1_sycl.get_access<sycl::access::mode::read_write>(cgh);
-        auto speeds_2_acc = speeds_2_sycl.get_access<sycl::access::mode::read_write>(cgh);
-        auto speeds_3_acc = speeds_3_sycl.get_access<sycl::access::mode::read_write>(cgh);
-        auto speeds_4_acc = speeds_4_sycl.get_access<sycl::access::mode::read_write>(cgh);
-        auto speeds_5_acc = speeds_5_sycl.get_access<sycl::access::mode::read_write>(cgh);
-        auto speeds_6_acc = speeds_6_sycl.get_access<sycl::access::mode::read_write>(cgh);
-        auto speeds_7_acc = speeds_7_sycl.get_access<sycl::access::mode::read_write>(cgh);
-        auto speeds_8_acc = speeds_8_sycl.get_access<sycl::access::mode::read_write>(cgh);
-
-        cgh.copy(cells->speed_0, speeds_0_acc);
-        cgh.copy(cells->speed_1, speeds_1_acc);
-        cgh.copy(cells->speed_2, speeds_2_acc);
-        cgh.copy(cells->speed_3, speeds_3_acc);
-        cgh.copy(cells->speed_4, speeds_4_acc);
-        cgh.copy(cells->speed_5, speeds_5_acc);
-        cgh.copy(cells->speed_6, speeds_6_acc);
-        cgh.copy(cells->speed_7, speeds_7_acc);
-        cgh.copy(cells->speed_8, speeds_8_acc);
-      });
-    } catch (const cl::sycl::exception& e) {
-      std::cout << "Caught SYCL exception when copying buffers to device"
-                << std::endl << e.what() << std::endl;
-    }
-
     gettimeofday(&timstr, NULL);
     tic = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
 
