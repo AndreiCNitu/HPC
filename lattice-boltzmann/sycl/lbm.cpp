@@ -40,7 +40,7 @@ using iread_accessor_t =
                  sycl::access::mode::read,
                  sycl::access::target::global_buffer>;
 using local_accessor_t =
-  sycl::accessor<float, 1,
+  sycl::accessor<float, 2,
                  sycl::access::mode::read_write,
                  sycl::access::target::local>;
 using linear_accessor_t =
@@ -164,14 +164,13 @@ inline void lbm_computation(
   const int tt)
 {
 
-  const size_t ii = item.get_global_id(0);
-  const size_t jj = item.get_global_id(1);
+  const size_t jj = item.get_global_id(0);
+  const size_t ii = item.get_global_id(1);
   const sycl::id<2> idx{jj, ii};
 
-  const int l_ii = item.get_local_id(0);
-  const int l_jj = item.get_local_id(1);
-  const int g_ii = item.get_group(0);
-  const int g_jj = item.get_group(1);
+  const int rows = item.get_global_range(0);
+  const int cols = item.get_global_range(1);
+
 
   const float c_sq = 1.f / 3.f;  /* square of speed of sound */
   const float w0   = 4.f / 9.f;  /* weighting factor */
@@ -182,10 +181,10 @@ inline void lbm_computation(
   /**** PROPAGATION STEP ****/
   /* determine indices of axis-direction neighbours
   ** respecting periodic boundary conditions (wrap around) */
-  const size_t y_n = (jj + 1) % params.ny;
-  const size_t x_e = (ii + 1) % params.nx;
-  const size_t y_s = (jj == 0) ? (jj + params.ny - 1) : (jj - 1);
-  const size_t x_w = (ii == 0) ? (ii + params.nx - 1) : (ii - 1);
+  const size_t y_n = (jj + 1) % rows;
+  const size_t x_e = (ii + 1) % cols;
+  const size_t y_s = (jj == 0) ? (jj + rows - 1) : (jj - 1);
+  const size_t x_w = (ii == 0) ? (ii + cols - 1) : (ii - 1);
 
   /* propagate densities from neighbouring cells, following
   ** appropriate directions of travel and writing into
@@ -274,8 +273,17 @@ inline void lbm_computation(
   /* compute y velocity component */
   const float u_y_v = (t2 + t5 + t6 - (t4 + t7 + t8)) / local_density_v;
 
+  const size_t l_jj = item.get_local_id(0);
+  const size_t l_ii = item.get_local_id(1);
+  const sycl::id<2> l_idx{l_jj, l_ii};
+
+  const size_t g_jj = item.get_group(0);
+  const size_t g_ii = item.get_group(1);
+  const size_t l_rows = item.get_local_range(0);
+  const size_t l_cols = item.get_local_range(1);
+
   /* accumulate the norm of x- and y- velocity components */
-  local_tot_u_acc[l_jj * LOCAL_NX + l_ii] = (obstacles_acc[idx] != 0) ? 0 : sycl::sqrt((u_x_v * u_x_v) + (u_y_v * u_y_v));
+  local_tot_u_acc[l_idx] = (obstacles_acc[idx] != 0) ? 0 : sycl::sqrt((u_x_v * u_x_v) + (u_y_v * u_y_v));
 
   item.barrier(sycl::access::fence_space::local_space);
 
@@ -289,17 +297,25 @@ inline void lbm_computation(
   tmp_speeds_7_acc[idx] = t7;
   tmp_speeds_8_acc[idx] = t8;
 
-  const int item_id = l_ii + LOCAL_NX * l_jj;
-  for (int offset = LOCAL_NX * LOCAL_NY / 2; offset > 0; offset >>= 1) {
-    if (item_id < offset) {
-      local_tot_u_acc[item_id] += local_tot_u_acc[item_id + offset];
+  /* Reduce across columns */
+  for (int v_offset = l_rows / 2; v_offset > 0; v_offset >>= 1) {
+    if (l_jj < v_offset) {
+      local_tot_u_acc[l_idx] += local_tot_u_acc[sycl::id<2>{l_jj + v_offset, l_ii}];
     }
     item.barrier(sycl::access::fence_space::local_space);
   }
 
-  if (item_id == 0) {
-    const int base = tt * (params.nx / LOCAL_NX) * (params.ny / LOCAL_NY);
-    partial_tot_u_acc[base + g_ii + g_jj * (params.nx / LOCAL_NX)] = local_tot_u_acc[0];
+  /* Reduce across columns */
+  for (int h_offset = l_cols / 2; h_offset > 0; h_offset >>= 1) {
+    if (l_ii < h_offset) {
+      local_tot_u_acc[l_idx] += local_tot_u_acc[sycl::id<2>{l_jj, l_ii + h_offset}];
+    }
+    item.barrier(sycl::access::fence_space::local_space);
+  }
+
+  if (l_jj == 0 && l_ii == 0) {
+    const int base = tt * (cols / l_cols) * (rows / l_rows);
+    partial_tot_u_acc[base + g_ii + g_jj * (cols / l_cols)] = local_tot_u_acc[l_idx];
   }
 }
 
@@ -429,12 +445,12 @@ int main(int argc, char* argv[]) {
           auto tmp_speeds_8_acc = tmp_speeds_8_sycl.get_access<sycl::access::mode::discard_write>(cgh);
           auto obstacles_acc = obstacles_sycl.get_access<sycl::access::mode::read>(cgh);
 
-          local_accessor_t local_tot_u_acc(sycl::range<1>(LOCAL_NX * LOCAL_NY), cgh);
+          local_accessor_t local_tot_u_acc(sycl::range<2>(LOCAL_NY, LOCAL_NX), cgh);
           auto partial_tot_u_acc = partial_tot_u_sycl.get_access<sycl::access::mode::read_write>(cgh);
 
           cgh.parallel_for<class lbm_computation_cells>(sycl::nd_range<2>{
-                                                            sycl::range<2>{(size_t) cols, (size_t) rows},
-                                                            sycl::range<2>{LOCAL_NX, LOCAL_NY}},
+                                                            sycl::range<2>{(size_t) rows, (size_t) cols},
+                                                            sycl::range<2>{LOCAL_NY, LOCAL_NX}},
                                                         [=](sycl::nd_item<2> item) {
 
             lbm_computation(speeds_0_acc, speeds_1_acc, speeds_2_acc,
@@ -501,12 +517,12 @@ int main(int argc, char* argv[]) {
           auto tmp_speeds_8_acc = tmp_speeds_8_sycl.get_access<sycl::access::mode::read>(cgh);
           auto obstacles_acc = obstacles_sycl.get_access<sycl::access::mode::read>(cgh);
 
-          local_accessor_t local_tot_u_acc(sycl::range<1>(LOCAL_NX * LOCAL_NY), cgh);
+          local_accessor_t local_tot_u_acc(sycl::range<2>(LOCAL_NY, LOCAL_NX), cgh);
           auto partial_tot_u_acc = partial_tot_u_sycl.get_access<sycl::access::mode::read_write>(cgh);
 
           cgh.parallel_for<class lbm_computation_tmp_c>(sycl::nd_range<2>{
-                                                            sycl::range<2>{(size_t) cols, (size_t) rows},
-                                                            sycl::range<2>{LOCAL_NX, LOCAL_NY}},
+                                                            sycl::range<2>{(size_t) rows, (size_t) cols},
+                                                            sycl::range<2>{LOCAL_NY, LOCAL_NX}},
                                                         [=](sycl::nd_item<2> item) {
 
             lbm_computation(tmp_speeds_0_acc, tmp_speeds_1_acc, tmp_speeds_2_acc,
