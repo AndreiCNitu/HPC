@@ -20,29 +20,33 @@ class vels_reduction_cells;
 class vels_reduction_tmp_c;
 
 using accessor_t =
-  sycl::accessor<float, 1,
+  sycl::accessor<float, 2,
                  sycl::access::mode::read_write,
                  sycl::access::target::global_buffer>;
 using read_accessor_t =
-  sycl::accessor<float, 1,
+  sycl::accessor<float, 2,
                  sycl::access::mode::read,
                  sycl::access::target::global_buffer>;
 using discard_accessor_t =
-  sycl::accessor<float, 1,
+  sycl::accessor<float, 2,
                  sycl::access::mode::discard_write,
                  sycl::access::target::global_buffer>;
 using write_accessor_t =
-  sycl::accessor<float, 1,
+  sycl::accessor<float, 2,
                  sycl::access::mode::write,
                  sycl::access::target::global_buffer>;
 using iread_accessor_t =
-  sycl::accessor<int, 1,
+  sycl::accessor<int, 2,
                  sycl::access::mode::read,
                  sycl::access::target::global_buffer>;
 using local_accessor_t =
-  sycl::accessor<float, 1,
+  sycl::accessor<float, 2,
                  sycl::access::mode::read_write,
                  sycl::access::target::local>;
+using linear_accessor_t =
+  sycl::accessor<float, 1,
+                 sycl::access::mode::read_write,
+                 sycl::access::target::global_buffer>;
 
 /* struct to hold the parameter values */
 typedef struct {
@@ -108,8 +112,9 @@ inline void accelerate_flow(
   const t_param params)
 {
   /* modify the 2nd row of the grid */
-  const int ii = item[0];
-  const int jj = params.ny - 2;
+  const size_t ii = item[0];
+  const size_t jj = params.ny - 2;
+  const sycl::id<2> idx{jj, ii};
 
   /* compute weighting factors */
   const float w1 = params.density * params.accel / 9.f;
@@ -117,18 +122,18 @@ inline void accelerate_flow(
 
   /* if the cell is not occupied and
   ** we don't send a negative density */
-  if (!obstacles_acc[jj * params.nx + ii]
-      && (speeds_3_acc[jj * params.nx + ii] - w1) > 0.f
-      && (speeds_6_acc[jj * params.nx + ii] - w2) > 0.f
-      && (speeds_7_acc[jj * params.nx + ii] - w2) > 0.f) {
+  if (!obstacles_acc[idx]
+      && (speeds_3_acc[idx] - w1) > 0.f
+      && (speeds_6_acc[idx] - w2) > 0.f
+      && (speeds_7_acc[idx] - w2) > 0.f) {
     /* increase 'east-side' densities */
-    speeds_1_acc[jj * params.nx + ii] += w1;
-    speeds_5_acc[jj * params.nx + ii] += w2;
-    speeds_8_acc[jj * params.nx + ii] += w2;
+    speeds_1_acc[idx] += w1;
+    speeds_5_acc[idx] += w2;
+    speeds_8_acc[idx] += w2;
     /* decrease 'west-side' densities */
-    speeds_3_acc[jj * params.nx + ii] -= w1;
-    speeds_6_acc[jj * params.nx + ii] -= w2;
-    speeds_7_acc[jj * params.nx + ii] -= w2;
+    speeds_3_acc[idx] -= w1;
+    speeds_6_acc[idx] -= w2;
+    speeds_7_acc[idx] -= w2;
   }
 }
 
@@ -153,17 +158,19 @@ inline void lbm_computation(
   discard_accessor_t tmp_speeds_8_acc,
   iread_accessor_t obstacles_acc,
   local_accessor_t local_tot_u_acc,
-  accessor_t partial_tot_u_acc,
+  linear_accessor_t partial_tot_u_acc,
   sycl::nd_item<2> item,
   const t_param params,
   const int tt)
 {
-  const int ii = item.get_global_id(0);
-  const int jj = item.get_global_id(1);
-  const int l_ii = item.get_local_id(0);
-  const int l_jj = item.get_local_id(1);
-  const int g_ii = item.get_group(0);
-  const int g_jj = item.get_group(1);
+
+  const size_t jj = item.get_global_id(0);
+  const size_t ii = item.get_global_id(1);
+  const sycl::id<2> idx{jj, ii};
+
+  const int rows = item.get_global_range(0);
+  const int cols = item.get_global_range(1);
+
 
   const float c_sq = 1.f / 3.f;  /* square of speed of sound */
   const float w0   = 4.f / 9.f;  /* weighting factor */
@@ -174,23 +181,23 @@ inline void lbm_computation(
   /**** PROPAGATION STEP ****/
   /* determine indices of axis-direction neighbours
   ** respecting periodic boundary conditions (wrap around) */
-  const int y_n = (jj + 1) % params.ny;
-  const int x_e = (ii + 1) % params.nx;
-  const int y_s = (jj == 0) ? (jj + params.ny - 1) : (jj - 1);
-  const int x_w = (ii == 0) ? (ii + params.nx - 1) : (ii - 1);
+  const size_t y_n = (jj + 1) % rows;
+  const size_t x_e = (ii + 1) % cols;
+  const size_t y_s = (jj == 0) ? (jj + rows - 1) : (jj - 1);
+  const size_t x_w = (ii == 0) ? (ii + cols - 1) : (ii - 1);
 
   /* propagate densities from neighbouring cells, following
   ** appropriate directions of travel and writing into
   ** scratch space grid */
-  const float s0 = speeds_0_acc[jj * params.nx + ii]; /* central cell, no movement */
-  const float s1 = speeds_1_acc[jj * params.nx + x_w]; /* east */
-  const float s2 = speeds_2_acc[y_s * params.nx + ii]; /* north */
-  const float s3 = speeds_3_acc[jj * params.nx + x_e]; /* west */
-  const float s4 = speeds_4_acc[y_n * params.nx + ii]; /* south */
-  const float s5 = speeds_5_acc[y_s * params.nx + x_w]; /* north-east */
-  const float s6 = speeds_6_acc[y_s * params.nx + x_e]; /* north-west */
-  const float s7 = speeds_7_acc[y_n * params.nx + x_e]; /* south-west */
-  const float s8 = speeds_8_acc[y_n * params.nx + x_w]; /* south-east */
+  const float s0 = speeds_0_acc[sycl::id<2>{jj, ii}]; /* central cell, no movement */
+  const float s1 = speeds_1_acc[sycl::id<2>{jj, x_w}]; /* east */
+  const float s2 = speeds_2_acc[sycl::id<2>{y_s, ii}]; /* north */
+  const float s3 = speeds_3_acc[sycl::id<2>{jj, x_e}]; /* west */
+  const float s4 = speeds_4_acc[sycl::id<2>{y_n, ii}]; /* south */
+  const float s5 = speeds_5_acc[sycl::id<2>{y_s, x_w}]; /* north-east */
+  const float s6 = speeds_6_acc[sycl::id<2>{y_s, x_e}]; /* north-west */
+  const float s7 = speeds_7_acc[sycl::id<2>{y_n, x_e}]; /* south-west */
+  const float s8 = speeds_8_acc[sycl::id<2>{y_n, x_w}]; /* south-east */
 
   /**** COLLISION STEP ****/
   /* compute local density total */
@@ -247,15 +254,15 @@ inline void lbm_computation(
                                    - u_sq / (2.f * c_sq));
 
   /**** RELAXATION STEP ****/
-  const float t0 = (obstacles_acc[jj * params.nx + ii] != 0) ? s0 : (s0 + params.omega * (d_equ0 - s0));
-  const float t1 = (obstacles_acc[jj * params.nx + ii] != 0) ? s3 : (s1 + params.omega * (d_equ1 - s1));
-  const float t2 = (obstacles_acc[jj * params.nx + ii] != 0) ? s4 : (s2 + params.omega * (d_equ2 - s2));
-  const float t3 = (obstacles_acc[jj * params.nx + ii] != 0) ? s1 : (s3 + params.omega * (d_equ3 - s3));
-  const float t4 = (obstacles_acc[jj * params.nx + ii] != 0) ? s2 : (s4 + params.omega * (d_equ4 - s4));
-  const float t5 = (obstacles_acc[jj * params.nx + ii] != 0) ? s7 : (s5 + params.omega * (d_equ5 - s5));
-  const float t6 = (obstacles_acc[jj * params.nx + ii] != 0) ? s8 : (s6 + params.omega * (d_equ6 - s6));
-  const float t7 = (obstacles_acc[jj * params.nx + ii] != 0) ? s5 : (s7 + params.omega * (d_equ7 - s7));
-  const float t8 = (obstacles_acc[jj * params.nx + ii] != 0) ? s6 : (s8 + params.omega * (d_equ8 - s8));
+  const float t0 = (obstacles_acc[idx] != 0) ? s0 : (s0 + params.omega * (d_equ0 - s0));
+  const float t1 = (obstacles_acc[idx] != 0) ? s3 : (s1 + params.omega * (d_equ1 - s1));
+  const float t2 = (obstacles_acc[idx] != 0) ? s4 : (s2 + params.omega * (d_equ2 - s2));
+  const float t3 = (obstacles_acc[idx] != 0) ? s1 : (s3 + params.omega * (d_equ3 - s3));
+  const float t4 = (obstacles_acc[idx] != 0) ? s2 : (s4 + params.omega * (d_equ4 - s4));
+  const float t5 = (obstacles_acc[idx] != 0) ? s7 : (s5 + params.omega * (d_equ5 - s5));
+  const float t6 = (obstacles_acc[idx] != 0) ? s8 : (s6 + params.omega * (d_equ6 - s6));
+  const float t7 = (obstacles_acc[idx] != 0) ? s5 : (s7 + params.omega * (d_equ7 - s7));
+  const float t8 = (obstacles_acc[idx] != 0) ? s6 : (s8 + params.omega * (d_equ8 - s8));
 
   /**** AVERAGE VELOCITIES STEP ****/
   /* local density total */
@@ -266,32 +273,49 @@ inline void lbm_computation(
   /* compute y velocity component */
   const float u_y_v = (t2 + t5 + t6 - (t4 + t7 + t8)) / local_density_v;
 
+  const size_t l_jj = item.get_local_id(0);
+  const size_t l_ii = item.get_local_id(1);
+  const sycl::id<2> l_idx{l_jj, l_ii};
+
+  const size_t g_jj = item.get_group(0);
+  const size_t g_ii = item.get_group(1);
+  const size_t l_rows = item.get_local_range(0);
+  const size_t l_cols = item.get_local_range(1);
+
   /* accumulate the norm of x- and y- velocity components */
-  local_tot_u_acc[l_jj * LOCAL_NX + l_ii] = (obstacles_acc[jj * params.nx + ii] != 0) ? 0 : sycl::sqrt((u_x_v * u_x_v) + (u_y_v * u_y_v));
+  local_tot_u_acc[l_idx] = (obstacles_acc[idx] != 0) ? 0 : sycl::sqrt((u_x_v * u_x_v) + (u_y_v * u_y_v));
 
   item.barrier(sycl::access::fence_space::local_space);
 
-  tmp_speeds_0_acc[jj * params.nx + ii] = t0;
-  tmp_speeds_1_acc[jj * params.nx + ii] = t1;
-  tmp_speeds_2_acc[jj * params.nx + ii] = t2;
-  tmp_speeds_3_acc[jj * params.nx + ii] = t3;
-  tmp_speeds_4_acc[jj * params.nx + ii] = t4;
-  tmp_speeds_5_acc[jj * params.nx + ii] = t5;
-  tmp_speeds_6_acc[jj * params.nx + ii] = t6;
-  tmp_speeds_7_acc[jj * params.nx + ii] = t7;
-  tmp_speeds_8_acc[jj * params.nx + ii] = t8;
+  tmp_speeds_0_acc[idx] = t0;
+  tmp_speeds_1_acc[idx] = t1;
+  tmp_speeds_2_acc[idx] = t2;
+  tmp_speeds_3_acc[idx] = t3;
+  tmp_speeds_4_acc[idx] = t4;
+  tmp_speeds_5_acc[idx] = t5;
+  tmp_speeds_6_acc[idx] = t6;
+  tmp_speeds_7_acc[idx] = t7;
+  tmp_speeds_8_acc[idx] = t8;
 
-  const int item_id = l_ii + LOCAL_NX * l_jj;
-  for (int offset = LOCAL_NX * LOCAL_NY / 2; offset > 0; offset >>= 1) {
-    if (item_id < offset) {
-      local_tot_u_acc[item_id] += local_tot_u_acc[item_id + offset];
+  /* Reduce across columns */
+  for (int v_offset = l_rows / 2; v_offset > 0; v_offset >>= 1) {
+    if (l_jj < v_offset) {
+      local_tot_u_acc[l_idx] += local_tot_u_acc[sycl::id<2>{l_jj + v_offset, l_ii}];
     }
     item.barrier(sycl::access::fence_space::local_space);
   }
 
-  if (item_id == 0) {
-    const int base = tt * (params.nx / LOCAL_NX) * (params.ny / LOCAL_NY);
-    partial_tot_u_acc[base + g_ii + g_jj * (params.nx / LOCAL_NX)] = local_tot_u_acc[0];
+  /* Reduce across columns */
+  for (int h_offset = l_cols / 2; h_offset > 0; h_offset >>= 1) {
+    if (l_ii < h_offset) {
+      local_tot_u_acc[l_idx] += local_tot_u_acc[sycl::id<2>{l_jj, l_ii + h_offset}];
+    }
+    item.barrier(sycl::access::fence_space::local_space);
+  }
+
+  if (l_jj == 0 && l_ii == 0) {
+    const int base = tt * (cols / l_cols) * (rows / l_rows);
+    partial_tot_u_acc[base + g_ii + g_jj * (cols / l_cols)] = local_tot_u_acc[l_idx];
   }
 }
 
@@ -346,57 +370,26 @@ int main(int argc, char* argv[]) {
     const int cols  = params.nx;
     const int iters = params.maxIters;
 
-    sycl::buffer<float, 1> speeds_0_sycl(cells->speed_0, sycl::range<1>(rows * cols));
-    sycl::buffer<float, 1> speeds_1_sycl(cells->speed_1, sycl::range<1>(rows * cols));
-    sycl::buffer<float, 1> speeds_2_sycl(cells->speed_2, sycl::range<1>(rows * cols));
-    sycl::buffer<float, 1> speeds_3_sycl(cells->speed_3, sycl::range<1>(rows * cols));
-    sycl::buffer<float, 1> speeds_4_sycl(cells->speed_4, sycl::range<1>(rows * cols));
-    sycl::buffer<float, 1> speeds_5_sycl(cells->speed_5, sycl::range<1>(rows * cols));
-    sycl::buffer<float, 1> speeds_6_sycl(cells->speed_6, sycl::range<1>(rows * cols));
-    sycl::buffer<float, 1> speeds_7_sycl(cells->speed_7, sycl::range<1>(rows * cols));
-    sycl::buffer<float, 1> speeds_8_sycl(cells->speed_8, sycl::range<1>(rows * cols));
-
-    sycl::buffer<float, 1> tmp_speeds_0_sycl(sycl::range<1>(rows * cols));
-    sycl::buffer<float, 1> tmp_speeds_1_sycl(sycl::range<1>(rows * cols));
-    sycl::buffer<float, 1> tmp_speeds_2_sycl(sycl::range<1>(rows * cols));
-    sycl::buffer<float, 1> tmp_speeds_3_sycl(sycl::range<1>(rows * cols));
-    sycl::buffer<float, 1> tmp_speeds_4_sycl(sycl::range<1>(rows * cols));
-    sycl::buffer<float, 1> tmp_speeds_5_sycl(sycl::range<1>(rows * cols));
-    sycl::buffer<float, 1> tmp_speeds_6_sycl(sycl::range<1>(rows * cols));
-    sycl::buffer<float, 1> tmp_speeds_7_sycl(sycl::range<1>(rows * cols));
-    sycl::buffer<float, 1> tmp_speeds_8_sycl(sycl::range<1>(rows * cols));
-
-    sycl::buffer<int, 1> obstacles_sycl(obstacles, sycl::range<1>(rows * cols));
-
+    sycl::buffer<float, 2> speeds_0_sycl(cells->speed_0, sycl::range<2>(rows, cols));
+    sycl::buffer<float, 2> speeds_1_sycl(cells->speed_1, sycl::range<2>(rows, cols));
+    sycl::buffer<float, 2> speeds_2_sycl(cells->speed_2, sycl::range<2>(rows, cols));
+    sycl::buffer<float, 2> speeds_3_sycl(cells->speed_3, sycl::range<2>(rows, cols));
+    sycl::buffer<float, 2> speeds_4_sycl(cells->speed_4, sycl::range<2>(rows, cols));
+    sycl::buffer<float, 2> speeds_5_sycl(cells->speed_5, sycl::range<2>(rows, cols));
+    sycl::buffer<float, 2> speeds_6_sycl(cells->speed_6, sycl::range<2>(rows, cols));
+    sycl::buffer<float, 2> speeds_7_sycl(cells->speed_7, sycl::range<2>(rows, cols));
+    sycl::buffer<float, 2> speeds_8_sycl(cells->speed_8, sycl::range<2>(rows, cols));
+    sycl::buffer<float, 2> tmp_speeds_0_sycl(sycl::range<2>(rows, cols));
+    sycl::buffer<float, 2> tmp_speeds_1_sycl(sycl::range<2>(rows, cols));
+    sycl::buffer<float, 2> tmp_speeds_2_sycl(sycl::range<2>(rows, cols));
+    sycl::buffer<float, 2> tmp_speeds_3_sycl(sycl::range<2>(rows, cols));
+    sycl::buffer<float, 2> tmp_speeds_4_sycl(sycl::range<2>(rows, cols));
+    sycl::buffer<float, 2> tmp_speeds_5_sycl(sycl::range<2>(rows, cols));
+    sycl::buffer<float, 2> tmp_speeds_6_sycl(sycl::range<2>(rows, cols));
+    sycl::buffer<float, 2> tmp_speeds_7_sycl(sycl::range<2>(rows, cols));
+    sycl::buffer<float, 2> tmp_speeds_8_sycl(sycl::range<2>(rows, cols));
+    sycl::buffer<int, 2> obstacles_sycl(obstacles, sycl::range<2>(rows, cols));
     sycl::buffer<float, 1> partial_tot_u_sycl(partial_tot_u_h, sycl::range<1>(num_wrks * iters));
-
-    try {
-      queue.submit([&] (sycl::handler& cgh) {
-
-        auto speeds_0_acc = speeds_0_sycl.get_access<sycl::access::mode::read_write>(cgh);
-        auto speeds_1_acc = speeds_1_sycl.get_access<sycl::access::mode::read_write>(cgh);
-        auto speeds_2_acc = speeds_2_sycl.get_access<sycl::access::mode::read_write>(cgh);
-        auto speeds_3_acc = speeds_3_sycl.get_access<sycl::access::mode::read_write>(cgh);
-        auto speeds_4_acc = speeds_4_sycl.get_access<sycl::access::mode::read_write>(cgh);
-        auto speeds_5_acc = speeds_5_sycl.get_access<sycl::access::mode::read_write>(cgh);
-        auto speeds_6_acc = speeds_6_sycl.get_access<sycl::access::mode::read_write>(cgh);
-        auto speeds_7_acc = speeds_7_sycl.get_access<sycl::access::mode::read_write>(cgh);
-        auto speeds_8_acc = speeds_8_sycl.get_access<sycl::access::mode::read_write>(cgh);
-
-        cgh.copy(cells->speed_0, speeds_0_acc);
-        cgh.copy(cells->speed_1, speeds_1_acc);
-        cgh.copy(cells->speed_2, speeds_2_acc);
-        cgh.copy(cells->speed_3, speeds_3_acc);
-        cgh.copy(cells->speed_4, speeds_4_acc);
-        cgh.copy(cells->speed_5, speeds_5_acc);
-        cgh.copy(cells->speed_6, speeds_6_acc);
-        cgh.copy(cells->speed_7, speeds_7_acc);
-        cgh.copy(cells->speed_8, speeds_8_acc);
-      });
-    } catch (const cl::sycl::exception& e) {
-      std::cout << "Caught SYCL exception when copying buffers to device"
-                << std::endl << e.what() << std::endl;
-    }
 
     gettimeofday(&timstr, NULL);
     tic = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
@@ -414,7 +407,6 @@ int main(int argc, char* argv[]) {
           auto speeds_6_acc = speeds_6_sycl.get_access<sycl::access::mode::read_write>(cgh);
           auto speeds_7_acc = speeds_7_sycl.get_access<sycl::access::mode::read_write>(cgh);
           auto speeds_8_acc = speeds_8_sycl.get_access<sycl::access::mode::read_write>(cgh);
-
           auto obstacles_acc = obstacles_sycl.get_access<sycl::access::mode::read>(cgh);
 
           cgh.parallel_for<class accelerate_flow_cells>(sycl::range<1>(cols), [=](sycl::item<1> item) {
@@ -442,7 +434,6 @@ int main(int argc, char* argv[]) {
           auto speeds_6_acc = speeds_6_sycl.get_access<sycl::access::mode::read>(cgh);
           auto speeds_7_acc = speeds_7_sycl.get_access<sycl::access::mode::read>(cgh);
           auto speeds_8_acc = speeds_8_sycl.get_access<sycl::access::mode::read>(cgh);
-
           auto tmp_speeds_0_acc = tmp_speeds_0_sycl.get_access<sycl::access::mode::discard_write>(cgh);
           auto tmp_speeds_1_acc = tmp_speeds_1_sycl.get_access<sycl::access::mode::discard_write>(cgh);
           auto tmp_speeds_2_acc = tmp_speeds_2_sycl.get_access<sycl::access::mode::discard_write>(cgh);
@@ -452,15 +443,14 @@ int main(int argc, char* argv[]) {
           auto tmp_speeds_6_acc = tmp_speeds_6_sycl.get_access<sycl::access::mode::discard_write>(cgh);
           auto tmp_speeds_7_acc = tmp_speeds_7_sycl.get_access<sycl::access::mode::discard_write>(cgh);
           auto tmp_speeds_8_acc = tmp_speeds_8_sycl.get_access<sycl::access::mode::discard_write>(cgh);
-
           auto obstacles_acc = obstacles_sycl.get_access<sycl::access::mode::read>(cgh);
 
-          local_accessor_t local_tot_u_acc(sycl::range<1>(LOCAL_NX * LOCAL_NY), cgh);
+          local_accessor_t local_tot_u_acc(sycl::range<2>(LOCAL_NY, LOCAL_NX), cgh);
           auto partial_tot_u_acc = partial_tot_u_sycl.get_access<sycl::access::mode::read_write>(cgh);
 
           cgh.parallel_for<class lbm_computation_cells>(sycl::nd_range<2>{
-                                                            sycl::range<2>{(size_t) cols, (size_t) rows},
-                                                            sycl::range<2>{LOCAL_NX, LOCAL_NY}},
+                                                            sycl::range<2>{(size_t) rows, (size_t) cols},
+                                                            sycl::range<2>{LOCAL_NY, LOCAL_NX}},
                                                         [=](sycl::nd_item<2> item) {
 
             lbm_computation(speeds_0_acc, speeds_1_acc, speeds_2_acc,
@@ -489,7 +479,6 @@ int main(int argc, char* argv[]) {
           auto tmp_speeds_6_acc = tmp_speeds_6_sycl.get_access<sycl::access::mode::read_write>(cgh);
           auto tmp_speeds_7_acc = tmp_speeds_7_sycl.get_access<sycl::access::mode::read_write>(cgh);
           auto tmp_speeds_8_acc = tmp_speeds_8_sycl.get_access<sycl::access::mode::read_write>(cgh);
-
           auto obstacles_acc = obstacles_sycl.get_access<sycl::access::mode::read>(cgh);
 
           cgh.parallel_for<class accelerate_flow_tmp_c>(sycl::range<1>(cols), [=](sycl::item<1> item) {
@@ -517,7 +506,6 @@ int main(int argc, char* argv[]) {
           auto speeds_6_acc = speeds_6_sycl.get_access<sycl::access::mode::discard_write>(cgh);
           auto speeds_7_acc = speeds_7_sycl.get_access<sycl::access::mode::discard_write>(cgh);
           auto speeds_8_acc = speeds_8_sycl.get_access<sycl::access::mode::discard_write>(cgh);
-
           auto tmp_speeds_0_acc = tmp_speeds_0_sycl.get_access<sycl::access::mode::read>(cgh);
           auto tmp_speeds_1_acc = tmp_speeds_1_sycl.get_access<sycl::access::mode::read>(cgh);
           auto tmp_speeds_2_acc = tmp_speeds_2_sycl.get_access<sycl::access::mode::read>(cgh);
@@ -527,15 +515,14 @@ int main(int argc, char* argv[]) {
           auto tmp_speeds_6_acc = tmp_speeds_6_sycl.get_access<sycl::access::mode::read>(cgh);
           auto tmp_speeds_7_acc = tmp_speeds_7_sycl.get_access<sycl::access::mode::read>(cgh);
           auto tmp_speeds_8_acc = tmp_speeds_8_sycl.get_access<sycl::access::mode::read>(cgh);
-
           auto obstacles_acc = obstacles_sycl.get_access<sycl::access::mode::read>(cgh);
 
-          local_accessor_t local_tot_u_acc(sycl::range<1>(LOCAL_NX * LOCAL_NY), cgh);
+          local_accessor_t local_tot_u_acc(sycl::range<2>(LOCAL_NY, LOCAL_NX), cgh);
           auto partial_tot_u_acc = partial_tot_u_sycl.get_access<sycl::access::mode::read_write>(cgh);
 
           cgh.parallel_for<class lbm_computation_tmp_c>(sycl::nd_range<2>{
-                                                            sycl::range<2>{(size_t) cols, (size_t) rows},
-                                                            sycl::range<2>{LOCAL_NX, LOCAL_NY}},
+                                                            sycl::range<2>{(size_t) rows, (size_t) cols},
+                                                            sycl::range<2>{LOCAL_NY, LOCAL_NX}},
                                                         [=](sycl::nd_item<2> item) {
 
             lbm_computation(tmp_speeds_0_acc, tmp_speeds_1_acc, tmp_speeds_2_acc,
