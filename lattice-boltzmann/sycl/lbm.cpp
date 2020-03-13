@@ -164,13 +164,22 @@ inline void lbm_computation(
   const int tt)
 {
 
+  const size_t rows = item.get_global_range()[0];
+  const size_t cols = item.get_global_range()[1];
+
+  const size_t l_rows = item.get_local_range()[0];
+  const size_t l_cols = item.get_local_range()[1];
+
   const size_t jj = item.get_global_id(0);
   const size_t ii = item.get_global_id(1);
   const sycl::id<2> idx{jj, ii};
 
-  const int rows = item.get_global_range(0);
-  const int cols = item.get_global_range(1);
+  const size_t l_jj = item.get_local_id(0);
+  const size_t l_ii = item.get_local_id(1);
+  const sycl::id<2> l_idx{l_jj, l_ii};
 
+  const size_t g_jj = item.get_group(0);
+  const size_t g_ii = item.get_group(1);
 
   const float c_sq = 1.f / 3.f;  /* square of speed of sound */
   const float w0   = 4.f / 9.f;  /* weighting factor */
@@ -273,15 +282,6 @@ inline void lbm_computation(
   /* compute y velocity component */
   const float u_y_v = (t2 + t5 + t6 - (t4 + t7 + t8)) / local_density_v;
 
-  const size_t l_jj = item.get_local_id(0);
-  const size_t l_ii = item.get_local_id(1);
-  const sycl::id<2> l_idx{l_jj, l_ii};
-
-  const size_t g_jj = item.get_group(0);
-  const size_t g_ii = item.get_group(1);
-  const size_t l_rows = item.get_local_range(0);
-  const size_t l_cols = item.get_local_range(1);
-
   /* accumulate the norm of x- and y- velocity components */
   local_tot_u_acc[l_idx] = (obstacles_acc[idx] != 0) ? 0 : sycl::sqrt((u_x_v * u_x_v) + (u_y_v * u_y_v));
 
@@ -315,7 +315,7 @@ inline void lbm_computation(
 
   if (l_jj == 0 && l_ii == 0) {
     const int base = tt * (cols / l_cols) * (rows / l_rows);
-    partial_tot_u_acc[base + g_ii + g_jj * (cols / l_cols)] = local_tot_u_acc[l_idx];
+    partial_tot_u_acc[base + g_ii * (rows / l_rows) + g_jj] = local_tot_u_acc[l_idx];
   }
 }
 
