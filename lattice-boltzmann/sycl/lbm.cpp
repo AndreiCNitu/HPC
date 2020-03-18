@@ -97,7 +97,7 @@ float calc_reynolds(const t_param params, t_soa* cells, int* obstacles);
 void die(const char* message, const int line, const char* file);
 void usage(const char* exe);
 
-inline void accelerate_flow(
+static inline void accelerate_flow(
   accessor_t speeds_0_acc,
   accessor_t speeds_1_acc,
   accessor_t speeds_2_acc,
@@ -137,7 +137,7 @@ inline void accelerate_flow(
   }
 }
 
-inline void lbm_computation(
+static inline void lbm_computation(
   read_accessor_t speeds_0_acc,
   read_accessor_t speeds_1_acc,
   read_accessor_t speeds_2_acc,
