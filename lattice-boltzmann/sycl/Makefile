@@ -15,7 +15,7 @@ lbm.sycl : lbm.cpp
 
 # Intel SYCL
 intel :
-	clang++ -fsycl $(SRC) -o $(EXE)
+	clang++ --gcc-toolchain=/nfs/software/x86_64/gcc/7.4.0 -fsycl $(SRC) -o $(EXE)
 
 # hipSYCL
 2080ti :
