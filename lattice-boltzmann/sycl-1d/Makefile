@@ -11,10 +11,10 @@ lbm.o : lbm.cpp lbm.sycl
 	$(CXX) -O3 -std=c++11 -DSYCL -DCL_TARGET_OPENCL_VERSION=220 lbm.cpp -c -I$(COMPUTECPP_PACKAGE_ROOT_DIR)/include -include lbm.sycl $(EXTRA_FLAGS) -o $@
 
 lbm.sycl : lbm.cpp
-	$(COMPUTECPP_PACKAGE_ROOT_DIR)/bin/compute++ -DSYCL -DCL_TARGET_OPENCL_VERSION=220 lbm.cpp $(COMPUTECPP_FLAGS) -c -I$(COMPUTECPP_PACKAGE_ROOT_DIR)/include -o $@
+	$(COMPUTECPP_PACKAGE_ROOT_DIR)/bin/compute++ -no-serial-memop -DSYCL -DCL_TARGET_OPENCL_VERSION=220 lbm.cpp $(COMPUTECPP_FLAGS) -c -I$(COMPUTECPP_PACKAGE_ROOT_DIR)/include -o $@
 
 # Intel SYCL
-intel :
+llvm :
 	clang++ --gcc-toolchain=/nfs/software/x86_64/gcc/7.4.0 -fsycl $(SRC) -o $(EXE)
 
 # hipSYCL
